@@ -1,0 +1,255 @@
+﻿species,trektellen_species_id,match_to_ebird,species_code,taxon_concept_id,category,English name,scientific name,order,family
+Sizerin cabaret,,exact,lesred1,avibase-D41F1614,species,Lesser Redpoll,Acanthis cabaret,Passeriformes,"Fringillidae (Finches, Euphonias, and Allies)"
+Sizerin flammé/cabaret,410,exact,y00763,avibase-3D1C0668,slash,Common/Lesser Redpoll,Acanthis flammea/cabaret,Passeriformes,"Fringillidae (Finches, Euphonias, and Allies)"
+Autour des palombes,99,exact,norgos1,avibase-95DD1855,species,Eurasian Goshawk,Accipiter gentilis,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Épervier d'Europe,100,exact,eurspa1,avibase-DB376A66,species,Eurasian Sparrowhawk,Accipiter nisus,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Autour / Epervier,585,exact,y00392,avibase-3598C8A6,slash,Eurasian Sparrowhawk/Eurasian Goshawk,Accipiter nisus/gentilis,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Aigle indéterminé,,exact,eagle1,avibase-69E3504C,spuh,eagle sp.,Accipitridae sp. (eagle sp.),Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Buse ou Bondrée,999,inexact,hawk,avibase-84E0CEF2,spuh,hawk sp.,Accipitridae sp. (hawk sp.),Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Rapace indéterminé,997,exact,diurap1,avibase-0C24147B,spuh,diurnal raptor sp.,Accipitriformes/Falconiformes sp.,,
+MediumRaptor,1150,inexact,diurap1,avibase-0C24147B,spuh,diurnal raptor sp.,Accipitriformes/Falconiformes sp.,0,0
+Chevalier guignette,,exact,comsan,avibase-8548B07E,species,Common Sandpiper,Actitis hypoleucos,Charadriiformes,Scolopacidae (Sandpipers and Allies)
+Mésange à longue queue,,exact,lottit1,avibase-547163C2,species,Long-tailed Tit,Aegithalos caudatus,Passeriformes,Aegithalidae (Long-tailed Tits)
+Alouette des champs,268,exact,skylar,avibase-ED2AC04E,species,Eurasian Skylark,Alauda arvensis,Passeriformes,Alaudidae (Larks)
+Alouette indéterminée,758,exact,lark1,avibase-20C23C74,spuh,lark sp.,Alaudidae sp.,Passeriformes,Alaudidae (Larks)
+Martin-pêcheur d'Europe,,exact,comkin1,avibase-9505E03D,species,Common Kingfisher,Alcedo atthis,Coraciiformes,Alcedinidae (Kingfishers)
+Ouette d’Égypte,52,exact,egygoo,avibase-DA2F24E3,species,Egyptian Goose,Alopochen aegyptiaca,Anseriformes,"Anatidae (Ducks, Geese, and Waterfowl)"
+Ouette d’Egypte,,exact,egygoo,avibase-DA2F24E3,species,Egyptian Goose,Alopochen aegyptiaca,Anseriformes,"Anatidae (Ducks, Geese, and Waterfowl)"
+Canard pilet,63,exact,norpin,avibase-56CCA717,species,Northern Pintail,Anas acuta,Anseriformes,"Anatidae (Ducks, Geese, and Waterfowl)"
+Sarcelle d'hiver,,exact,gnwtea,avibase-BC6C3CCE,species,Green-winged Teal,Anas crecca,Anseriformes,"Anatidae (Ducks, Geese, and Waterfowl)"
+Canard colvert,,exact,mallar3,avibase-85625D75,species,Mallard,Anas platyrhynchos,Anseriformes,"Anatidae (Ducks, Geese, and Waterfowl)"
+Canard indéterminé,984,exact,duck1,avibase-D7BF5045,spuh,duck sp.,Anatidae (duck sp.),Anseriformes,"Anatidae (Ducks, Geese, and Waterfowl)"
+Oie indéterminée,,exact,goose1,avibase-A0148BE3,spuh,goose sp.,Anatidae (goose sp.),Anseriformes,"Anatidae (Ducks, Geese, and Waterfowl)"
+Canard de surface indeterminé,556,exact,dabduc1,,spuh,dabbling duck sp.,Anatidae sp.,Anseriformes,"Anatidae (Ducks, Geese, and Waterfowl)"
+Oie cendrée,45,exact,gragoo,avibase-4AED44E8,species,Graylag Goose,Anser anser,Anseriformes,"Anatidae (Ducks, Geese, and Waterfowl)"
+Pipit rousseline,275,exact,tawpip1,avibase-250CDA58,species,Tawny Pipit,Anthus campestris,Passeriformes,Motacillidae (Wagtails and Pipits)
+Pipit à gorge rousse,,exact,retpip,avibase-319D044A,species,Red-throated Pipit,Anthus cervinus,Passeriformes,Motacillidae (Wagtails and Pipits)
+Pipit farlouse,278,exact,meapip1,avibase-14873249,species,Meadow Pipit,Anthus pratensis,Passeriformes,Motacillidae (Wagtails and Pipits)
+Pipit indéterminé,766,exact,pipit1,avibase-AD6E9B95,spuh,pipit sp.,Anthus sp.,Passeriformes,Motacillidae (Wagtails and Pipits)
+Pipit spioncelle,280,exact,watpip1,avibase-0A3FA185,species,Water Pipit,Anthus spinoletta,Passeriformes,Motacillidae (Wagtails and Pipits)
+Pipit des arbres,277,exact,trepip,avibase-365F5E97,species,Tree Pipit,Anthus trivialis,Passeriformes,Motacillidae (Wagtails and Pipits)
+Martinet indéterminé,737,exact,swift1,avibase-F7D77F4A,spuh,swift sp.,Apodidae sp.,Caprimulgiformes,Apodidae (Swifts)
+Martinet noir,249,exact,comswi,avibase-4E6EF3F9,species,Common Swift,Apus apus,Caprimulgiformes,Apodidae (Swifts)
+Martinet noir / pâle,,exact,y00732,avibase-DBACF9F8,slash,Common/Pallid Swift,Apus apus/pallidus,Caprimulgiformes,Apodidae (Swifts)
+Martinet pâle,,exact,palswi3,avibase-332BC664,species,Pallid Swift,Apus pallidus,Caprimulgiformes,Apodidae (Swifts)
+Aigle royal,107,exact,goleag,avibase-5F8E7CA8,species,Golden Eagle,Aquila chrysaetos,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Aigle des steppes,,exact,steeag1,avibase-A635F565,species,Steppe Eagle,Aquila nipalensis,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Grande Aigrette,28,exact,greegr,avibase-49D9148A,species,Great Egret,Ardea alba,Pelecaniformes,"Ardeidae (Herons, Egrets, and Bitterns)"
+Héron cendré,29,exact,graher1,avibase-6429024D,species,Gray Heron,Ardea cinerea,Pelecaniformes,"Ardeidae (Herons, Egrets, and Bitterns)"
+Héron pourpré,30,exact,purher1,avibase-3395DCF1,species,Purple Heron,Ardea purpurea,Pelecaniformes,"Ardeidae (Herons, Egrets, and Bitterns)"
+Héron indéterminé,526,exact,heron1,avibase-4D321548,spuh,heron sp.,Ardeidae sp.,Pelecaniformes,"Ardeidae (Herons, Egrets, and Bitterns)"
+Hibou des marais,,exact,sheowl,avibase-8F123A11,species,Short-eared Owl,Asio flammeus,Strigiformes,Strigidae (Owls)
+Fuligule milouin,,exact,compoc,avibase-A96692E0,species,Common Pochard,Aythya ferina,Anseriformes,"Anatidae (Ducks, Geese, and Waterfowl)"
+Héron garde-boeufs,26,exact,categr1,avibase-AB1CB216,species,Western Cattle Egret,Bubulcus ibis,Pelecaniformes,"Ardeidae (Herons, Egrets, and Bitterns)"
+Garrot à oeil d’or,,exact,comgol,avibase-68EA281A,species,Common Goldeneye,Bucephala clangula,Anseriformes,"Anatidae (Ducks, Geese, and Waterfowl)"
+Buse variable,101,exact,combuz1,avibase-3C0C325D,species,Common Buzzard,Buteo buteo,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Buse pattue,,exact,rolhaw,avibase-90B13ACF,species,Rough-legged Hawk,Buteo lagopus,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Buse indéterminée,586,exact,buteo,avibase-E91E7830,spuh,Buteo sp.,Buteo sp.,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Alouette calandrelle,,exact,gstlar1,avibase-4091A51E,species,Greater Short-toed Lark,Calandrella brachydactyla,Passeriformes,Alaudidae (Larks)
+Bécasseau variable,,exact,dunlin,avibase-15369E8E,species,Dunlin,Calidris alpina,Charadriiformes,Scolopacidae (Sandpipers and Allies)
+Combattant varié,,exact,ruff,avibase-2DABF98F,species,Ruff,Calidris pugnax,Charadriiformes,Scolopacidae (Sandpipers and Allies)
+Chardonneret élégant,406,exact,eurgol,avibase-1B235E00,species,European Goldfinch,Carduelis carduelis,Passeriformes,"Fringillidae (Finches, Euphonias, and Allies)"
+Venturon montagnard,,exact,citfin1,avibase-039E0011,species,Citril Finch,Carduelis citrinella,Passeriformes,"Fringillidae (Finches, Euphonias, and Allies)"
+Grimpereau des jardins,380,exact,shttre1,avibase-552E2BA9,species,Short-toed Treecreeper,Certhia brachydactyla,Passeriformes,Certhiidae (Treecreepers)
+Pluvier indéterminé,1478,exact,plover2,avibase-83F7457A,spuh,plover sp.,Charadriidae sp.,Charadriiformes,Charadriidae (Plovers and Lapwings)
+limicole indéterminé,672,exact,shoreb1,avibase-7FC8B7ED,spuh,shorebird sp.,Charadriiformes sp.,Charadriiformes,
+Petit limicole indéterminé,,inexact,shoreb1,avibase-7FC8B7ED,spuh,shorebird sp.,Charadriiformes sp.,Charadriiformes,
+Petit gravelot,140,exact,lirplo,avibase-35EC3BBF,species,Little Ringed Plover,Charadrius dubius,Charadriiformes,Charadriidae (Plovers and Lapwings)
+Grand Gravelot,,exact,corplo,avibase-EDA37B7C,species,Common Ringed Plover,Charadrius hiaticula,Charadriiformes,Charadriidae (Plovers and Lapwings)
+Gravelot indéterminé,642,exact,charad2,avibase-A40CC76C,spuh,Charadrius sp.,Charadrius sp.,Charadriiformes,Charadriidae (Plovers and Lapwings)
+Guifette moustac,,exact,whiter2,avibase-7AB4E42B,species,Whiskered Tern,Chlidonias hybrida,Charadriiformes,"Laridae (Gulls, Terns, and Skimmers)"
+Guifette noire,,exact,blkter,avibase-115AF02D,species,Black Tern,Chlidonias niger,Charadriiformes,"Laridae (Gulls, Terns, and Skimmers)"
+Verdier d'Europe,405,exact,eurgre1,avibase-65BD2033,species,European Greenfinch,Chloris chloris,Passeriformes,"Fringillidae (Finches, Euphonias, and Allies)"
+Mouette rieuse,200,exact,bkhgul,avibase-FB02DD96,species,Black-headed Gull,Chroicocephalus ridibundus,Charadriiformes,"Laridae (Gulls, Terns, and Skimmers)"
+Cigogne blanche,32,exact,whisto1,avibase-28825494,species,White Stork,Ciconia ciconia,Ciconiiformes,Ciconiidae (Storks)
+Cigogne noire,31,exact,blasto1,avibase-E2817DAE,species,Black Stork,Ciconia nigra,Ciconiiformes,Ciconiidae (Storks)
+Cigogne indéterminée,528,exact,stork1,avibase-E6E02622,spuh,stork sp.,Ciconiidae sp.,Ciconiiformes,Ciconiidae (Storks)
+Circaète Jean-le-Blanc,94,exact,shteag1,avibase-8372FFBA,species,Short-toed Snake-Eagle,Circaetus gallicus,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Busard des roseaux,95,exact,wemhar1,avibase-E2A19474,species,Western Marsh Harrier,Circus aeruginosus,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Busard Saint-Martin,96,exact,norhar1,avibase-F558C7F9,species,Hen Harrier,Circus cyaneus,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Busard pâle,97,exact,palhar1,avibase-22647E26,species,Pallid Harrier,Circus macrourus,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Busard pâle / cendré,912,exact,y00720,avibase-AEEF72BC,slash,Pallid/Montagu's Harrier,Circus macrourus/pygargus,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Busard cendré,98,exact,monhar1,avibase-63B6412E,species,Montagu's Harrier,Circus pygargus,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Busard indéterminé,584,exact,harrie1,avibase-C235C72D,spuh,harrier sp.,Circus sp.,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Busard pâle / cendré / Saint-Martin,1102,inexact,harrie1,avibase-C235C72D,spuh,harrier sp.,Circus sp.,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Cisticole des joncs,328,exact,zitcis1,avibase-AEE2063F,species,Zitting Cisticola,Cisticola juncidis,Passeriformes,Cisticolidae (Cisticolas and Allies)
+Aigle criard,106,exact,grseag1,avibase-BAC4CA22,species,Greater Spotted Eagle,Clanga clanga,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Aigle pomarin,105,exact,leseag1,avibase-C2565B65,species,Lesser Spotted Eagle,Clanga pomarina,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Aigle hybride pomarin x criard,,exact,x00843,avibase-D49A669A,hybrid,Lesser x Greater Spotted Eagle (hybrid),Clanga pomarina x clanga,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Aigle pomarin ou criard,,exact,y00718,avibase-2A16982E,slash,Lesser/Greater Spotted Eagle,Clanga pomarina/clanga,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Grosbec casse-noyaux,421,exact,hawfin,avibase-84E1F114,species,Hawfinch,Coccothraustes coccothraustes,Passeriformes,"Fringillidae (Finches, Euphonias, and Allies)"
+Pigeon biset,231,exact,rocpig,avibase-BBA263C2,species,Rock Pigeon,Columba livia,Columbiformes,Columbidae (Pigeons and Doves)
+Pigeon biset domestique,985,exact,rocpig1,avibase-533DD36C,domestic,Rock Pigeon (Feral Pigeon),Columba livia (Feral Pigeon),Columbiformes,Columbidae (Pigeons and Doves)
+Pigeon colombin,232,exact,stodov1,avibase-68E4C0D1,species,Stock Dove,Columba oenas,Columbiformes,Columbidae (Pigeons and Doves)
+Pigeon ramier,233,exact,cowpig1,avibase-760F307A,species,Common Wood-Pigeon,Columba palumbus,Columbiformes,Columbidae (Pigeons and Doves)
+Pigeon indéterminé,981,exact,columb1,avibase-F837F893,spuh,Columba sp.,Columba sp.,Columbiformes,Columbidae (Pigeons and Doves)
+Rollier d'Europe,255,exact,eurrol1,avibase-7451A628,species,European Roller,Coracias garrulus,Coraciiformes,Coraciidae (Rollers)
+Grand Corbeau,396,exact,comrav,avibase-B9B272F4,species,Common Raven,Corvus corax,Passeriformes,"Corvidae (Crows, Jays, and Magpies)"
+Corneille mantelée,395,exact,hoocro1,avibase-F13D8350,species,Hooded Crow,Corvus cornix,Passeriformes,"Corvidae (Crows, Jays, and Magpies)"
+Corneille noire,394,exact,carcro1,avibase-26FB62DA,species,Carrion Crow,Corvus corone,Passeriformes,"Corvidae (Crows, Jays, and Magpies)"
+Corbeau freux,393,exact,rook1,avibase-1078FFEA,species,Rook,Corvus frugilegus,Passeriformes,"Corvidae (Crows, Jays, and Magpies)"
+Choucas des tours,391,exact,eurjac,avibase-D4C32F8E,species,Eurasian Jackdaw,Corvus monedula,Passeriformes,"Corvidae (Crows, Jays, and Magpies)"
+corvidé indéterminé,998,exact,y00639,avibase-F00CC288,spuh,crow/raven sp.,Corvus sp.,Passeriformes,"Corvidae (Crows, Jays, and Magpies)"
+Coucou gris,,exact,comcuc,avibase-B3D2C3C5,species,Common Cuckoo,Cuculus canorus,Cuculiformes,Cuculidae (Cuckoos)
+Fauvette grisette,348,exact,leswhi4,avibase-0DCD05BE,species,Lesser Whitethroat,Curruca curruca,Passeriformes,Sylviidae (Sylviid Warblers and Allies)
+Mésange bleue,376,exact,blutit,avibase-9BE53D34,species,Eurasian Blue Tit,Cyanistes caeruleus,Passeriformes,"Paridae (Tits, Chickadees, and Titmice)"
+Hirondelle de fenêtre,273,exact,comhom1,avibase-30FEC6BE,species,Western House-Martin,Delichon urbicum,Passeriformes,Hirundinidae (Swallows)
+Pic épeiche,261,exact,grswoo,avibase-D754DB85,species,Great Spotted Woodpecker,Dendrocopos major,Piciformes,Picidae (Woodpeckers)
+Pic mar,262,exact,miswoo1,avibase-504B2FD4,species,Middle Spotted Woodpecker,Dendrocoptes medius,Piciformes,Picidae (Woodpeckers)
+Pic épeichette,263,exact,leswoo1,avibase-AB2F4BC0,species,Lesser Spotted Woodpecker,Dryobates minor,Piciformes,Picidae (Woodpeckers)
+Pic noir,260,exact,blawoo1,avibase-EDB4BBA6,species,Black Woodpecker,Dryocopus martius,Piciformes,Picidae (Woodpeckers)
+Aigrette garzette,27,exact,litegr,avibase-F2858F9F,species,Little Egret,Egretta garzetta,Pelecaniformes,"Ardeidae (Herons, Egrets, and Bitterns)"
+Élanion blanc,87,exact,bkskit1,avibase-97C47F3E,species,Black-winged Kite,Elanus caeruleus,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Bruant proyer,440,exact,corbun1,avibase-9A87EBB0,species,Corn Bunting,Emberiza calandra,Passeriformes,Emberizidae (Old World Buntings)
+Bruant fou,902,exact,rocbun1,avibase-4836E64E,species,Rock Bunting,Emberiza cia,Passeriformes,Emberizidae (Old World Buntings)
+Bruant zizi,430,exact,cirbun1,avibase-9AAB8C21,species,Cirl Bunting,Emberiza cirlus,Passeriformes,Emberizidae (Old World Buntings)
+Bruant jaune,429,exact,yellow2,avibase-56FB47C0,species,Yellowhammer,Emberiza citrinella,Passeriformes,Emberizidae (Old World Buntings)
+Bruant ortolan,,exact,ortbun1,avibase-47210561,species,Ortolan Bunting,Emberiza hortulana,Passeriformes,Emberizidae (Old World Buntings)
+Bruant des roseaux,438,exact,reebun,avibase-C0B97874,species,Reed Bunting,Emberiza schoeniclus,Passeriformes,Emberizidae (Old World Buntings)
+Bruant indéterminé,907,exact,emberi1,avibase-869B5DF7,spuh,Emberiza sp.,Emberiza sp.,Passeriformes,Emberizidae (Old World Buntings)
+Rougegorge familier,296,exact,eurrob1,avibase-C809B2B9,species,European Robin,Erithacus rubecula,Passeriformes,Muscicapidae (Old World Flycatchers)
+Pluvier guignard,144,exact,eurdot,avibase-20BE9DF1,species,Eurasian Dotterel,Eudromias morinellus,Charadriiformes,Charadriidae (Plovers and Lapwings)
+Faucon lanier,598,exact,lanfal1,avibase-3D3808E3,species,Lanner Falcon,Falco biarmicus,Falconiformes,Falconidae (Falcons and Caracaras)
+Faucon émerillon,112,exact,merlin,avibase-F3DA111C,species,Merlin,Falco columbarius,Falconiformes,Falconidae (Falcons and Caracaras)
+Faucon pèlerin,115,exact,perfal,avibase-47E58408,species,Peregrine Falcon,Falco peregrinus,Falconiformes,Falconidae (Falcons and Caracaras)
+Faucon indéterminé,602,exact,falcon,avibase-A28F0D10,spuh,falcon sp.,Falco sp.,Falconiformes,Falconidae (Falcons and Caracaras)
+Faucon hobereau,113,exact,eurhob,avibase-E91E287A,species,Eurasian Hobby,Falco subbuteo,Falconiformes,Falconidae (Falcons and Caracaras)
+Faucon crécerelle,110,exact,eurkes,avibase-2DAB45B8,species,Eurasian Kestrel,Falco tinnunculus,Falconiformes,Falconidae (Falcons and Caracaras)
+Faucon kobez,111,exact,reffal1,avibase-997A9437,species,Red-footed Falcon,Falco vespertinus,Falconiformes,Falconidae (Falcons and Caracaras)
+Gobemouche noir,368,exact,eupfly1,avibase-6E352E18,species,European Pied Flycatcher,Ficedula hypoleuca,Passeriformes,Muscicapidae (Old World Flycatchers)
+Pinson des arbres,402,exact,comcha,avibase-6364E4A5,species,Common Chaffinch,Fringilla coelebs,Passeriformes,"Fringillidae (Finches, Euphonias, and Allies)"
+Pinson des arbres / du Nord,1127,exact,y01056,avibase-B55CD676,slash,Common Chaffinch/Brambling,Fringilla coelebs/montifringilla,Passeriformes,"Fringillidae (Finches, Euphonias, and Allies)"
+Pinson du Nord,403,exact,brambl,avibase-E16B2C03,species,Brambling,Fringilla montifringilla,Passeriformes,"Fringillidae (Finches, Euphonias, and Allies)"
+Fringille indéterminé,879,exact,finch1,avibase-B20C6C46,spuh,finch sp.,Fringillidae sp.,Passeriformes,"Fringillidae (Finches, Euphonias, and Allies)"
+Bécassine des marais,167,exact,comsni,avibase-9151E0BA,species,Common Snipe,Gallinago gallinago,Charadriiformes,Scolopacidae (Sandpipers and Allies)
+Bécassine indéterminée,,exact,snipe2,avibase-2914C00D,spuh,snipe sp.,Gallinago sp.,Charadriiformes,Scolopacidae (Sandpipers and Allies)
+Geai des chênes,387,exact,eurjay1,avibase-D8D10F2C,species,Eurasian Jay,Garrulus glandarius,Passeriformes,"Corvidae (Crows, Jays, and Magpies)"
+Grue cendrée,129,exact,comcra,avibase-99B8841E,species,Common Crane,Grus grus,Gruiformes,Gruidae (Cranes)
+Vautour fauve,92,exact,eurgri1,avibase-5D1987CE,species,Eurasian Griffon,Gyps fulvus,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Huîtrier pie,,exact,euroys1,avibase-ED663165,species,Eurasian Oystercatcher,Haematopus ostralegus,Charadriiformes,Haematopodidae (Oystercatchers)
+Pygargue à queue blanche,91,exact,whteag,avibase-5A3D91D3,species,White-tailed Eagle,Haliaeetus albicilla,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Aigle botté,592,exact,booeag1,avibase-4B8CC285,species,Booted Eagle,Hieraaetus pennatus,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Hirondelle indéterminée,763,exact,swallo,avibase-55CCEE2D,spuh,swallow sp.,Hirundinidae sp.,Passeriformes,Hirundinidae (Swallows)
+Hirondelle rustique,271,exact,barswa,avibase-58C502EA,species,Barn Swallow,Hirundo rustica,Passeriformes,Hirundinidae (Swallows)
+Mouette pygmée,,exact,litgul,avibase-F89FD6E3,species,Little Gull,Hydrocoloeus minutus,Charadriiformes,"Laridae (Gulls, Terns, and Skimmers)"
+Sterne caspienne,214,exact,caster1,avibase-BC06BC0D,species,Caspian Tern,Hydroprogne caspia,Charadriiformes,"Laridae (Gulls, Terns, and Skimmers)"
+Mouette mélanocéphale,196,exact,medgul1,avibase-052BFA8A,species,Mediterranean Gull,Ichthyaetus melanocephalus,Charadriiformes,"Laridae (Gulls, Terns, and Skimmers)"
+Pie-grièche grise,385,exact,norshr1,avibase-DB2501EE,species,Great Gray Shrike,Lanius excubitor,Passeriformes,Laniidae (Shrikes)
+Mouette indéterminée,989,inexact,larus,avibase-8D04DAAF,spuh,gull sp.,Larinae sp.,Charadriiformes,"Laridae (Gulls, Terns, and Skimmers)"
+Goéland indéterminé,990,exact,larus,avibase-8D04DAAF,spuh,gull sp.,Larinae sp.,Charadriiformes,"Laridae (Gulls, Terns, and Skimmers)"
+Goéland cendré,,exact,mewgul,avibase-00DA9D91,species,Common Gull,Larus canus,Charadriiformes,"Laridae (Gulls, Terns, and Skimmers)"
+Goéland brun,203,exact,lbbgul,avibase-2D52E3A5,species,Lesser Black-backed Gull,Larus fuscus,Charadriiformes,"Laridae (Gulls, Terns, and Skimmers)"
+Goéland leucophée,445,exact,yelgul1,avibase-E074D706,species,Yellow-legged Gull,Larus michahellis,Charadriiformes,"Laridae (Gulls, Terns, and Skimmers)"
+Laridé indéterminé,690,exact,larus1,avibase-E8FAD0BB,spuh,Larus sp.,Larus sp.,Charadriiformes,"Laridae (Gulls, Terns, and Skimmers)"
+Barge rousse,,exact,batgod,avibase-9A684C99,species,Bar-tailed Godwit,Limosa lapponica,Charadriiformes,Scolopacidae (Sandpipers and Allies)
+Linotte mélodieuse,408,exact,eurlin1,avibase-32635892,species,Eurasian Linnet,Linaria cannabina,Passeriformes,"Fringillidae (Finches, Euphonias, and Allies)"
+Bec-croisé des sapins,415,exact,redcro,avibase-135564AA,species,Red Crossbill,Loxia curvirostra,Passeriformes,"Fringillidae (Finches, Euphonias, and Allies)"
+Alouette lulu,267,exact,woolar1,avibase-742EC2F1,species,Wood Lark,Lullula arborea,Passeriformes,Alaudidae (Larks)
+Bécassine sourde,,exact,jacsni,avibase-1A15F0C6,species,Jack Snipe,Lymnocryptes minimus,Charadriiformes,Scolopacidae (Sandpipers and Allies)
+Canard siffleur,,exact,eurwig,avibase-15EE0D36,species,Eurasian Wigeon,Mareca penelope,Anseriformes,"Anatidae (Ducks, Geese, and Waterfowl)"
+Canard chipeau,,exact,gadwal,avibase-C235A4D7,species,Gadwall,Mareca strepera,Anseriformes,"Anatidae (Ducks, Geese, and Waterfowl)"
+Macreuse noire,,exact,blksco1,avibase-24698199,species,Common Scoter,Melanitta nigra,Anseriformes,"Anatidae (Ducks, Geese, and Waterfowl)"
+Harle bièvre,84,exact,commer,avibase-407E2CA8,species,Common Merganser,Mergus merganser,Anseriformes,"Anatidae (Ducks, Geese, and Waterfowl)"
+Harle huppé,,exact,rebmer,avibase-8DB64266,species,Red-breasted Merganser,Mergus serrator,Anseriformes,"Anatidae (Ducks, Geese, and Waterfowl)"
+Guêpier d'Europe,254,exact,eubeat1,avibase-66AA3934,species,European Bee-eater,Merops apiaster,Coraciiformes,Meropidae (Bee-eaters)
+Cormoran pygmée,1011,exact,pygcor2,avibase-AFF49475,species,Pygmy Cormorant,Microcarbo pygmaeus,Suliformes,Phalacrocoracidae (Cormorants and Shags)
+Milan noir,88,exact,blakit1,avibase-06D9A2C8,species,Black Kite,Milvus migrans,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Milan royal,89,exact,redkit1,avibase-451D6FC8,species,Red Kite,Milvus milvus,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Milan indéterminé,,inexact,y00611,avibase-3335DE79,slash,Red/Black Kite,Milvus milvus/migrans,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Bergeronnette grise,289,exact,whiwag,avibase-400E032C,species,White Wagtail,Motacilla alba,Passeriformes,Motacillidae (Wagtails and Pipits)
+Bergeronnette des ruisseaux,287,exact,grywag,avibase-AE073221,species,Gray Wagtail,Motacilla cinerea,Passeriformes,Motacillidae (Wagtails and Pipits)
+Bergeronnette printanière,282,exact,eaywag1,avibase-5983D677,species,Western Yellow Wagtail,Motacilla flava,Passeriformes,Motacillidae (Wagtails and Pipits)
+Bergeronnette printanière/Béringie,281,exact,y00597,avibase-1F56DC34,slash,Western/Eastern Yellow Wagtail,Motacilla flava/tschutschensis,Passeriformes,Motacillidae (Wagtails and Pipits)
+Bergeronnette indéterminée,1061,exact,wagtai1,avibase-F8FCE84A,spuh,wagtail sp.,Motacilla sp.,Passeriformes,Motacillidae (Wagtails and Pipits)
+Gobemouche gris,365,exact,spofly1,avibase-EE8206E7,species,Spotted Flycatcher,Muscicapa striata,Passeriformes,Muscicapidae (Old World Flycatchers)
+Nette rousse,,exact,recpoc,avibase-3EC2CDA9,species,Red-crested Pochard,Netta rufina,Anseriformes,"Anatidae (Ducks, Geese, and Waterfowl)"
+Cassenoix moucheté,,exact,eurnut1,avibase-76C74B10,species,Eurasian Nutcracker,Nucifraga caryocatactes,Passeriformes,"Corvidae (Crows, Jays, and Magpies)"
+Courlis cendré,175,exact,eurcur,avibase-3BB5CBA6,species,Eurasian Curlew,Numenius arquata,Charadriiformes,Scolopacidae (Sandpipers and Allies)
+Courlis corlieu,173,exact,whimbr,avibase-F9305BAA,species,Whimbrel,Numenius phaeopus,Charadriiformes,Scolopacidae (Sandpipers and Allies)
+Courlis indéterminé,665,exact,curlew1,avibase-568DE12E,spuh,curlew sp.,Numenius sp.,Charadriiformes,Scolopacidae (Sandpipers and Allies)
+Bihoreau gris,24,exact,bcnher,avibase-6BB94D7E,species,Black-crowned Night Heron,Nycticorax nycticorax,Pelecaniformes,"Ardeidae (Herons, Egrets, and Bitterns)"
+Traquet motteux,307,exact,norwhe,avibase-DF526047,species,Northern Wheatear,Oenanthe oenanthe,Passeriformes,Muscicapidae (Old World Flycatchers)
+Loriot d'Europe,382,exact,eugori2,avibase-92A772BB,species,Eurasian Golden Oriole,Oriolus oriolus,Passeriformes,Oriolidae (Old World Orioles)
+Balbuzard pêcheur,109,exact,osprey,avibase-1327AC55,species,Osprey,Pandion haliaetus,Accipitriformes,Pandionidae (Osprey)
+Mésange indéterminée,1063,exact,parid1,avibase-399FA405,spuh,parid sp.,Paridae sp.,Passeriformes,"Paridae (Tits, Chickadees, and Titmice)"
+Mésange charbonnière,377,exact,gretit1,avibase-E15BC0CB,species,Great Tit,Parus major,Passeriformes,"Paridae (Tits, Chickadees, and Titmice)"
+Moineau domestique,399,exact,houspa,avibase-240E3390,species,House Sparrow,Passer domesticus,Passeriformes,Passeridae (Old World Sparrows)
+Moineau friquet,,exact,eutspa,avibase-C22FBF8D,species,Eurasian Tree Sparrow,Passer montanus,Passeriformes,Passeridae (Old World Sparrows)
+Passereau indéterminé,995,exact,passer1,avibase-CFD25837,spuh,passerine sp.,Passeriformes sp.,Passeriformes,
+Pélican blanc,,exact,grwpel1,avibase-8BAFB01E,species,Great White Pelican,Pelecanus onocrotalus,Pelecaniformes,Pelecanidae (Pelicans)
+Pélican indéterminé,,exact,pelica1,avibase-E578ADF2,spuh,pelican sp.,Pelecanus sp.,Pelecaniformes,Pelecanidae (Pelicans)
+Mésange noire,375,exact,coatit2,avibase-166CD440,species,Coal Tit,Periparus ater,Passeriformes,"Paridae (Tits, Chickadees, and Titmice)"
+Bondrée apivore,86,exact,euhbuz1,avibase-ED5A7E8F,species,European Honey-buzzard,Pernis apivorus,Accipitriformes,"Accipitridae (Hawks, Eagles, and Kites)"
+Grand Cormoran,20,exact,grecor,avibase-3DF5C587,species,Great Cormorant,Phalacrocorax carbo,Suliformes,Phalacrocoracidae (Cormorants and Shags)
+Faisan de colchide,121,exact,rinphe1,avibase-2FA39DCD,species,Ring-necked Pheasant,Phasianus colchicus,Galliformes,"Phasianidae (Pheasants, Grouse, and Allies)"
+Rougequeue noir,303,exact,blared1,avibase-612B5C24,species,Black Redstart,Phoenicurus ochruros,Passeriformes,Muscicapidae (Old World Flycatchers)
+Rougequeue à front blanc,304,exact,comred2,avibase-06DD9D95,species,Common Redstart,Phoenicurus phoenicurus,Passeriformes,Muscicapidae (Old World Flycatchers)
+Pouillot véloce,359,exact,comchi1,avibase-F9F4B04D,species,Common Chiffchaff,Phylloscopus collybita,Passeriformes,Phylloscopidae (Leaf Warblers)
+Pouillot à grands sourcils,,exact,yebwar3,avibase-0C120038,species,Yellow-browed Warbler,Phylloscopus inornatus,Passeriformes,Phylloscopidae (Leaf Warblers)
+Pouillot indéterminé,837,exact,phyllo1,avibase-60A9B5E3,spuh,Phylloscopus sp.,Phylloscopus sp.,Passeriformes,Phylloscopidae (Leaf Warblers)
+Pouillot fitis,361,exact,wlwwar,avibase-88F4B969,species,Willow Warbler,Phylloscopus trochilus,Passeriformes,Phylloscopidae (Leaf Warblers)
+Pie bavarde,388,exact,eurmag1,avibase-FBBBA943,species,Eurasian Magpie,Pica pica,Passeriformes,"Corvidae (Crows, Jays, and Magpies)"
+Pic vert,259,exact,eugwoo2,avibase-A01014FF,species,Eurasian Green Woodpecker,Picus viridis,Piciformes,Picidae (Woodpeckers)
+Spatule blanche,34,exact,eurspo1,avibase-A0A584C1,species,Eurasian Spoonbill,Platalea leucorodia,Pelecaniformes,Threskiornithidae (Ibises and Spoonbills)
+Ibis falcinelle,33,exact,gloibi,avibase-D4540F88,species,Glossy Ibis,Plegadis falcinellus,Pelecaniformes,Threskiornithidae (Ibises and Spoonbills)
+Pluvier doré,,exact,eugplo,avibase-25A20BA6,species,European Golden-Plover,Pluvialis apricaria,Charadriiformes,Charadriidae (Plovers and Lapwings)
+Pluvier argenté,,exact,bkbplo,avibase-27903EF7,species,Black-bellied Plover,Pluvialis squatarola,Charadriiformes,Charadriidae (Plovers and Lapwings)
+Mésange nonnette,,exact,martit2,avibase-523763E5,species,Marsh Tit,Poecile palustris,Passeriformes,"Paridae (Tits, Chickadees, and Titmice)"
+Accenteur mouchet,294,exact,dunnoc1,avibase-26530C86,species,Dunnock,Prunella modularis,Passeriformes,Prunellidae (Accentors)
+Hirondelle de rochers,761,exact,eurcrm1,avibase-6F2AF9D0,species,Eurasian Crag-Martin,Ptyonoprogne rupestris,Passeriformes,Hirundinidae (Swallows)
+Bouvreuil pivoine,419,exact,eurbul,avibase-24764DC7,species,Eurasian Bullfinch,Pyrrhula pyrrhula,Passeriformes,"Fringillidae (Finches, Euphonias, and Allies)"
+Bouvreuil trompetant,,inexact,eurbul,avibase-24764DC7,species,Eurasian Bullfinch,Pyrrhula pyrrhula,Passeriformes,"Fringillidae (Finches, Euphonias, and Allies)"
+Avocette élégante,,exact,pieavo1,avibase-C73ED2F5,species,Pied Avocet,Recurvirostra avosetta,Charadriiformes,Recurvirostridae (Stilts and Avocets)
+Roitelet à triple bandeau,364,exact,firecr1,avibase-85B03849,species,Common Firecrest,Regulus ignicapilla,Passeriformes,Regulidae (Kinglets)
+Roitelet huppé,,exact,goldcr1,avibase-1C51C109,species,Goldcrest,Regulus regulus,Passeriformes,Regulidae (Kinglets)
+Rémiz penduline,381,exact,euptit1,avibase-F81EB049,species,Eurasian Penduline-Tit,Remiz pendulinus,Passeriformes,Remizidae (Penduline-Tits)
+Hirondelle de rivage,270,exact,banswa,avibase-94A1C447,species,Bank Swallow,Riparia riparia,Passeriformes,Hirundinidae (Swallows)
+Mouette tridactyle,,exact,bklkit,avibase-FB4D08F0,species,Black-legged Kittiwake,Rissa tridactyla,Charadriiformes,"Laridae (Gulls, Terns, and Skimmers)"
+Tarier des prés,305,exact,whinch1,avibase-A0EDAEA2,species,Whinchat,Saxicola rubetra,Passeriformes,Muscicapidae (Old World Flycatchers)
+Tarier pâtre,306,exact,stonec4,avibase-0EA8F8B9,species,European Stonechat,Saxicola rubicola,Passeriformes,Muscicapidae (Old World Flycatchers)
+Bécasse des bois,170,exact,eurwoo,,species,Eurasian Woodcock,Scolopax rusticola,Charadriiformes,Scolopacidae (Sandpipers and Allies)
+Serin cini,404,exact,eurser1,avibase-C3227709,species,European Serin,Serinus serinus,Passeriformes,"Fringillidae (Finches, Euphonias, and Allies)"
+Sittelle torchepot,378,exact,eurnut2,avibase-9C2B53A0,species,Eurasian Nuthatch,Sitta europaea,Passeriformes,Sittidae (Nuthatches)
+Canard souchet,,exact,norsho,avibase-ED4CE8E7,species,Northern Shoveler,Spatula clypeata,Anseriformes,"Anatidae (Ducks, Geese, and Waterfowl)"
+Sarcelle d'été,,exact,gargan,avibase-F577BA0F,species,Garganey,Spatula querquedula,Anseriformes,"Anatidae (Ducks, Geese, and Waterfowl)"
+Tarin des aulnes,407,exact,eursis,avibase-9820CECA,species,Eurasian Siskin,Spinus spinus,Passeriformes,"Fringillidae (Finches, Euphonias, and Allies)"
+Labbe à longue queue,,exact,lotjae,avibase-1D446440,species,Long-tailed Jaeger,Stercorarius longicaudus,Charadriiformes,Stercorariidae (Skuas and Jaegers)
+Labbe parasite,192,exact,parjae,avibase-39086887,species,Parasitic Jaeger,Stercorarius parasiticus,Charadriiformes,Stercorariidae (Skuas and Jaegers)
+Labbe pomarin,,exact,pomjae,avibase-7CB8F5B7,species,Pomarine Jaeger,Stercorarius pomarinus,Charadriiformes,Stercorariidae (Skuas and Jaegers)
+Grand Labbe,194,exact,gresku1,avibase-BB041C6E,species,Great Skua,Stercorarius skua,Charadriiformes,Stercorariidae (Skuas and Jaegers)
+Labbe indéterminé,455,exact,y00615,avibase-070E73F9,spuh,jaeger/skua sp.,Stercorarius sp.,Charadriiformes,Stercorariidae (Skuas and Jaegers)
+Sterne pierregarin,,exact,comter,avibase-4D2FF6F1,species,Common Tern,Sterna hirundo,Charadriiformes,"Laridae (Gulls, Terns, and Skimmers)"
+Sterne naine,,exact,litter1,avibase-17310BF0,species,Little Tern,Sternula albifrons,Charadriiformes,"Laridae (Gulls, Terns, and Skimmers)"
+Tourterelle turque,234,exact,eucdov,avibase-0C1EFC9B,species,Eurasian Collared-Dove,Streptopelia decaocto,Columbiformes,Columbidae (Pigeons and Doves)
+Tourterelle des bois,235,exact,eutdov,avibase-5788552B,species,European Turtle-Dove,Streptopelia turtur,Columbiformes,Columbidae (Pigeons and Doves)
+Étourneau sansonnet,397,exact,eursta,avibase-94A44032,species,European Starling,Sturnus vulgaris,Passeriformes,Sturnidae (Starlings)
+Fauvette à tête noire,350,exact,blackc1,avibase-61F9065B,species,Eurasian Blackcap,Sylvia atricapilla,Passeriformes,Sylviidae (Sylviid Warblers and Allies)
+Martinet à ventre blanc,250,exact,alpswi1,avibase-FA1CAD29,species,Alpine Swift,Tachymarptis melba,Caprimulgiformes,Apodidae (Swifts)
+Tadorne casarca,,exact,rudshe,avibase-1F9D883E,species,Ruddy Shelduck,Tadorna ferruginea,Anseriformes,"Anatidae (Ducks, Geese, and Waterfowl)"
+Tadorne de Belon,54,exact,comshe,avibase-5EAB32D3,species,Common Shelduck,Tadorna tadorna,Anseriformes,"Anatidae (Ducks, Geese, and Waterfowl)"
+Ibis sacré,,exact,sacibi2,avibase-550DE745,species,African Sacred Ibis,Threskiornis aethiopicus,Pelecaniformes,Threskiornithidae (Ibises and Spoonbills)
+Tichodrome échelette,,exact,wallcr1,avibase-89C42590,species,Wallcreeper,Tichodroma muraria,Passeriformes,Tichodromidae (Wallcreeper)
+Chevalier arlequin,176,exact,spored,avibase-0895DD84,species,Spotted Redshank,Tringa erythropus,Charadriiformes,Scolopacidae (Sandpipers and Allies)
+Chevalier sylvain,183,exact,woosan,avibase-8E67DC5F,species,Wood Sandpiper,Tringa glareola,Charadriiformes,Scolopacidae (Sandpipers and Allies)
+Chevalier aboyeur,180,exact,comgre,avibase-18B415D2,species,Common Greenshank,Tringa nebularia,Charadriiformes,Scolopacidae (Sandpipers and Allies)
+Chevalier culblanc,182,exact,grnsan,avibase-A7B17EFC,species,Green Sandpiper,Tringa ochropus,Charadriiformes,Scolopacidae (Sandpipers and Allies)
+Chevalier indéterminé,2305,exact,tringa1,avibase-59C39D59,spuh,Tringa sp.,Tringa sp.,Charadriiformes,Scolopacidae (Sandpipers and Allies)
+Chevalier gambette,,exact,comred1,avibase-D6BFC73A,species,Common Redshank,Tringa totanus,Charadriiformes,Scolopacidae (Sandpipers and Allies)
+Grive mauvis,325,exact,redwin,avibase-A8A85BCF,species,Redwing,Turdus iliacus,Passeriformes,Turdidae (Thrushes and Allies)
+Merle noir,315,exact,eurbla,avibase-88BB4F2A,species,Eurasian Blackbird,Turdus merula,Passeriformes,Turdidae (Thrushes and Allies)
+Grive musicienne,324,exact,sonthr1,avibase-D929EB21,species,Song Thrush,Turdus philomelos,Passeriformes,Turdidae (Thrushes and Allies)
+Grive litorne,323,exact,fieldf,avibase-D120D5A0,species,Fieldfare,Turdus pilaris,Passeriformes,Turdidae (Thrushes and Allies)
+Grive indeterminé,806,exact,turdus1,avibase-690E6849,spuh,Turdus sp.,Turdus sp.,Passeriformes,Turdidae (Thrushes and Allies)
+Merle / Grive indéterminé,,exact,turdus1,avibase-690E6849,spuh,Turdus sp.,Turdus sp.,Passeriformes,Turdidae (Thrushes and Allies)
+Merle à plastron,,exact,rinouz1,avibase-CE71B4FF,species,Ring Ouzel,Turdus torquatus,Passeriformes,Turdidae (Thrushes and Allies)
+Grive draine,326,exact,misthr1,avibase-A95B43F1,species,Mistle Thrush,Turdus viscivorus,Passeriformes,Turdidae (Thrushes and Allies)
+Vanneau huppé,150,exact,norlap,avibase-F029489A,species,Northern Lapwing,Vanellus vanellus,Charadriiformes,Charadriidae (Plovers and Lapwings)
+Aucune espèce,480,inexact,,,,No species,,,
+Vulcain,983,none,,,,Red admiral (butterfly),,,
+Vanesse du chardon,1064,none,,,,Vanesse du chardon (butterfly),,,
+Piéride du chou,1067,none,,,,Large white (butterfly),,,
+Souci,1070,none,,,,colias sp. (butterfly),,,
+Pieris species,1074,none,,,,Pieris (butterfly),,,
+Moro-Sphinx,1098,none,,,,Hummingbird hawk-moth,,,
+Citron,1924,none,,,,Common brimstone (butterfly),,,
+Sympétrum indéterminé,4614,,,,,Sympetrum sp. (dragonfly),,,

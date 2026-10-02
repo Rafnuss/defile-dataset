@@ -1,0 +1,7 @@
+# Built tables and reports: regenerate with `python scripts/build_dataset.py`, publish as a release.
+output/
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+~$*.xlsx
