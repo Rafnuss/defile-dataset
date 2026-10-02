@@ -118,7 +118,3 @@ def read_trektellen(raw_dir: str) -> tuple[pd.DataFrame, pd.DataFrame]:
     )
     sightings["datetime"] = local_to_utc(local)
     return sightings, counts
-
-
-def read_taxonomy(path: str) -> pd.DataFrame:
-    return pd.read_csv(path)

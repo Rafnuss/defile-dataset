@@ -9,19 +9,40 @@ from defile_dataset import build as B
 from defile_dataset.checks import run_checks
 from defile_dataset.read import local_to_utc
 from defile_dataset.site import TIMEZONE, civil_twilight
+from defile_dataset.taxonomy import AVILIST_VERSION, Taxonomy, resolve
 
-TAXONOMY = pd.DataFrame(
-    {
-        "species": ["Milan royal", "Aucune espèce"],
-        "trektellen_species_id": [1, 480],
-        "English name": ["Red Kite", "No species"],
-        "scientific name": ["Milvus milvus", None],
-        "species_code": ["redkit1", None],
-        "taxon_concept_id": ["avibase-451D6FC8", None],
-        "category": ["species", None],
-        "order": ["Accipitriformes", None],
-        "family": ["Accipitridae", None],
-    }
+RED_KITE = "avibase-451D6FC8"
+TAXONOMY = Taxonomy(
+    source_taxa=pd.DataFrame(
+        {
+            "source": ["historical", "historical", "trektellen", "trektellen"],
+            "taxon_name_original": ["Milan royal", "Aucune espèce", "Red Kite", "Vulcain"],
+            "trektellen_species_id": pd.array([None, None, 1, 983], dtype="Int64"),
+            "avibase_id": [RED_KITE, None, RED_KITE, None],
+            "kind": ["bird", "no_species", "bird", "non_bird"],
+        }
+    ),
+    avilist=pd.DataFrame(
+        {
+            "scientific_name": ["Milvus milvus"],
+            "english_name": ["Red Kite"],
+            "taxon_rank": ["species"],
+            "order": ["Accipitriformes"],
+            "family": ["Accipitridae"],
+        },
+        index=pd.Index([RED_KITE]),
+    ),
+    ebird=pd.DataFrame(
+        {
+            "scientific_name": ["Milvus milvus"],
+            "english_name": ["Red Kite (eBird)"],
+            "taxon_rank": ["species"],
+            "order": ["Accipitriformes"],
+            "family": ["Accipitridae"],
+            "ebird_code": ["redkit1"],
+        },
+        index=pd.Index([RED_KITE]),
+    ),
 )
 DAY = "2023-08-01"
 
@@ -89,7 +110,10 @@ def test_timestamps_are_adjusted_or_flagged_never_removed():
     assert _flags(o, "T4") == B.FLAG_UNTIMED_IN_TIMED_SURVEY
     assert _flags(o, "T5") == B.FLAG_NO_SURVEY
     assert set(issues["issue"]) == {"Timestamp outside period", "Entry without time"}
-    assert o["english_name"].eq("Red Kite").all()
+    # Names from AviList, eBird code and name kept alongside.
+    assert o["english_name"].eq("Red Kite").all() and o["avibase_id"].eq(RED_KITE).all()
+    assert o["ebird_english_name"].eq("Red Kite (eBird)").all()
+    assert o["taxonomy_source"].eq(AVILIST_VERSION).all()
 
 
 def test_overlapping_counts_keep_the_longest():
@@ -150,14 +174,36 @@ def test_historical_surveys_are_unique_periods():
     assert list(surveys["survey_id"]) == ["H20150915-0800-0900", "H20150915-1000-1100"]
     assert o["observation_id"].tolist()[0] == "H-2014-2016-r2"
     assert o["flags"].tolist() == ["", "", "", B.FLAG_NO_TIME]
-    assert o["english_name"].tolist()[1] == "No species"
+    assert o["taxon_kind"].tolist() == ["bird", "no_species", "bird", "bird"]
+    assert pd.isna(o["avibase_id"].iloc[1])
 
 
 def test_checks_pass_on_a_clean_build():
     s, c = _trektellen([(1, 10, "06:30", 1, 5)], [(10, "06:00", "09:00", 0)])
     hist = _historical([("Milan royal", "08:00", "09:00", 3)])
     ds = B.build(hist, s, c, TAXONOMY)
-    status = {ch.name: ch.status for ch in run_checks(ds)}
+    status = {ch.name: ch.status for ch in run_checks(ds, TAXONOMY)}
     assert status["Unique ids"] == "pass"
     assert status["No overlapping surveys"] == "pass"
     assert status["Every observation has its survey"] == "pass"
+    assert status["Taxa in source_taxa.csv"] == "pass"
+    assert status["Avibase ids in the checklists"] == "pass"
+
+
+def test_unknown_trektellen_id_is_reported():
+    s, c = _trektellen([(1, 10, "06:30", 777, 5)], [(10, "06:00", "09:00", 0)])
+    hist = _historical([("Milan royal", "08:00", "09:00", 3)])
+    ds = B.build(hist, s, c, TAXONOMY)
+    status = {ch.name: ch.status for ch in run_checks(ds, TAXONOMY)}
+    assert status["Taxa in source_taxa.csv"] == "fail"
+
+
+def test_resolve_falls_back_to_ebird_field_by_field():
+    avilist = TAXONOMY.avilist.assign(english_name=[None])
+    t = resolve(pd.Series([RED_KITE, "avibase-UNKNOWN"]), avilist, TAXONOMY.ebird)
+    kite, unknown = t.iloc[0], t.iloc[1]
+    assert (
+        kite["scientific_name"] == "Milvus milvus" and kite["english_name"] == "Red Kite (eBird)"
+    )
+    assert kite["taxonomy_source"] == AVILIST_VERSION
+    assert pd.isna(unknown["taxonomy_source"])

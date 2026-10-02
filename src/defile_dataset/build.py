@@ -17,6 +17,7 @@ import numpy as np
 import pandas as pd
 
 from defile_dataset.site import NIGHT_SUN_ALTITUDE, TIMEZONE, civil_twilight
+from defile_dataset.taxonomy import TAXON_COLUMNS, Taxonomy
 
 # Trektellen: an entry timestamped up to this long outside its count period is moved just
 # inside it (`time_adjusted`); further out, it is flagged `time_outside_survey`.
@@ -42,15 +43,6 @@ FLAG_UNTIMED_IN_TIMED_SURVEY = "untimed_in_timed_survey"
 FLAG_START_CLIPPED = "start_clipped_to_dawn"
 FLAG_END_CLIPPED = "end_clipped_to_dusk"
 
-TAXON_COLUMNS = {
-    "English name": "english_name",
-    "scientific name": "scientific_name",
-    "species_code": "ebird_code",
-    "taxon_concept_id": "avibase_id",
-    "category": "taxon_category",
-    "order": "order",
-    "family": "family",
-}
 
 SURVEY_COLUMNS = [
     "survey_id",
@@ -97,7 +89,7 @@ OBSERVATION_COLUMNS = [
     "datetime_original",
     "taxon_name_original",
     "trektellen_species_id",
-    *TAXON_COLUMNS.values(),
+    *TAXON_COLUMNS,
     "count",
     "flags",
 ]
@@ -183,23 +175,12 @@ def _species_counts(g: pd.DataFrame, top: int = 4) -> str:
     return text + (", ..." if len(by) > top else "")
 
 
-def with_taxonomy(df: pd.DataFrame, taxonomy: pd.DataFrame, left_on: str, right_on: str):
-    """Add the TAXON_COLUMNS of taxonomy.csv (NaN when unmatched)."""
-    tax = taxonomy[[right_on, *TAXON_COLUMNS]].dropna(subset=[right_on])
-    if right_on == "trektellen_species_id":
-        tax = tax.astype({right_on: int})
-    tax = tax.rename(columns={right_on: "_key", **TAXON_COLUMNS})
-    out = df.merge(tax, how="left", left_on=left_on, right_on="_key").drop(columns="_key")
-    assert len(out) == len(df), f"taxonomy.csv has duplicate {right_on}"
-    return out
-
-
 # ---------------------------------------------------------------------------------------
 # Historical data (count_2021.xlsx, 1966-2021)
 # ---------------------------------------------------------------------------------------
 
 
-def historical_tables(hist: pd.DataFrame, taxonomy: pd.DataFrame):
+def historical_tables(hist: pd.DataFrame, taxonomy: Taxonomy):
     """Returns (surveys, observations, issues). A survey is one (start, end) period."""
     h = hist.copy()
     surveyed = h["start"].notna() & h["end"].notna()
@@ -222,7 +203,7 @@ def historical_tables(hist: pd.DataFrame, taxonomy: pd.DataFrame):
     h["datetime"] = h["datetime_original"] = pd.NaT
     h["trektellen_species_id"] = pd.NA
     h = h.rename(columns={"species": "taxon_name_original", **HISTORICAL_OBSERVATION_COLUMNS})
-    h = with_taxonomy(h, taxonomy, left_on="taxon_name_original", right_on="species")
+    h = taxonomy.add_to(h, "historical")
     obs = h[OBSERVATION_COLUMNS + list(HISTORICAL_OBSERVATION_COLUMNS.values())]
     return surveys, obs, pd.DataFrame(columns=ISSUE_COLUMNS)
 
@@ -293,7 +274,7 @@ def _issues_by_survey(rows: pd.DataFrame, surveys: pd.DataFrame, issue: str, det
     return out
 
 
-def trektellen_tables(sightings: pd.DataFrame, counts: pd.DataFrame, taxonomy: pd.DataFrame):
+def trektellen_tables(sightings: pd.DataFrame, counts: pd.DataFrame, taxonomy: Taxonomy):
     """Returns (surveys, observations, issues). A survey is one Trektellen count period."""
     issues = []
 
@@ -391,15 +372,13 @@ def trektellen_tables(sightings: pd.DataFrame, counts: pd.DataFrame, taxonomy: p
         f"day: {_species_counts(g)}.",
     )
 
-    o = with_taxonomy(
-        o, taxonomy, left_on="trektellen_species_id", right_on="trektellen_species_id"
-    )
+    o = taxonomy.add_to(o, "trektellen")
     surveys = s[SURVEY_COLUMNS + list(TREKTELLEN_SURVEY_COLUMNS.values())]
     obs = o[OBSERVATION_COLUMNS + list(TREKTELLEN_OBSERVATION_COLUMNS.values())]
     return surveys, obs, pd.DataFrame(issues, columns=ISSUE_COLUMNS)
 
 
-def build(hist, sightings, counts, taxonomy) -> Dataset:
+def build(hist, sightings, counts, taxonomy: Taxonomy) -> Dataset:
     hs, ho, hi = historical_tables(hist, taxonomy)
     ts, to, ti = trektellen_tables(sightings, counts, taxonomy)
     surveys = (

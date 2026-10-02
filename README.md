@@ -41,7 +41,8 @@ so consumers can pin a version.
 | `raw/historical/count_2021.xlsx` | All records 1966-2021, cleaned by hand (see below). Sheets `1966-2013` (one total per species per survey, mostly whole days), `2014-2016` (hourly paper forms), `2017-2021` (Naturalist entries, assigned to hours), and `Pression observation` (day survey windows, already merged into the record sheets' `startTimeDay`/`endTimeDay`). |
 | `raw/historical/sources/` | The files `count_2021.xlsx` was built from, kept for reference. Not read by the build. |
 | `raw/trektellen/` | Yearly Trektellen exports for site 2422, read from 2022 (the 2021 export, day totals only, duplicates the 2021 of `count_2021.xlsx` and is not read): `Trektellen_data_2422_<year>.xlsx` (one row per entry) and `Trektellen_headerdata_2422_<year>.xlsx` (one row per count period). Every year present is read; to add a year, add its two files. |
-| `taxonomy/taxonomy.csv` | Name mapping: French name (historical) and Trektellen species id to English and scientific names, eBird code and Avibase id (eBird/Clements taxonomy). |
+| `taxonomy/source_taxa.csv` | The only hand-maintained taxonomy file: every historical (French) name and Trektellen species id, mapped to an `avibase_id`, with its `kind` (`bird`, `no_species`, `non_bird`), a `mapping_note` and a `review` mark on judgement calls. |
+| `taxonomy/reference/` | The reference checklists, as downloaded: AviList v2025 (extended) and the eBird/Clements v2025 integrated checklist. |
 
 ### Manual cleaning of the pre-2021 data
 
@@ -95,7 +96,9 @@ one count period of the header export (an hour, part of a day or a whole day).
 | `source`, `date` | As in `surveys`. |
 | `datetime`, `datetime_original` | Trektellen entry time, UTC, after / before correction; empty when not timed, and for all historical records. |
 | `taxon_name_original`, `trektellen_species_id` | As recorded. Trektellen names are in the export's language, which varies by year: use the id. |
-| `english_name`, `scientific_name`, `ebird_code`, `avibase_id`, `taxon_category`, `order`, `family` | From `taxonomy/taxonomy.csv`; empty for taxa missing from it (see the report). `No species` is a placeholder some sheets use to record a survey with no bird. |
+| `avibase_id`, `taxon_kind` | From `taxonomy/source_taxa.csv`. `taxon_kind`: `bird`, `no_species` (a placeholder some sheets use to record a survey with no bird; no `avibase_id`) or `non_bird` (butterflies, dragonflies; no `avibase_id`). |
+| `scientific_name`, `english_name`, `taxon_rank`, `order`, `family`, `taxonomy_source` | From the `avibase_id`: AviList where it has the taxon, field by field, else eBird/Clements (slashes, "sp.", hybrids, eBird groups; English names of AviList subspecies). `taxonomy_source` says which checklist named the taxon. |
+| `ebird_code`, `ebird_english_name` | eBird/Clements code and English name of the same `avibase_id`, when eBird has it (defile-migration-forecast uses these names). |
 | `count` | Birds. Trektellen: `direction1`, birds moving in the main migration direction. Historical: the recorded total. |
 | `flags` | See below. |
 | `sheet`, `row`, `time_local`, `in_list`, `estimation`, `detail`, `details`, `comment`, `list_comment`, `remark` | Historical columns as in `count_2021.xlsx` (`time_local`: Naturalist entry time, 2017-2021). |
@@ -121,19 +124,37 @@ All corrections are on Trektellen data; the historical data was corrected by han
 | `no_survey` | observation | Count id missing from the header export. |
 | `no_time` | observation | Historical record without start or end time. |
 
+## Taxonomy
+
+Observations are identified by their **Avibase concept id** (`avibase_id`), stable across
+checklists and versions. `taxonomy/source_taxa.csv` maps each source name or id to it, once;
+names, ranks and families then come from the reference checklists, never typed by hand:
+AviList first, eBird/Clements where AviList has no entry (it lists only species and
+subspecies) or leaves a field empty.
+
+Where AviList and eBird draw a species differently, the mapping follows AviList: Hooded Crow
+and Carrion Crow are mapped to AviList's subspecies *Corvus corone cornix* and *C. c. corone*
+(eBird keeps them as two species). Rows marked `review` in `source_taxa.csv` are the judgement
+calls worth a second look.
+
+**Upgrading a checklist:** add the new file to `taxonomy/reference/`, update `AVILIST_FILE` /
+`EBIRD_FILE` and the version labels in `src/defile_dataset/taxonomy.py`, rebuild. The check
+*Avibase ids in the checklists* lists every id the new versions no longer contain (typically
+after a split): re-map those rows. **A new Trektellen species** (an id not in
+`source_taxa.csv`) fails the check *Taxa in source_taxa.csv*: add a row for it.
+
 ## Checks
 
 Run on every build, listed in the report: unique ids; every observation has its survey;
 positive durations; no overlapping surveys (duplicates excluded); surveys in daylight; no survey
-over 16 h; timestamps inside their survey; taxa in `taxonomy.csv`; stable observation ids.
+over 16 h; timestamps inside their survey; every taxon in `source_taxa.csv`, every bird with an
+`avibase_id`, and every `avibase_id` in AviList or eBird; stable observation ids.
 
 ## Known limits
 
 - **Days with no record at all are missing** before 2022: effort is only known through
   records. The `Pression observation` sheet has the day windows, including days without
   records; it is not read yet.
-- **Taxonomy** is eBird/Clements. A mapping to AviList (and a check of every name against the
-  GBIF backbone) is planned for the GBIF export.
 - **Observer names** are in `surveys.observers` (Trektellen). The repo is private; publishing
   them needs the observers' agreement.
 

@@ -3,8 +3,9 @@ repos:
     rev: v4.4.0
     hooks:
       - id: check-added-large-files
-        # The raw Excel files (up to ~12 MB) are the point of this repo.
-        exclude: ^raw/
+        # The raw Excel files and the reference checklists (up to ~12 MB) are the point of
+        # this repo.
+        exclude: ^(raw|taxonomy/reference)/
       - id: check-merge-conflict
       - id: check-yaml
       - id: end-of-file-fixer

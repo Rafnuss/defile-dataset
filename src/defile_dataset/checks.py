@@ -15,6 +15,13 @@ from defile_dataset.build import (
     has_flag,
 )
 from defile_dataset.site import NIGHT_SUN_ALTITUDE, civil_twilight
+from defile_dataset.taxonomy import (
+    AVILIST_VERSION,
+    EBIRD_VERSION,
+    KIND_BIRD,
+    SOURCE_TAXA_FILE,
+    Taxonomy,
+)
 
 LONG_SURVEY_WARNING = pd.Timedelta(hours=16)  # a July dawn-to-dusk day is ~15 h 20
 
@@ -31,7 +38,7 @@ def _check(name, bad: pd.DataFrame, detail: str, severity="fail") -> Check:
     return Check(name, "pass" if bad.empty else severity, detail, bad)
 
 
-def run_checks(ds: Dataset) -> list[Check]:
+def run_checks(ds: Dataset, taxonomy: Taxonomy) -> list[Check]:
     s, o = ds.surveys, ds.observations
     checks = []
 
@@ -112,7 +119,7 @@ def run_checks(ds: Dataset) -> list[Check]:
         )
     )
 
-    unm = o[o["english_name"].isna()]
+    unm = o[o["taxon_kind"].isna()]
     by = (
         unm.groupby(["source", "taxon_name_original", "trektellen_species_id"], dropna=False)[
             "count"
@@ -123,13 +130,36 @@ def run_checks(ds: Dataset) -> list[Check]:
     )
     checks.append(
         _check(
-            "Taxa in taxonomy.csv",
+            "Taxa in source_taxa.csv",
             by,
-            f"{len(unm)} observation(s) of {len(by)} taxa are not in taxonomy/taxonomy.csv "
-            "(no English or scientific name).",
-            "warn",
+            f"{len(unm)} observation(s) of {len(by)} source taxa (historical name or Trektellen "
+            f"id) are missing from {SOURCE_TAXA_FILE}: add a row for each, with its avibase_id.",
         )
     )
+
+    st = taxonomy.source_taxa
+    bad = st[(st["kind"] == KIND_BIRD) & st["avibase_id"].isna()]
+    checks.append(
+        _check(
+            "Every bird taxon has an avibase_id",
+            bad,
+            f"{len(bad)} bird row(s) of {SOURCE_TAXA_FILE} without avibase_id.",
+        )
+    )
+
+    t = taxonomy.taxa
+    bad = st.merge(t[t["taxonomy_source"].isna()][["avibase_id"]], on="avibase_id")
+    checks.append(
+        _check(
+            "Avibase ids in the checklists",
+            bad,
+            f"{len(bad)} row(s) of {SOURCE_TAXA_FILE} have an avibase_id found in neither "
+            f"{AVILIST_VERSION} nor {EBIRD_VERSION} (after an upgrade: usually a split). Re-map "
+            "them.",
+        )
+    )
+    by = t.groupby("taxonomy_source").size().to_dict()
+    checks.append(Check("Taxonomy source", "pass", f"Taxa named from each checklist: {by}."))
 
     synth = o[(o["source"] == "trektellen") & o["trektellen_data_id"].isna()]
     by = synth.groupby(synth["date"].dt.year).size().rename("observations").reset_index()

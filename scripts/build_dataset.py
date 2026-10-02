@@ -22,9 +22,14 @@ from defile_dataset import read  # noqa: E402
 from defile_dataset.build import build  # noqa: E402
 from defile_dataset.checks import run_checks  # noqa: E402
 from defile_dataset.report import render  # noqa: E402
+from defile_dataset.taxonomy import (  # noqa: E402
+    AVILIST_FILE,
+    EBIRD_FILE,
+    SOURCE_TAXA_FILE,
+    Taxonomy,
+)
 
 RAW_DIR = os.path.join(ROOT, "raw")
-TAXONOMY_FILE = os.path.join(ROOT, "taxonomy", "taxonomy.csv")
 
 
 def _sha256(path: str) -> str:
@@ -56,10 +61,10 @@ def main(argv=None) -> int:
     print(f"Reading {read.HISTORICAL_FILE} and Trektellen {years} ...")
     hist = read.read_historical(RAW_DIR)
     sightings, counts = read.read_trektellen(RAW_DIR)
-    taxonomy = read.read_taxonomy(TAXONOMY_FILE)
+    taxonomy = Taxonomy.load(ROOT)
 
     ds = build(hist, sightings, counts, taxonomy)
-    checks = run_checks(ds)
+    checks = run_checks(ds, taxonomy)
     for c in checks:
         print(f"  [{c.status:4s}] {c.name}: {c.detail}")
     print(f"  {ds.issues['survey_id'].nunique()} Trektellen counts with entries to correct.")
@@ -85,7 +90,8 @@ def main(argv=None) -> int:
         "years": f"{ds.surveys['date'].dt.year.min()}-{ds.surveys['date'].dt.year.max()}",
         "checks": {c.name: c.status for c in checks},
         "inputs": {
-            f: _sha256(os.path.join(ROOT, f)) for f in raw_files + ["taxonomy/taxonomy.csv"]
+            f: _sha256(os.path.join(ROOT, f))
+            for f in raw_files + [SOURCE_TAXA_FILE, AVILIST_FILE, EBIRD_FILE]
         },
     }
     with open(os.path.join(args.out, "metadata.json"), "w") as f:
