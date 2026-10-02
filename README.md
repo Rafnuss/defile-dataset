@@ -40,7 +40,7 @@ so consumers can pin a version.
 | --- | --- |
 | `raw/historical/count_2021.xlsx` | All records 1966-2021, cleaned by hand (see below). Sheets `1966-2013` (one total per species per survey, mostly whole days), `2014-2016` (hourly paper forms), `2017-2021` (Naturalist entries, assigned to hours), and `Pression observation` (day survey windows, already merged into the record sheets' `startTimeDay`/`endTimeDay`). |
 | `raw/historical/sources/` | The files `count_2021.xlsx` was built from, kept for reference. Not read by the build. |
-| `raw/trektellen/` | Yearly Trektellen exports for site 2422, 2022 on: `Trektellen_data_2422_<year>.xlsx` (one row per entry) and `Trektellen_headerdata_2422_<year>.xlsx` (one row per count period). Every year present is read; to add a year, add its two files. |
+| `raw/trektellen/` | Yearly Trektellen exports for site 2422, read from 2022 (the 2021 export, day totals only, duplicates the 2021 of `count_2021.xlsx` and is not read): `Trektellen_data_2422_<year>.xlsx` (one row per entry) and `Trektellen_headerdata_2422_<year>.xlsx` (one row per count period). Every year present is read; to add a year, add its two files. |
 | `taxonomy/taxonomy.csv` | Name mapping: French name (historical) and Trektellen species id to English and scientific names, eBird code and Avibase id (eBird/Clements taxonomy). |
 
 ### Manual cleaning of the pre-2021 data
@@ -117,7 +117,7 @@ All corrections are on Trektellen data; the historical data was corrected by han
 | `duplicate_survey` (and `duplicate_of` on the survey) | observation | Count periods that overlap count the same birds twice (e.g. a day summary and a detailed list of part of it): the longest of each overlapping group is kept, the others' entries are flagged. |
 | `time_adjusted` | observation | Timestamp less than 10 min before its period start, or at or less than 10 min after its end: moved to start + 1 min / end - 1 min. |
 | `time_outside_survey` | observation | Timestamp further outside its period. |
-| `untimed_in_timed_survey` | observation | No timestamp, in a count where most entries have one. |
+| `untimed_in_timed_survey` | observation | No timestamp, in a count where most entries with migrating birds (`count > 0`) have one. |
 | `no_survey` | observation | Count id missing from the header export. |
 | `no_time` | observation | Historical record without start or end time. |
 
@@ -129,9 +129,6 @@ over 16 h; timestamps inside their survey; taxa in `taxonomy.csv`; stable observ
 
 ## Known limits
 
-- **2022-2023 Trektellen exports have no data id**, so those observation ids are only stable
-  for this export. Re-exporting those years from Trektellen should fix it; needed before a GBIF
-  publication (occurrence ids must be stable).
 - **Days with no record at all are missing** before 2022: effort is only known through
   records. The `Pression observation` sheet has the day windows, including days without
   records; it is not read yet.

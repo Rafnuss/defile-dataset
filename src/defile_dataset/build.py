@@ -26,7 +26,8 @@ TIMESTAMP_NUDGE = pd.Timedelta(minutes=1)
 # NIGHT_SUN_ALTITUDE) is clipped to dawn/dusk. Counts entered the same evening end at most
 # ~30 min after dusk; every period beyond 45 min was entered days to months later.
 NIGHT_TOLERANCE = pd.Timedelta(minutes=45)
-# Trektellen: a survey counts as timed when fewer than this share of its entries lack a time;
+# Trektellen: a survey counts as timed when fewer than this share of its entries with migrating
+# birds lack a time;
 # its untimed entries are then flagged `untimed_in_timed_survey`.
 UNTIMED_SHARE_TIMED_SURVEY = 0.5
 
@@ -375,7 +376,9 @@ def trektellen_tables(sightings: pd.DataFrame, counts: pd.DataFrame, taxonomy: p
     )
 
     inside = valid & ~outside
-    untimed_share = o["datetime"].isna()[inside].groupby(o["survey_id"][inside]).mean()
+    # Share over entries with migrating birds: untimed local-only entries (count 0) are routine.
+    migrating = inside & (o["count"] > 0)
+    untimed_share = o["datetime"].isna()[migrating].groupby(o["survey_id"][migrating]).mean()
     timed_survey = o["survey_id"].map(untimed_share < UNTIMED_SHARE_TIMED_SURVEY).eq(True)
     untimed = inside & timed_survey & o["datetime"].isna()
     add_flag(o, untimed, FLAG_UNTIMED_IN_TIMED_SURVEY)

@@ -19,6 +19,10 @@ HISTORICAL_FILE = os.path.join("historical", "count_2021.xlsx")
 HISTORICAL_SHEETS = ("1966-2013", "2014-2016", "2017-2021")
 
 TREKTELLEN_DIR = "trektellen"
+# count_2021.xlsx covers up to 2021, hand-cleaned and hour by hour, so Trektellen is read from
+# 2022. The Trektellen 2021 export (`Trektellen_data_2422_2021.xlsx`, day totals only, no header
+# export) is the same season -- 378,802 birds vs. 379,934 -- and is kept in raw/ but not read.
+TREKTELLEN_FIRST_YEAR = 2022
 TREKTELLEN_DATA_PATTERN = "Trektellen_data_{site}_{year}.xlsx"
 TREKTELLEN_HEADER_PATTERN = "Trektellen_headerdata_{site}_{year}.xlsx"
 
@@ -60,11 +64,13 @@ def read_historical(raw_dir: str) -> pd.DataFrame:
 
 
 def trektellen_years(raw_dir: str) -> list[int]:
-    """Years with a Trektellen export present -- every one found, not a fixed range."""
+    """Years with a Trektellen export present, from TREKTELLEN_FIRST_YEAR -- every one found,
+    not a fixed range."""
     pattern = os.path.join(
         raw_dir, TREKTELLEN_DIR, TREKTELLEN_DATA_PATTERN.format(site=TREKTELLEN_SITE_ID, year="*")
     )
-    return sorted(int(re.search(r"_(\d{4})\.xlsx$", f).group(1)) for f in glob.glob(pattern))
+    years = (int(re.search(r"_(\d{4})\.xlsx$", f).group(1)) for f in glob.glob(pattern))
+    return sorted(y for y in years if y >= TREKTELLEN_FIRST_YEAR)
 
 
 def _timestamp_to_str(t):
