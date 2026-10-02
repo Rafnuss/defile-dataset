@@ -14,9 +14,11 @@ import pandas as pd
 from defile_dataset.site import TIMEZONE, TREKTELLEN_SITE_ID
 
 HISTORICAL_FILE = os.path.join("historical", "count_2021.xlsx")
-# Sheets of HISTORICAL_FILE holding records. Its fourth sheet, "Pression observation", holds
-# the day survey windows already merged into the startTimeDay/endTimeDay columns of these.
+# Sheets of HISTORICAL_FILE holding records.
 HISTORICAL_SHEETS = ("1966-2013", "2014-2016", "2017-2021")
+# The day survey windows, 1966-2023, already merged into the startTimeDay/endTimeDay columns
+# of the record sheets; read for the days it has and the record sheets do not.
+EFFORT_SHEET = "Pression observation"
 
 TREKTELLEN_DIR = "trektellen"
 # count_2021.xlsx covers up to 2021, hand-cleaned and hour by hour, so Trektellen is read from
@@ -60,6 +62,14 @@ def read_historical(raw_dir: str) -> pd.DataFrame:
     df["end"] = local_to_utc(end)
     df["day_start"] = local_to_utc((df["date"] + _clock(df["startTimeDay"])).fillna(start))
     df["day_end"] = local_to_utc((df["date"] + _clock(df["endTimeDay"])).fillna(end))
+    return df
+
+
+def read_effort(raw_dir: str) -> pd.DataFrame:
+    """The EFFORT_SHEET of `count_2021.xlsx`: one row per survey day, `start`/`end` in UTC."""
+    df = pd.read_excel(os.path.join(raw_dir, HISTORICAL_FILE), sheet_name=EFFORT_SHEET)
+    df["start"] = local_to_utc(df["date"] + _clock(df["startTime"]))
+    df["end"] = local_to_utc(df["date"] + _clock(df["endTime"]))
     return df
 
 

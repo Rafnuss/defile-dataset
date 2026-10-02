@@ -45,6 +45,13 @@ TAXONOMY = Taxonomy(
     ),
 )
 DAY = "2023-08-01"
+EMPTY_EFFORT = pd.DataFrame(
+    {
+        "date": pd.to_datetime([]),
+        "start": pd.to_datetime([], utc=True),
+        "end": pd.to_datetime([], utc=True),
+    }
+)
 
 
 def utc(local: str) -> pd.Timestamp:
@@ -170,7 +177,7 @@ def test_historical_surveys_are_unique_periods():
             ("Milan royal", None, None, 2),  # no time: flagged, no survey
         ]
     )
-    surveys, o, _ = B.historical_tables(hist, TAXONOMY)
+    surveys, o, _ = B.historical_tables(hist, EMPTY_EFFORT, TAXONOMY)
     assert list(surveys["survey_id"]) == ["H20150915-0800-0900", "H20150915-1000-1100"]
     assert o["observation_id"].tolist()[0] == "H-2014-2016-r2"
     assert o["flags"].tolist() == ["", "", "", B.FLAG_NO_TIME]
@@ -181,7 +188,7 @@ def test_historical_surveys_are_unique_periods():
 def test_checks_pass_on_a_clean_build():
     s, c = _trektellen([(1, 10, "06:30", 1, 5)], [(10, "06:00", "09:00", 0)])
     hist = _historical([("Milan royal", "08:00", "09:00", 3)])
-    ds = B.build(hist, s, c, TAXONOMY)
+    ds = B.build(hist, EMPTY_EFFORT, s, c, TAXONOMY)
     status = {ch.name: ch.status for ch in run_checks(ds, TAXONOMY)}
     assert status["Unique ids"] == "pass"
     assert status["No overlapping surveys"] == "pass"
@@ -193,7 +200,7 @@ def test_checks_pass_on_a_clean_build():
 def test_unknown_trektellen_id_is_reported():
     s, c = _trektellen([(1, 10, "06:30", 777, 5)], [(10, "06:00", "09:00", 0)])
     hist = _historical([("Milan royal", "08:00", "09:00", 3)])
-    ds = B.build(hist, s, c, TAXONOMY)
+    ds = B.build(hist, EMPTY_EFFORT, s, c, TAXONOMY)
     status = {ch.name: ch.status for ch in run_checks(ds, TAXONOMY)}
     assert status["Taxa in source_taxa.csv"] == "fail"
 
@@ -207,3 +214,25 @@ def test_resolve_falls_back_to_ebird_field_by_field():
     )
     assert kite["taxonomy_source"] == AVILIST_VERSION
     assert pd.isna(unknown["taxonomy_source"])
+
+
+def test_effort_days_without_records_become_flagged_surveys():
+    hist = _historical([("Milan royal", "08:00", "09:00", 3)])
+    effort = pd.DataFrame({"date": pd.to_datetime(["2015-09-15", "2015-09-16"])})
+    effort["start"] = [utc("2015-09-15 08:00"), utc("2015-09-16 08:00")]
+    effort["end"] = [utc("2015-09-15 12:00"), utc("2015-09-16 12:00")]
+    surveys, _, _ = B.historical_tables(hist, effort, TAXONOMY)
+    empty = surveys[surveys["flags"] == B.FLAG_NO_ENTRIES]
+    assert empty["survey_id"].tolist() == ["H20150916-0800-1200"]
+    assert empty["sheet"].iloc[0] == "Pression observation"
+
+
+def test_trektellen_count_without_entries_is_flagged():
+    s, c = _trektellen(
+        [(1, 10, "06:30", 1, 5)], [(10, "06:00", "09:00", 0), (11, "09:00", "10:00", 0)]
+    )
+    surveys, _, _ = B.trektellen_tables(s, c, TAXONOMY)
+    assert surveys.set_index("survey_id")["flags"].to_dict() == {
+        "T10": "",
+        "T11": B.FLAG_NO_ENTRIES,
+    }

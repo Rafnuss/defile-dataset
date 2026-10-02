@@ -60,10 +60,11 @@ def main(argv=None) -> int:
     years = read.trektellen_years(RAW_DIR)
     print(f"Reading {read.HISTORICAL_FILE} and Trektellen {years} ...")
     hist = read.read_historical(RAW_DIR)
+    effort = read.read_effort(RAW_DIR)
     sightings, counts = read.read_trektellen(RAW_DIR)
     taxonomy = Taxonomy.load(ROOT)
 
-    ds = build(hist, sightings, counts, taxonomy)
+    ds = build(hist, effort, sightings, counts, taxonomy)
     checks = run_checks(ds, taxonomy)
     for c in checks:
         print(f"  [{c.status:4s}] {c.name}: {c.detail}")

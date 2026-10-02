@@ -112,7 +112,7 @@ is the feedback to send to the counters.
 
 ## Corrections and flags
 
-All corrections are on Trektellen data; the historical data was corrected by hand (above).
+Corrections are on Trektellen data; the historical data was corrected by hand (above).
 
 | Flag | On | Rule |
 | --- | --- | --- |
@@ -123,6 +123,8 @@ All corrections are on Trektellen data; the historical data was corrected by han
 | `untimed_in_timed_survey` | observation | No timestamp, in a count where most entries with migrating birds (`count > 0`) have one. |
 | `no_survey` | observation | Count id missing from the header export. |
 | `no_time` | observation | Historical record without start or end time. |
+| `no_entries` | survey | A survey with no observation at all. Either an hour counted with nothing seen (an empty hour among a day's hourly counts), or a day without counting: Trektellen "Hors protocole" days (rain, low cloud) are entered as one empty count. Also the days of the `Pression observation` sheet with no record (before 2022: 2014-11-10, 2021-10-29). |
+| `records_deleted` | survey | 2021-10-29: its records were deleted in the manual cleaning (times made no sense); surveyed, but not "nothing seen". |
 
 ## Taxonomy
 
@@ -152,9 +154,6 @@ over 16 h; timestamps inside their survey; every taxon in `source_taxa.csv`, eve
 
 ## Known limits
 
-- **Days with no record at all are missing** before 2022: effort is only known through
-  records. The `Pression observation` sheet has the day windows, including days without
-  records; it is not read yet.
 - **Observer names** are in `surveys.observers` (Trektellen). The repo is private; publishing
   them needs the observers' agreement.
 

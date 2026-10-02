@@ -16,6 +16,7 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
+from defile_dataset.read import EFFORT_SHEET, TREKTELLEN_FIRST_YEAR
 from defile_dataset.site import NIGHT_SUN_ALTITUDE, TIMEZONE, civil_twilight
 from defile_dataset.taxonomy import TAXON_COLUMNS, Taxonomy
 
@@ -40,6 +41,8 @@ FLAG_TIME_ADJUSTED = "time_adjusted"  # timestamp moved into its survey (TIMESTA
 FLAG_TIME_OUTSIDE_SURVEY = "time_outside_survey"  # timestamp further outside its survey
 FLAG_UNTIMED_IN_TIMED_SURVEY = "untimed_in_timed_survey"
 # Survey flags
+FLAG_NO_ENTRIES = "no_entries"  # survey with no observation at all (see README)
+FLAG_RECORDS_DELETED = "records_deleted"  # records deleted in the manual cleaning
 FLAG_START_CLIPPED = "start_clipped_to_dawn"
 FLAG_END_CLIPPED = "end_clipped_to_dusk"
 
@@ -136,6 +139,10 @@ INTEGER_OBSERVATION_COLUMNS = [
     "export_row",
     "group_id",
 ]
+# Historical days whose records were all deleted in the manual cleaning of count_2021.xlsx
+# (README -> Manual cleaning): surveyed, but not "nothing seen".
+RECORDS_DELETED_DAYS = (pd.Timestamp("2021-10-29"),)
+
 ISSUE_COLUMNS = ["date", "survey_id", "start", "end", "issue", "detail", "entries", "birds"]
 
 
@@ -180,23 +187,49 @@ def _species_counts(g: pd.DataFrame, top: int = 4) -> str:
 # ---------------------------------------------------------------------------------------
 
 
-def historical_tables(hist: pd.DataFrame, taxonomy: Taxonomy):
-    """Returns (surveys, observations, issues). A survey is one (start, end) period."""
+def _survey_id(start: pd.Series, end: pd.Series) -> pd.Series:
+    return (
+        "H"
+        + start.dt.tz_convert(TIMEZONE).dt.strftime("%Y%m%d-%H%M")
+        + "-"
+        + end.dt.tz_convert(TIMEZONE).dt.strftime("%H%M")
+    )
+
+
+def historical_tables(hist: pd.DataFrame, effort: pd.DataFrame, taxonomy: Taxonomy):
+    """Returns (surveys, observations, issues). A survey is one (start, end) period.
+
+    Days of the effort sheet without any record are surveys too, flagged `no_entries`.
+    """
     h = hist.copy()
     surveyed = h["start"].notna() & h["end"].notna()
-    h["survey_id"] = (
-        "H"
-        + h["start"].dt.tz_convert(TIMEZONE).dt.strftime("%Y%m%d-%H%M")
-        + "-"
-        + h["end"].dt.tz_convert(TIMEZONE).dt.strftime("%H%M")
-    ).where(surveyed)
+    h["survey_id"] = _survey_id(h["start"], h["end"]).where(surveyed)
     h["source"] = "historical"
     h["flags"] = ""
 
     surveys = h[surveyed].drop_duplicates("survey_id").copy()
     surveys["start_original"], surveys["end_original"] = surveys["start"], surveys["end"]
     surveys["duplicate_of"] = pd.NA
-    surveys = surveys[SURVEY_COLUMNS + HISTORICAL_SURVEY_COLUMNS]
+
+    # Before TREKTELLEN_FIRST_YEAR only: later days of the effort sheet are Trektellen counts.
+    e = effort[
+        ~effort["date"].isin(h["date"]) & (effort["date"].dt.year < TREKTELLEN_FIRST_YEAR)
+    ].drop_duplicates(["date", "start", "end"])
+    e = e.assign(
+        survey_id=_survey_id(e["start"], e["end"]),
+        source="historical",
+        start_original=e["start"],
+        end_original=e["end"],
+        duplicate_of=pd.NA,
+        flags=FLAG_NO_ENTRIES,
+        day_start=e["start"],
+        day_end=e["end"],
+        sheet=EFFORT_SHEET,
+    )
+    add_flag(e, e["date"].isin(RECORDS_DELETED_DAYS), FLAG_RECORDS_DELETED)
+    surveys = pd.concat([surveys, e], ignore_index=True)[
+        SURVEY_COLUMNS + HISTORICAL_SURVEY_COLUMNS
+    ]
 
     add_flag(h, ~surveyed, FLAG_NO_TIME)
     h["observation_id"] = "H-" + h["sheet"] + "-r" + h["row"].astype(str)
@@ -373,13 +406,14 @@ def trektellen_tables(sightings: pd.DataFrame, counts: pd.DataFrame, taxonomy: T
     )
 
     o = taxonomy.add_to(o, "trektellen")
+    add_flag(s, ~s["survey_id"].isin(o["survey_id"]), FLAG_NO_ENTRIES)
     surveys = s[SURVEY_COLUMNS + list(TREKTELLEN_SURVEY_COLUMNS.values())]
     obs = o[OBSERVATION_COLUMNS + list(TREKTELLEN_OBSERVATION_COLUMNS.values())]
     return surveys, obs, pd.DataFrame(issues, columns=ISSUE_COLUMNS)
 
 
-def build(hist, sightings, counts, taxonomy: Taxonomy) -> Dataset:
-    hs, ho, hi = historical_tables(hist, taxonomy)
+def build(hist, effort, sightings, counts, taxonomy: Taxonomy) -> Dataset:
+    hs, ho, hi = historical_tables(hist, effort, taxonomy)
     ts, to, ti = trektellen_tables(sightings, counts, taxonomy)
     surveys = (
         pd.concat([hs, ts], ignore_index=True)
