@@ -1,0 +1,21 @@
+attribute,trektellen_code,meaning,evidence_status,batumi_code,batumi_match,source,note,example_data_id
+age,A,Adult,display_verified,ad,equivalent,https://www.trektellen.org/count/view/2422/20261001?language=english,,63817139
+age,1,First calendar year,display_verified,,related_only,https://www.trektellen.org/count/view/2422/20261001?language=english,Calendar age does not imply juvenile plumage; do not automatically convert to Batumi juv.,63817137
+age,2,Second calendar year,display_verified,,no_direct_code,https://www.trektellen.org/count/view/2422/20261001?language=english,,63817140
+age,3,Third calendar year,numeric_convention,,no_direct_code,native exports 2022-2026,Observed native code; meaning extends the verified 1cy/2cy convention. Confirm full Trektellen dictionary.,57944917
+age,4,Fourth calendar year,numeric_convention,,no_direct_code,native exports 2022-2026,Observed native code; meaning extends the verified 1cy/2cy convention. Confirm full Trektellen dictionary.,58681431
+age,I,Older than first calendar year; immature,display_verified,imm,broader_batumi_definition,https://www.trektellen.org/count/view/2422/20261001?language=english,The UI explicitly shows >1cy (imm); do not use for unspecified older birds or all non-adults.,63817138
+age,J,Juvenile (provisional),unverified,juv,candidate,native exports 2022-2026,"No code-to-label evidence recovered; preserve native values, no historical conversion to J yet.",47057058
+age,S,Subadult,display_verified,,no_direct_code,https://www.trektellen.org/count/view/2422/20260730?language=english,,61645470
+age,Non-Juv,Non-Juv (native display label),label_only,nonjuv,candidate,https://www.trektellen.org/count/view/2422/20260913?language=english,Precise definition unresolved; no automatic older-than-one-year conversion.,62769571
+age,Non-adult,Non-adult (provisional),unverified,,no_direct_code,native exports 2022-2026,Both spellings occur; the checked public page did not render the attribute. Preserve source spelling for now.,62816178
+age,non_adult,Non-adult (provisional),unverified,,no_direct_code,native exports 2022-2026,Both spellings occur; the checked public page did not render the attribute. Preserve source spelling for now.,59286054
+sex,M,Male,display_verified,m,equivalent,https://www.trektellen.org/count/view/2422/20261001?language=english,,63817139
+sex,F,Female,display_verified,f,equivalent,https://www.trektellen.org/count/view/2422/20261001?language=english,,63817179
+sex,FC,Female type / female-coloured,display_verified,fc,equivalent,https://www.trektellen.org/count/view/2422/20261001?language=english,FC does not establish that the bird is female.,63817151
+plumage,D,Dark morph,display_verified,dark,equivalent,https://www.trektellen.org/count/view/2422/20260919?language=english,,63060790
+plumage,L,Pale morph,display_verified,light,equivalent,https://www.trektellen.org/count/view/2422/20260927?language=english,,63546864
+plumage,W,Unverified native W,unverified,,unresolved,native exports 2022-2026,Do not decode from the letter alone or infer a historical mapping.,57210261
+plumage,I,Unverified native I,unverified,,unresolved,native exports 2022-2026,Do not decode from the letter alone or infer a historical mapping.,47802177
+plumage,B,Unverified native B,unverified,,unresolved,native exports 2022-2026,Do not decode from the letter alone or infer a historical mapping.,53873722
+plumage,E,Unverified native E,unverified,,unresolved,native exports 2022-2026,Do not decode from the letter alone or infer a historical mapping.,59286707

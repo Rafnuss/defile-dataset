@@ -2,6 +2,7 @@
 """Convert the current dataset CSVs into Event and Occurrence CSVs for IPT."""
 import argparse
 import json
+import shutil
 from pathlib import Path
 
 import pandas as pd
@@ -63,6 +64,7 @@ occurrences = occurrences[['eventID', 'occurrenceID', 'eventDate', 'basisOfRecor
 
 # Write the two source tables to import into IPT.
 args.out.mkdir(parents=True, exist_ok=True)
+shutil.copyfile(Path(__file__).resolve().parents[1] / 'docs/templates/gbif-readme.md', args.out / 'README.md')
 events.to_csv(args.out / 'event.csv', index=False, encoding='utf-8')
 occurrences.to_csv(args.out / 'occurrence.csv', index=False, encoding='utf-8')
 print(f"Wrote {len(events)} Events to {args.out / 'event.csv'} and {len(occurrences)} Occurrences to {args.out / 'occurrence.csv'}.")

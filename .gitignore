@@ -12,6 +12,11 @@ __pycache__/
 
 # Research material kept outside the core repository for now.
 archive/
-docs/
+docs/*
+!docs/*.md
+!docs/bird_attribute_codes.csv
+!docs/templates/
+docs/templates/*
+!docs/templates/gbif-readme.md
 paper/
 references/

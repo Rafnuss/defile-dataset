@@ -63,4 +63,5 @@ def test_export_preserves_survey_and_count_rows(export_input):
     assert occurrences.eventID.isin(events.index).all()
     assert occurrences.loc[occurrences.dynamicProperties.map(lambda value: json.loads(value)['count_category']).eq('reverse'), 'individualCount'].sum() == 2
     assert occurrences.loc[occurrences.dynamicProperties.map(lambda value: json.loads(value)['count_category']).eq('local'), 'individualCount'].sum() == 3
-    assert set(path.name for path in (export_input / 'gbif').iterdir()) == {'event.csv', 'occurrence.csv'}
+    assert set(path.name for path in (export_input / 'gbif').iterdir()) == {'README.md', 'event.csv', 'occurrence.csv'}
+    assert (export_input / 'gbif/README.md').read_text() == (script.parents[1] / 'docs/templates/gbif-readme.md').read_text()

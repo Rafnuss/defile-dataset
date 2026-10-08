@@ -125,9 +125,8 @@ def main(argv=None) -> int:
         os.makedirs(folder, exist_ok=True)
     for name, data in (("count", count_table), ("survey", survey_table), ("taxonomy", taxon_table), ("report_text", text_table)):
         _write_csv(data, os.path.join(dataset_dir, name + ".csv"))
-    generate_docs(dataset_dir)
-    with open(os.path.join(audit_dir, "README.md"), "w") as f:
-        f.write("# Build audit\n\nOpen `report.html` for check results, figures and evidence downloads. `audit.json` records the same check inventory.\n")
+    generate_docs(dataset_dir, repository_docs=False)
+    shutil.copyfile(os.path.join(ROOT, "docs/audit.md"), os.path.join(audit_dir, "README.md"))
     validation = validate_package(os.path.join(dataset_dir, "datapackage.json"))
     with open(os.path.join(audit_dir, "datapackage_validation.json"), "w") as f:
         json.dump(validation, f, ensure_ascii=False, indent=2)
@@ -223,7 +222,7 @@ def main(argv=None) -> int:
     table_files += [os.path.relpath(os.path.join(folder, name), stage) for folder, _, names in os.walk(os.path.join(audit_dir, 'coverage')) for name in sorted(names)]
     interim_files = ["processed/surveys.csv", "processed/observations.csv", "derived/daily_counts.csv",
                      "diagnostics/daily_source_resolution.csv", "diagnostics/historical_attributes.csv", "diagnostics/historical_components.csv"]
-    dirty = bool(_git("status", "--porcelain", "--", "raw", "taxonomy", "src", "scripts", "config"))
+    dirty = bool(_git("status", "--porcelain", "--", "raw", "taxonomy", "src", "scripts", "config", "docs"))
     metadata = {
         "built_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "git_sha": _git("rev-parse", "HEAD") + (" (uncommitted changes)" if dirty else ""),
@@ -275,7 +274,8 @@ def main(argv=None) -> int:
         print(f"Blocking checks failed; previous products retained. Inspect {stage}/audit/.")
         return 1
 
-    # Publish the validated build -------------
+    # Publish the validated build -----------------------------------------------
+    generate_docs(dataset_dir)
     os.makedirs(args.out, exist_ok=True)
     for name in ("dataset", "audit"):
         destination = os.path.join(args.out, name)
