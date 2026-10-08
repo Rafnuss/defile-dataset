@@ -28,6 +28,7 @@ from defile_dataset.audit import daily_coverage, build_checks, quantity_componen
 from defile_dataset.audit_plots import coverage_assets
 from defile_dataset.checks import run_checks  # noqa: E402
 from defile_dataset.consolidate import consolidate, daily_from_tables, validate_tables  # noqa: E402
+from defile_dataset.identities import readable_ids
 from defile_dataset.package import descriptor, generate_docs, validate_package  # noqa: E402
 from defile_dataset.survey_review import integrate_interruptions, interruption_review
 from defile_dataset.survey_status import classify_trektellen, read_reviewed_status
@@ -93,6 +94,11 @@ def main(argv=None) -> int:
     text_table = pd.read_csv(os.path.join(ROOT, "raw/reports/report_text.csv"), keep_default_na=False)
     survey_table, interruption_table = integrate_interruptions(survey_table, count_table, ROOT, status_intervals)
     interruption_audit = interruption_review(survey_table, ds.observations, ROOT, interruption_table)
+    count_ids = count_table.count_id.copy()
+    count_table, survey_table, interruption_table = readable_ids(count_table, survey_table, ds.observations, interruption_table)
+    status_review['source_survey_id'] = status_review.survey_id
+    status_review['survey_id'] = status_review.source_survey_id.map(survey_table.set_index('source_survey_id').survey_id).fillna(status_review.source_survey_id)
+    released_ids = pd.Series(count_table.count_id.values, index=count_ids)
     checks = conservation + run_checks(ds, taxonomy)
     print(f"  {ds.issues['survey_id'].nunique()} Trektellen counts with audit findings.")
 
@@ -116,6 +122,8 @@ def main(argv=None) -> int:
     _write_csv(interruption_audit, os.path.join(audit_dir, "interruption_review.csv"))
     _write_csv(status_review, os.path.join(audit_dir, "survey_status_review.csv"))
     _write_csv(attribute_audit.drop(columns='components'), os.path.join(diagnostic_dir, "historical_attributes.csv"))
+    attribute_components["released_count_id"] += "-normal"
+    attribute_components["released_count_id"] = attribute_components.released_count_id.map(released_ids)
     _write_csv(attribute_components, os.path.join(diagnostic_dir, "historical_components.csv"))
     _write_csv(attribute_audit.loc[attribute_audit.status.ne("mapped")].drop(columns='components'), os.path.join(audit_dir, "attribute_review.csv"))
     _write_csv(ds.surveys, os.path.join(processed_dir, "surveys.csv"))
@@ -220,7 +228,9 @@ def main(argv=None) -> int:
         "added_non_counting_periods": int(survey_table.recording_era.eq("curated").sum()),
         "datapackage_validation": "pass",
         "attribute_crosswalk": "historical-attributes-v2",
-        "attribute_split_policy": "historical-subgroups-v2",
+        "attribute_split_policy": "historical-normal-subgroups-v3",
+        "count_category_policy": "normal-reverse-local-v1",
+        "identifier_policy": "readable-era-local-date-clock-taxon-v1",
         "years": f"{ds.surveys['date'].dt.year.min()}-{ds.surveys['date'].dt.year.max()}",
         "checks": {c.name: c.status for c in checks},
         "table_sha256": {name: _sha256(os.path.join(stage, name)) for name in table_files},

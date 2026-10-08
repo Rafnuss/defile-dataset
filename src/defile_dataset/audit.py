@@ -33,6 +33,9 @@ def daily_coverage(count, survey, interruptions=None):
         days.append(row)
     rows = count.merge(survey[['survey_id', 'datetime']], on='survey_id', how='left', suffixes=('', '_survey'))
     rows['date'] = pd.to_datetime(local_dates(rows.datetime.fillna(rows.datetime_survey)))
+    for category, field in (("reverse", "count_reverse"), ("local", "count_local")):
+        rows[field] = rows["count"].where(rows.count_category.eq(category))
+    rows["count"] = rows["count"].where(rows.count_category.eq("normal"))
     birds = rows.groupby('date').agg(entries=('count_id', 'size'),
         count=('count', lambda values: values.sum(min_count=1)),
         count_reverse=('count_reverse', lambda values: values.sum(min_count=1)),

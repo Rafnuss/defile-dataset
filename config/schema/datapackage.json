@@ -14,16 +14,24 @@
           {
             "name": "count_id",
             "type": "string",
-            "description": "Persistent source-linked count identity.",
+            "description": "Readable release identity: era prefix (B notebook, S spreadsheet, N Naturalist, T Trektellen), local YYYYMMDD, optional recorded HHMM, eBird code or normalized original taxon label, optional collision/subgroup suffix, and normal/reverse/local category. Regenerated each build; corrections can change it.",
             "constraints": {
               "required": true,
               "unique": true
             }
           },
           {
+            "name": "source_count_id",
+            "type": "string",
+            "description": "Original source observation identity, shared by categories and subgroups. Historical workbook sheet/row or Trektellen dataid/export position; links to the internal source ledger. Not a unique key and not regenerated from the readable count ID.",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
             "name": "survey_id",
             "type": "string",
-            "description": "Survey foreign key; missing for unlinked day-level fallbacks.",
+            "description": "Original survey association, retained even when entry timing is missing or outside the survey interval. A link does not establish interval membership; explicit count datetime takes precedence over survey timing. Missing only when no released source survey is available.",
             "constraints": {
               "required": false
             }
@@ -54,28 +62,23 @@
           {
             "name": "count",
             "type": "integer",
-            "description": "Main-direction numerical count; required except for presence-only count_estimation=x.",
+            "description": "Numerical quantity for this count_category; required except for presence-only count_estimation=x.",
             "constraints": {
               "required": false,
               "minimum": 0
             }
           },
           {
-            "name": "count_reverse",
-            "type": "integer",
-            "description": "Opposite-direction birds; historical missing values remain missing.",
+            "name": "count_category",
+            "type": "string",
+            "description": "normal: main migration direction; reverse: opposite direction; local: local/non-migrating birds (Trektellen Present). Missing reverse/local quantities produce no row; explicit zeros are retained. Filter normal for main migration totals.",
             "constraints": {
-              "required": false,
-              "minimum": 0
-            }
-          },
-          {
-            "name": "count_local",
-            "type": "integer",
-            "description": "Local/non-migrating birds, labelled Present by Trektellen.",
-            "constraints": {
-              "required": false,
-              "minimum": 0
+              "required": true,
+              "enum": [
+                "normal",
+                "reverse",
+                "local"
+              ]
             }
           },
           {
@@ -385,7 +388,7 @@
           }
         ]
       },
-      "description": "One retained bird count entry; excludes overlapping periods, non-birds and explicit no-species markers.",
+      "description": "One row per count category and supported historical normal-count subgroup, with original source identity and timing. A row may represent several birds.",
       "x-validationRules": [
         {
           "kind": "requiredWhen",
@@ -440,7 +443,16 @@
           {
             "name": "survey_id",
             "type": "string",
-            "description": "Identity of the retained native survey period.",
+            "description": "Readable release identity: era prefix (B notebook, S spreadsheet, N Naturalist, T Trektellen, C curated), local YYYYMMDD, recorded start HHMM where available, and optional collision suffix. Calendar-day closures omit time. Regenerated each build; corrections can change it.",
+            "constraints": {
+              "required": true,
+              "unique": true
+            }
+          },
+          {
+            "name": "source_survey_id",
+            "type": "string",
+            "description": "Original internal survey identity, retained for joins to source audits and reviewed decisions. Trektellen native header ID remains in trektellen_count_id.",
             "constraints": {
               "required": true,
               "unique": true
@@ -741,14 +753,6 @@
               "required": true,
               "unique": true,
               "pattern": "avibase-[A-F0-9]{8}"
-            }
-          },
-          {
-            "name": "name",
-            "type": "string",
-            "description": "English checklist name where available, otherwise a source display label.",
-            "constraints": {
-              "required": true
             }
           },
           {
@@ -1075,7 +1079,7 @@
   "publication_status": "local-reviewed-build; licence/publisher metadata pending",
   "temporal_semantics": "Clock instants and interval endpoints are UTC (canonical Z). Date-only counts retain the collection calendar date in Europe/Paris. For daily aggregation, convert instants to Europe/Paris before selecting the date.",
   "description": "Bird migration counts, surveys including all interruption and protocol evidence, taxonomy and curated report prose at Défilé de l’Écluse.",
-  "x-schemaVersion": "four-tables-survey-coverage-v7",
+  "x-schemaVersion": "four-tables-count-categories-v10",
   "x-recordingEras": {
     "notebook": "Historical sheet 1966-2013; digitised daily records; original recording medium not confirmed for every row.",
     "spreadsheet": "Historical sheet 2014-2016; mainly hourly forms with some daily records.",
