@@ -14,3 +14,18 @@ The build reads `raw/historical/count_2021.xlsx`, paired Trektellen exports from
 The schema and field definitions live in `config/schema/datapackage.json`. Clock times are stored in UTC; collection dates refer to Europe/Paris. Missing dates do not imply zero birds or no survey. Accepted report prose was extracted and edited with AI assistance; it is not a full transcription. The full 2022 report is unavailable.
 
 GitHub Actions runs tests and builds the audit for pull requests. Successful builds on `main` can publish the audit through GitHub Pages once **Settings → Pages → Source → GitHub Actions** is enabled. Hosted audits use the annual-report URLs in `raw/reports/sources.csv`; local builds link to the local PDF library. Generated products are ignored by Git.
+
+## Documentation
+
+- [Dataset usage](docs/dataset.md) and [generated columns](docs/table-columns.md).
+- [Build and annual updates](docs/pipeline.md).
+- [Source processing](docs/processing.md) and [survey coverage](docs/survey-coverage.md).
+- [Sampling history](docs/sampling-history.md).
+- [Taxonomy](docs/taxonomy.md) and [bird attributes](docs/bird-attributes.md).
+- [Audit interpretation](docs/audit.md).
+- [GBIF export and mapping](docs/gbif.md).
+- [Release and publication](docs/publication.md).
+
+Counts are released as separate normal, reverse and local category rows, with readable IDs and original source identities. Filter `count_category=normal` for main migration totals. Readable IDs can change after corrections. The separate converter runs with `uv run python scripts/export_gbif.py` after building; GBIF publication and interpretation validation remain pending.
+
+Research drafts, source-library files and review archives remain local and are not required to build the public dataset. Guides identify these as local evidence rather than linking to absent repository files.

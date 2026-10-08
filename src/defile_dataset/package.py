@@ -55,12 +55,36 @@ def dictionary():
     return text
 
 
-def generate_docs(dataset_dir):
-    """Write the descriptor and its generated column dictionary alongside the CSVs."""
+def attribute_dictionary():
+    """Generate the attribute evidence CSV from the authoritative enum definitions."""
+    resource = next(r for r in descriptor()["resources"] if r["name"] == "count")
+    rows = []
+    for field in resource["schema"]["fields"]:
+        if field["name"] not in ("age", "sex", "plumage"):
+            continue
+        for code in field["constraints"]["enum"]:
+            meaning = field["x-enumDescriptions"][code]
+            rows.append({"attribute": field["name"], "trektellen_code": code,
+                         "meaning": meaning["description"], "evidence_status": meaning["evidenceStatus"],
+                         "batumi_code": meaning["batumiCode"], "batumi_match": meaning["batumiMatch"],
+                         "source": meaning["source"], "note": meaning["note"], "example_data_id": meaning["exampleDataId"]})
+    return pd.DataFrame(rows)
+
+
+def generate_docs(dataset_dir, repository_docs=True):
+    """Write the package dictionary from the schema and maintained usage guide."""
+    root = SCHEMA_FILE.parents[2]
     dataset_dir = Path(dataset_dir)
     dataset_dir.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(SCHEMA_FILE, dataset_dir / 'datapackage.json')
-    (dataset_dir / 'README.md').write_text('# Dataset\n\n' + descriptor()['description'] + '\n' + dictionary())
+    usage_file = root / 'docs/dataset.md'
+    usage = usage_file.read_text() if usage_file.exists() else '# Dataset\n\n' + descriptor()['description'] + '\n'
+    for name in ('pipeline.md', 'table-columns.md', 'survey-coverage.md', 'audit.md', 'bird-attributes.md', 'processing.md', 'taxonomy.md'):
+        usage = usage.replace(f'({name})', f'(https://github.com/Rafnuss/defile-dataset/blob/main/docs/{name})')
+    (dataset_dir / 'README.md').write_text(usage + dictionary())
+    if repository_docs and usage_file.exists():
+        attribute_dictionary().to_csv(root / 'docs/bird_attribute_codes.csv', index=False)
+        (root / 'docs/table-columns.md').write_text('# Dataset column definitions\n\n' + dictionary())
 
 
 def valid_iso(value, rule):

@@ -1,6 +1,16 @@
 """Audit outcomes, component accounting and coverage must retain scientific meaning."""
 import pandas as pd
 
+
+def test_status_report_keeps_native_edit_link_with_readable_survey_id():
+    from defile_dataset.checks import Check
+    from defile_dataset.report import _check_section
+    rows = pd.DataFrame([dict(survey_id='T-20251020-0800', source_survey_id='T3221751', date='2025-10-20')])
+    section = _check_section(Check('Status', 'warn', 'Review', rows, columns=('date', 'survey_id')))
+    assert 'count/edit/3221751' in section
+    assert 'count/edit/-20251020-0800' not in section
+    assert 'T-20251020-0800' in section
+
 from defile_dataset.audit import daily_coverage, quantity_components, summarize
 from defile_dataset.checks import Check
 
@@ -35,7 +45,7 @@ def test_final_daily_coverage_merges_periods_and_keeps_unknown_counts_missing():
             (start+pd.Timedelta(hours=1),start+pd.Timedelta(hours=2)), (start,start+pd.Timedelta(days=1))]],
         survey_coverage=['complete','complete','none']))
     count = pd.DataFrame(dict(count_id=['O1','O2'], survey_id=['H1','H2'], datetime=[None,None],
-        count=[3,pd.NA], count_reverse=[pd.NA]*2, count_local=[pd.NA]*2))
+        count=[3,pd.NA], count_category=["normal"]*2))
     result = daily_coverage(count, survey).set_index('date')
     first = result.loc['2020-09-01']
     assert first.survey_hours == 3 and first.surveys == 2
@@ -49,9 +59,9 @@ def test_final_daily_coverage_merges_periods_and_keeps_unknown_counts_missing():
 def test_daily_coverage_uses_local_dates_dst_hours_and_unlinked_final_records():
     survey = pd.DataFrame(dict(survey_id=['S1'], survey_coverage=[pd.NA],
         datetime=['2020-10-24T22:00:00Z/2020-10-25T23:00:00Z']))
-    count = pd.DataFrame(dict(count_id=['C1','C2','C3'], survey_id=['S1',None,None],
-        datetime=[None,'2020-10-26','2020-10-27'], count=[0,pd.NA,2],
-        count_reverse=[pd.NA,pd.NA,1], count_local=[pd.NA]*3))
+    count = pd.DataFrame(dict(count_id=['C1','C2','C3','C3-reverse'], survey_id=['S1',None,None,None],
+        datetime=[None,'2020-10-26','2020-10-27','2020-10-27'], count=[0,pd.NA,2,1],
+        count_category=['normal','normal','normal','reverse']))
     result = daily_coverage(count, survey).set_index('date')
     assert pd.isna(result.loc['2020-10-25','survey_hours'])
     assert result.loc['2020-10-25','unknown'] == 1

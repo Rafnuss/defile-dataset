@@ -28,8 +28,9 @@ from defile_dataset.audit import daily_coverage, build_checks, quantity_componen
 from defile_dataset.audit_plots import coverage_assets
 from defile_dataset.checks import run_checks  # noqa: E402
 from defile_dataset.consolidate import consolidate, daily_from_tables, validate_tables  # noqa: E402
+from defile_dataset.identities import readable_ids
 from defile_dataset.package import descriptor, generate_docs, validate_package  # noqa: E402
-from defile_dataset.survey_review import integrate_interruptions, interruption_review
+from defile_dataset.survey_review import empty_survey_review, integrate_historical_gaps, integrate_interruptions, interruption_review, validate_historical_gaps
 from defile_dataset.survey_status import classify_trektellen, read_reviewed_status
 from defile_dataset.report import render  # noqa: E402
 from defile_dataset.reconcile import compare_report_totals  # noqa: E402
@@ -92,8 +93,26 @@ def main(argv=None) -> int:
     conservation = validate_tables(count_table, survey_table, taxon_table, ds, attribute_components)
     text_table = pd.read_csv(os.path.join(ROOT, "raw/reports/report_text.csv"), keep_default_na=False)
     survey_table, interruption_table = integrate_interruptions(survey_table, count_table, ROOT, status_intervals)
+    historical_breaks = pd.read_csv(os.path.join(ROOT, 'config/audit-settings/historical-gap-breaks.csv'))
+    survey_table, historical_gaps = integrate_historical_gaps(survey_table, hist, historical_breaks)
     interruption_audit = interruption_review(survey_table, ds.observations, ROOT, interruption_table)
-    checks = conservation + run_checks(ds, taxonomy)
+    count_ids = count_table.count_id.copy()
+    count_table, survey_table, interruption_table = readable_ids(count_table, survey_table, ds.observations, interruption_table)
+    historical_gaps['survey_id'] = historical_gaps.source_survey_id.map(survey_table.set_index('source_survey_id').survey_id)
+    empty_surveys = empty_survey_review(survey_table, count_table, ds.observations, historical_gaps)
+    # Surface unresolved added periods alongside native status findings.
+    gap_status = historical_gaps.loc[historical_gaps.survey_coverage.eq('unknown')].copy()
+    gap_status['survey_id'] = gap_status.source_survey_id
+    gap_status['issue'] = 'historical_gap_attendance_conflict'
+    gap_status['detail'] = gap_status.note
+    gap_status['start'] = pd.to_datetime(gap_status.datetime.str.split('/').str[0], utc=True)
+    gap_status['end'] = pd.to_datetime(gap_status.datetime.str.split('/').str[1], utc=True)
+    gap_status['duration_hours'] = gap_status.hours
+    status_review = pd.concat([status_review, gap_status.reindex(columns=status_review.columns)], ignore_index=True)
+    status_review['source_survey_id'] = status_review.survey_id
+    status_review['survey_id'] = status_review.source_survey_id.map(survey_table.set_index('source_survey_id').survey_id).fillna(status_review.source_survey_id)
+    released_ids = pd.Series(count_table.count_id.values, index=count_ids)
+    checks = conservation + run_checks(ds, taxonomy) + validate_historical_gaps(survey_table, count_table, historical_gaps)
     print(f"  {ds.issues['survey_id'].nunique()} Trektellen counts with audit findings.")
 
     # Stage generated products; the previous build stays available on failure -----
@@ -106,16 +125,19 @@ def main(argv=None) -> int:
         os.makedirs(folder, exist_ok=True)
     for name, data in (("count", count_table), ("survey", survey_table), ("taxonomy", taxon_table), ("report_text", text_table)):
         _write_csv(data, os.path.join(dataset_dir, name + ".csv"))
-    generate_docs(dataset_dir)
-    with open(os.path.join(audit_dir, "README.md"), "w") as f:
-        f.write("# Build audit\n\nOpen `report.html` for check results, figures and evidence downloads. `audit.json` records the same check inventory.\n")
+    generate_docs(dataset_dir, repository_docs=False)
+    shutil.copyfile(os.path.join(ROOT, "docs/audit.md"), os.path.join(audit_dir, "README.md"))
     validation = validate_package(os.path.join(dataset_dir, "datapackage.json"))
     with open(os.path.join(audit_dir, "datapackage_validation.json"), "w") as f:
         json.dump(validation, f, ensure_ascii=False, indent=2)
     print(f"  Released CSV validation: {'pass' if validation['valid'] else 'fail'}.")
     _write_csv(interruption_audit, os.path.join(audit_dir, "interruption_review.csv"))
+    _write_csv(historical_gaps, os.path.join(audit_dir, 'historical_effort_gaps.csv'))
+    _write_csv(empty_surveys, os.path.join(audit_dir, 'empty_survey_review.csv'))
     _write_csv(status_review, os.path.join(audit_dir, "survey_status_review.csv"))
     _write_csv(attribute_audit.drop(columns='components'), os.path.join(diagnostic_dir, "historical_attributes.csv"))
+    attribute_components["released_count_id"] += "-normal"
+    attribute_components["released_count_id"] = attribute_components.released_count_id.map(released_ids)
     _write_csv(attribute_components, os.path.join(diagnostic_dir, "historical_components.csv"))
     _write_csv(attribute_audit.loc[attribute_audit.status.ne("mapped")].drop(columns='components'), os.path.join(audit_dir, "attribute_review.csv"))
     _write_csv(ds.surveys, os.path.join(processed_dir, "surveys.csv"))
@@ -194,11 +216,13 @@ def main(argv=None) -> int:
         "audit/entry_issues.csv", "audit/reconciliation.csv", "audit/report_reconciliation.csv",
         "audit/excluded_counts.csv", "audit/excluded_surveys.csv", "audit/datapackage_validation.json", "audit/audit.json",
         "audit/attribute_quantity_review.csv", "audit/overlap_review.csv", "audit/daily_coverage.csv", "audit/validation_findings.csv",
+        "audit/historical_effort_gaps.csv",
+        "audit/empty_survey_review.csv",
     ]
     table_files += [os.path.relpath(os.path.join(folder, name), stage) for folder, _, names in os.walk(os.path.join(audit_dir, 'coverage')) for name in sorted(names)]
     interim_files = ["processed/surveys.csv", "processed/observations.csv", "derived/daily_counts.csv",
                      "diagnostics/daily_source_resolution.csv", "diagnostics/historical_attributes.csv", "diagnostics/historical_components.csv"]
-    dirty = bool(_git("status", "--porcelain", "--", "raw", "taxonomy", "src", "scripts", "config"))
+    dirty = bool(_git("status", "--porcelain", "--", "raw", "taxonomy", "src", "scripts", "config", "docs"))
     metadata = {
         "built_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "git_sha": _git("rev-parse", "HEAD") + (" (uncommitted changes)" if dirty else ""),
@@ -218,9 +242,13 @@ def main(argv=None) -> int:
         "report_text_accounts": len(text_table),
         "survey_coverage_counts": survey_table.survey_coverage.fillna("unknown").value_counts().to_dict(),
         "added_non_counting_periods": int(survey_table.recording_era.eq("curated").sum()),
+        "historical_effort_gap_rows": len(historical_gaps),
+        "historical_effort_gap_hours": float(historical_gaps.loc[historical_gaps.survey_coverage.eq('complete'), 'hours'].sum()),
         "datapackage_validation": "pass",
         "attribute_crosswalk": "historical-attributes-v2",
-        "attribute_split_policy": "historical-subgroups-v2",
+        "attribute_split_policy": "historical-normal-subgroups-v3",
+        "count_category_policy": "normal-reverse-local-v1",
+        "identifier_policy": "readable-era-local-date-clock-taxon-v1",
         "years": f"{ds.surveys['date'].dt.year.min()}-{ds.surveys['date'].dt.year.max()}",
         "checks": {c.name: c.status for c in checks},
         "table_sha256": {name: _sha256(os.path.join(stage, name)) for name in table_files},
@@ -231,6 +259,7 @@ def main(argv=None) -> int:
                 "taxonomy/report_taxa.csv", "config/attributes/historical_attributes.csv",
                 "config/schema/datapackage.json", "config/survey-status/trektellen-survey-status.csv",
                 "config/audit-settings/report-season-windows.csv", "config/audit-settings/coverage-season.csv", "config/audit-settings/interruption-review-notes.csv",
+                "config/audit-settings/historical-gap-breaks.csv",
                 "raw/reports/report_text.csv", "raw/reports/annual-totals.csv", "raw/reports/annual-total-pages.csv", "raw/reports/observation-interruptions.csv", "raw/reports/sources.csv"]
         },
     }
@@ -246,6 +275,7 @@ def main(argv=None) -> int:
         return 1
 
     # Publish the validated build -----------------------------------------------
+    generate_docs(dataset_dir)
     os.makedirs(args.out, exist_ok=True)
     for name in ("dataset", "audit"):
         destination = os.path.join(args.out, name)

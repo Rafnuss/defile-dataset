@@ -33,6 +33,9 @@ def daily_coverage(count, survey, interruptions=None):
         days.append(row)
     rows = count.merge(survey[['survey_id', 'datetime']], on='survey_id', how='left', suffixes=('', '_survey'))
     rows['date'] = pd.to_datetime(local_dates(rows.datetime.fillna(rows.datetime_survey)))
+    for category, field in (("reverse", "count_reverse"), ("local", "count_local")):
+        rows[field] = rows["count"].where(rows.count_category.eq(category))
+    rows["count"] = rows["count"].where(rows.count_category.eq("normal"))
     birds = rows.groupby('date').agg(entries=('count_id', 'size'),
         count=('count', lambda values: values.sum(min_count=1)),
         count_reverse=('count_reverse', lambda values: values.sum(min_count=1)),
@@ -114,7 +117,7 @@ def build_checks(ds, checks, validation, reviews, reconciliation):
         if issue == 'unclassified_empty_header':
             columns = ('date', 'survey_id', 'start', 'end', 'duration_hours', 'detail', 'weather', 'remarks')
         result.append(Check('Survey status: '+issue.replace('_', ' '), 'warn', f'{len(rows):,} source surveys to review.', rows,
-                            action='Read the source remarks and weather. Record supported decisions in config/survey-status/trektellen-survey-status.csv, or correct source tags in Trektellen and re-export.',
+                            action='Read the source remarks and weather. Historical header decisions are in count_2021.xlsx (Pression observation); added historical intervals are reviewed in config/audit-settings/historical-gap-breaks.csv. Trektellen decisions are in config/survey-status/trektellen-survey-status.csv, or correct source tags and re-export.',
                             file='survey_status_review.csv', columns=columns, key='survey-status-'+issue,
                             filter_column='duration_hours' if issue == 'unclassified_empty_header' else '',
                             filter_threshold=1 if issue == 'unclassified_empty_header' else 0))

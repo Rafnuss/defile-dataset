@@ -125,8 +125,9 @@ def _check_section(check):
     for field in ('survey_id', 'duplicate_of'):
         if field in rows:
             target = 'edit' if field == 'survey_id' else 'edit_kept_period'
+            native_ids = check.rows.get('source_survey_id', rows[field]) if field == 'survey_id' else rows[field]
             rows[target] = [f'<a href="https://www.trektellen.org/count/edit/{html.escape(str(sid)[1:])}" '
-                            'target="_blank" rel="noopener">'+_t('Edit count', 'Modifier le comptage')+'</a>' if str(sid).startswith('T') else '' for sid in rows[field]]
+                            'target="_blank" rel="noopener">'+_t('Edit count', 'Modifier le comptage')+'</a>' if str(sid).startswith('T') else '' for sid in native_ids]
             links.append(target)
     if 'date' in rows and 'survey_id' in rows:
         rows['view'] = [f'<a href="https://www.trektellen.org/count/view/{TREKTELLEN_SITE_ID}/{pd.Timestamp(date):%Y%m%d}" '

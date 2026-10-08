@@ -23,8 +23,8 @@ def test_generated_package_has_no_documentation_dependency(tmp_path, monkeypatch
 def package(tmp_path):
     shutil.copyfile(SCHEMA_FILE, tmp_path / 'datapackage.json')
     rows = {
-        'count': {'count_id': 'C1', 'survey_id': 'S1', 'taxon_id': 'avibase-451D6FC8', 'count': '2'},
-        'survey': {'survey_id': 'S1', 'datetime': '2026-10-01T06:00:00Z/2026-10-01T07:00:00Z', 'recording_era': 'trektellen', 'survey_coverage': 'complete'},
+        'count': {'count_id': 'C1-normal', 'source_count_id': 'C1', 'count_category': 'normal', 'survey_id': 'S1', 'taxon_id': 'avibase-451D6FC8', 'count': '2'},
+        'survey': {'survey_id': 'S1', 'source_survey_id': 'S1', 'datetime': '2026-10-01T06:00:00Z/2026-10-01T07:00:00Z', 'recording_era': 'trektellen', 'survey_coverage': 'complete'},
         'report_text': {},
         'taxonomy': {'taxon_id': 'avibase-451D6FC8', 'name': 'Red Kite', 'source_taxa': '[]'},
     }
@@ -34,6 +34,8 @@ def package(tmp_path):
 
 
 @pytest.mark.parametrize('table,field,value', [
+    ('count', 'count_category', 'invalid'),
+    ('count', 'source_count_id', ''),
     ('count', 'count', '1.5'),
     ('count', 'count', '-1'),
     ('count', 'count', ''),
@@ -177,6 +179,6 @@ def test_daily_counts_recover_collection_day_from_utc_and_date_only():
     survey = pd.DataFrame({'survey_id': ['S1'], 'datetime': ['2026-09-30T22:30:00Z/2026-10-01T00:30:00Z']})
     count = pd.DataFrame({'count_id': ['C1','C2','C3'], 'survey_id': ['S1','S1',None],
                           'taxon_id': ['avibase-451D6FC8'] * 3, 'datetime': [None,'2026-09-30T23:00:00Z','2026-10-01'],
-                          'count': [3,2,1], 'count_reverse': [0,0,0], 'count_local': [0,0,0]})
+                          'count': [3,2,1], 'count_category': ['normal']*3})
     daily = daily_from_tables(count, survey)
     assert daily.date.tolist() == ['2026-10-01'] and daily['count'].tolist() == [6]

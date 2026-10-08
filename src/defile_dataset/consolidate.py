@@ -45,8 +45,27 @@ def processing_notes(data):
     return text.replace("", pd.NA)
 
 
+
+def category_counts(observations, components=None):
+    """Split normal subgroups and movement categories without duplicating source quantities."""
+    source = observations.assign(source_count_id=observations.observation_id)
+    normal = source
+    if components is not None:
+        from defile_dataset.attributes import split_historical_counts
+        normal = split_historical_counts(source, components)
+    rows = [normal.assign(count_category="normal")]
+    for category, field in (("reverse", "direction2"), ("local", "local")):
+        part = source.loc[source[field].notna()].copy()
+        part["count"], part["estimation"] = part[field], pd.NA
+        # Historical descriptions qualify the main count, not reverse/local birds.
+        part.loc[part.source.eq("historical"), ["age", "sex", "plumage"]] = pd.NA
+        rows.append(part.assign(count_category=category))
+    result = pd.concat(rows, ignore_index=True)
+    result["observation_id"] += "-" + result.count_category
+    return result
+
 def consolidate(ds, taxonomy, components=None):
-    """Retain all eligible source rows once, with nullable links for day-level fallbacks."""
+    """Release eligible categories and normal subgroups, preserving source timing and links."""
     s = ds.surveys.loc[ds.surveys.duplicate_of.isna()].copy()
     survey = s.reindex(columns=SURVEY_COLUMNS).copy()
     survey["datetime"] = iso_time(s.start) + "/" + iso_time(s.end)
@@ -72,9 +91,7 @@ def consolidate(ds, taxonomy, components=None):
     mapping = taxonomy.source_taxa.loc[taxonomy.source_taxa.kind.eq("bird")].copy()
     mapping["taxon_id"] = mapping.avibase_id
     o = ds.observations.loc[ds.observations.use_for_counts & ds.observations.taxon_kind.eq("bird")].copy()
-    if components is not None:
-        from defile_dataset.attributes import split_historical_counts
-        o = split_historical_counts(o, components)
+    o = category_counts(o, components)
     for source, key in (("historical", "taxon_name_original"), ("trektellen", "trektellen_species_id")):
         lookup = mapping.loc[mapping.source.eq(source)].drop_duplicates(key).set_index(key).taxon_id
         mask = o.source.eq(source)
@@ -82,16 +99,14 @@ def consolidate(ds, taxonomy, components=None):
 
     count = o.reindex(columns=COUNT_COLUMNS).copy()
     count["count_id"] = o.observation_id
-    count["count_reverse"], count["count_local"] = o.direction2, o.local
     count["count_estimation"] = o.estimation
     count.loc[count.count_estimation.eq("x"), "count"] = pd.NA
     count["datetime"] = iso_time(pd.to_datetime(o.datetime, utc=True))
-    # Unknown native headers cannot supply a foreign key. Day fallback retains its date
-    # rather than inheriting a narrower native period, with the original link in the audit.
+    # Preserve source associations; explicit dates prevent timing inheritance for fallbacks.
     linked = count.survey_id.isin(survey.survey_id)
     fallback = o.source.eq("trektellen") & o.time_resolution.eq("day")
-    count.loc[~linked | fallback, "survey_id"] = pd.NA
-    dated = count.survey_id.isna() & count.datetime.isna()
+    count.loc[~linked, "survey_id"] = pd.NA
+    dated = (count.survey_id.isna() | fallback) & count.datetime.isna()
     count.loc[dated, "datetime"] = o.loc[dated, "date"].dt.strftime("%Y-%m-%d")
     count["remark"] = combine_text(o, ["detail", "details", "comment", "list_comment", "remark"], labels=True)
     notes = o.reindex(columns=["remark_processing"]).copy()
@@ -109,12 +124,11 @@ def consolidate(ds, taxonomy, components=None):
     taxon_rows = []
     resolved_taxa = taxonomy.taxa.set_index("avibase_id")
     for taxon_id, sources in mapping.loc[mapping.taxon_id.isin(count.taxon_id)].groupby("taxon_id", sort=True):
-        row = sources.iloc[0]
-        resolved = resolved_taxa.reindex([row.avibase_id]).iloc[0]
+        resolved = resolved_taxa.reindex([sources.iloc[0].avibase_id]).iloc[0]
         source_fields = ["source", "taxon_name_original", "trektellen_species_id", "mapping_note", "review"]
         source_data = sources.reindex(columns=source_fields)
         source_values = source_data.astype(object).where(source_data.notna(), None).to_dict("records")
-        taxon_rows.append({"taxon_id": taxon_id, "name": resolved.english_name if pd.notna(resolved.english_name) else row.taxon_name_original,
+        taxon_rows.append({"taxon_id": taxon_id,
                            **resolved.to_dict(),
                            "trektellen_species_id": ",".join(str(int(value)) for value in sorted(sources.trektellen_species_id.dropna().unique())) or pd.NA,
                            "source_taxa": json.dumps(source_values, ensure_ascii=False)})
@@ -135,6 +149,9 @@ def daily_from_tables(count, survey):
     """Example derived view using only the two released tables; missing stays missing."""
     rows = count.merge(survey[["survey_id", "datetime"]], on="survey_id", how="left", suffixes=("", "_survey"), validate="many_to_one")
     rows["date"] = local_dates(rows.datetime.fillna(rows.datetime_survey))
+    for category, field in (("reverse", "count_reverse"), ("local", "count_local")):
+        rows[field] = rows["count"].where(rows.count_category.eq(category))
+    rows["count"] = rows["count"].where(rows.count_category.eq("normal"))
     return rows.groupby(["date", "taxon_id"], sort=True).agg(
         count=("count", lambda values: values.sum(min_count=1)),
         count_reverse=("count_reverse", lambda values: values.sum(min_count=1)),
@@ -149,30 +166,39 @@ def validate_tables(count, survey, taxa, ds, components=None):
 
     eligible = ds.observations.use_for_counts & ds.observations.taxon_kind.eq("bird")
     expected = ds.observations.loc[eligible].set_index("observation_id")
-    source_ids = count.count_id.str.replace(r'-part\d+$', '', regex=True)
+    source_ids = count.source_count_id
     original = expected.reindex(source_ids)
+    native = original.survey_id.where(original.survey_id.isin(survey.survey_id)).reset_index(drop=True).astype('string')
+    released = count.survey_id.reset_index(drop=True).astype('string')
+    equal = released.eq(native).fillna(False) | (released.isna() & native.isna())
+    native_links = pd.DataFrame(dict(count_id=count.count_id, released_survey_id=released, source_survey_id=native)).loc[~equal]
     ids = pd.Index(count.count_id)
-    expected_ids = expected.index
-    if components is not None:
-        parts = components.loc[components.released_count_id.notna() & components.observation_id.isin(expected.index)]
-        expected_ids = expected.index.difference(parts.observation_id).append(pd.Index(parts.released_count_id))
+    expected_rows = category_counts(expected.reset_index(), components)
+    expected_ids = pd.Index(expected_rows.observation_id)
     missing = expected_ids.difference(ids)
     unexpected = ids.difference(expected_ids)
     duplicated = ids[ids.duplicated()].unique()
     bad = pd.DataFrame([dict(count_id=value, issue=issue) for issue, values in
                         [('missing_eligible_row', missing), ('unexpected_row', unexpected), ('duplicated_row', duplicated)] for value in values],
                        columns=['count_id', 'issue'])
-    results = [Check('Eligible source rows retained once', 'fail' if len(bad) else 'pass',
+    results = [Check('Eligible count categories retained once', 'fail' if len(bad) else 'pass',
                      f'{len(bad)} missing, unexpected or duplicate source IDs.', bad)]
-    for target, source in (("count", "count"), ("count_reverse", "direction2"), ("count_local", "local")):
-        exported = count[target].groupby(source_ids).sum(min_count=1).reindex(expected.index).reset_index(drop=True)
+    results.append(Check('Survey associations preserved', 'fail' if len(native_links) else 'pass',
+                         f'{len(native_links)} survey associations differ from their available source survey.', native_links))
+    for target, source in (("normal", "count"), ("reverse", "direction2"), ("local", "local")):
+        exported = count["count"].where(count.count_category.eq(target)).groupby(source_ids).sum(min_count=1).reindex(expected.index).reset_index(drop=True)
         native = expected[source].reset_index(drop=True)
-        if target == 'count':
+        if target == 'normal':
             native = native.mask(expected.estimation.eq('x').fillna(False).reset_index(drop=True))
         equal = exported.eq(native).fillna(False) | (exported.isna() & native.isna())
         bad = pd.DataFrame(dict(count_id=expected.index, released_value=exported, source_value=native)).loc[~equal]
         results.append(Check(f'{target} values preserved', 'fail' if len(bad) else 'pass',
                              f'{len(bad)} numerical values differ from their source. Presence-only main counts remain non-numerical.', bad))
+    lineage = expected_rows.set_index("observation_id").reindex(count.count_id)
+    equal = count.source_count_id.eq(lineage.source_count_id.reset_index(drop=True)) & count.count_category.eq(lineage.count_category.reset_index(drop=True))
+    bad = count.loc[~equal, ["count_id", "source_count_id", "count_category"]]
+    results.append(Check('Count category provenance preserved', 'fail' if len(bad) else 'pass',
+                         f'{len(bad)} rows have incorrect source identities or categories.', bad))
     rows = count.merge(survey[["survey_id", "datetime"]], on="survey_id", how="left", suffixes=("", "_survey"))
     dates = local_dates(rows.datetime.fillna(rows.datetime_survey)).reset_index(drop=True)
     native = original.date.dt.strftime("%Y-%m-%d").reset_index(drop=True)

@@ -357,17 +357,21 @@ def test_consolidated_tables_preserve_precision_keys_and_direction_counts():
     ds = B.build(hist, EMPTY_EFFORT, sightings, headers, TAXONOMY)
     count, survey, taxa = consolidate(ds, TAXONOMY)
     assert all(c.status == 'pass' for c in validate_tables(count, survey, taxa, ds))
-    assert "T11" not in survey.survey_id.tolist() and "T4" not in count.count_id.tolist()
+    assert "T11" not in survey.survey_id.tolist() and "T4-normal" not in count.count_id.tolist()
     indexed = count.set_index("count_id")
-    assert indexed.loc["T1", "datetime"] == "2023-08-01T06:30:00Z"
-    assert indexed.loc["T1", "survey_id"] == "T10"
-    assert indexed.loc[["T2", "T3"], "datetime"].tolist() == ["2023-08-01"] * 2
-    assert indexed.loc[["T2", "T3"], "survey_id"].isna().all()
-    assert pd.isna(indexed.loc["H-2014-2016-r2", "datetime"])
-    assert pd.isna(indexed.loc["H-2014-2016-r2", "count_local"])
-    assert indexed.loc["H-2014-2016-r2", "remark"] == "detail: 3x adultes"
-    assert indexed.loc["T1", "remark"] == "remark: bird's note"
-    assert "H-2014-2016-r3" not in count.count_id.tolist()
+    assert indexed.loc["T1-normal", "datetime"] == "2023-08-01T06:30:00Z"
+    assert indexed.loc["T1-normal", "survey_id"] == "T10"
+    assert indexed.loc[["T2-normal", "T3-normal"], "datetime"].tolist() == ["2023-08-01"] * 2
+    assert indexed.loc[["T1-normal", "T2-normal", "T3-normal"], "survey_id"].tolist() == ["T10"] * 3
+    assert "native_survey_id" not in count.columns
+    changed = count.copy()
+    changed.loc[changed.count_id.eq("T2-normal"), "survey_id"] = pd.NA
+    assert next(c for c in validate_tables(changed, survey, taxa, ds) if c.name == 'Survey associations preserved').status == 'fail'
+    assert pd.isna(indexed.loc["H-2014-2016-r2-normal", "datetime"])
+    assert not count.loc[count.source_count_id.eq('H-2014-2016-r2'), 'count_category'].eq('local').any()
+    assert indexed.loc["H-2014-2016-r2-normal", "remark"] == "detail: 3x adultes"
+    assert indexed.loc["T1-normal", "remark"] == "remark: bird's note"
+    assert "H-2014-2016-r3-normal" not in count.count_id.tolist()
     assert "kind" not in taxa.columns
     assert survey.remark.fillna("").str.contains("no species").any()
     assert taxa.trektellen_species_id.tolist() == ["1"]
@@ -418,7 +422,7 @@ def test_bird_selection_preserves_empty_surveys_and_unidentified_birds():
     ds = B.build(hist, EMPTY_EFFORT, sightings, headers, taxonomy)
     count, survey, taxa = consolidate(ds, taxonomy)
     assert all(c.status == 'pass' for c in validate_tables(count, survey, taxa, ds))
-    assert count.count_id.tolist() == ['T2']
+    assert count.loc[count.count_category.eq('normal'), 'count_id'].tolist() == ['T2-normal']
     assert count.taxon_id.tolist() == ['avibase-AF0D818A']
     assert count['count'].tolist() == [3]
     assert len(survey) == 3 and 'T10' in survey.survey_id.tolist()
@@ -467,7 +471,7 @@ def test_split_historical_rows_keep_totals_dates_and_auditable_ids():
     assert all(c.status == 'pass' for c in validate_tables(count, survey, taxa, ds, parts))
     changed = count.copy()
     changed.loc[0, 'count'] += 1
-    assert next(c for c in validate_tables(changed, survey, taxa, ds, parts) if c.name == 'count values preserved').status == 'fail'
+    assert next(c for c in validate_tables(changed, survey, taxa, ds, parts) if c.name == 'normal values preserved').status == 'fail'
     changed = count.copy()
     changed.loc[0, 'count_id'] += '-extra'
     assert validate_tables(changed, survey, taxa, ds, parts)[0].status == 'fail'
@@ -481,11 +485,11 @@ def test_source_conservation_returns_auditable_failure_rows():
     count, survey, taxa = consolidate(ds, TAXONOMY)
     count.loc[0, 'count'] = 4
     result = validate_tables(count, survey, taxa, ds)
-    failed = next(c for c in result if c.name == 'count values preserved')
+    failed = next(c for c in result if c.name == 'normal values preserved')
     assert failed.status == 'fail'
     assert failed.rows[['released_value', 'source_value']].iloc[0].tolist() == [4, 3]
     missing = validate_tables(count.iloc[:0].reset_index(drop=True), survey, taxa, ds)
-    assert next(c for c in missing if c.name == 'Eligible source rows retained once').status == 'fail'
+    assert next(c for c in missing if c.name == 'Eligible count categories retained once').status == 'fail'
 
 
 def test_night_audit_keeps_short_overlap_and_long_audit_keeps_below_warning():
@@ -502,3 +506,38 @@ def test_night_audit_keeps_short_overlap_and_long_audit_keeps_below_warning():
     long = next(c for c in run_checks(B.Dataset(surveys, observations, issues), TAXONOMY) if c.name == 'Long surveys')
     assert long.rows.duration_hours.tolist() == [14]
     assert long.status == 'pass'
+
+
+def test_categories_preserve_zero_missing_presence_and_historical_reverse_once():
+    from defile_dataset.attributes import historical_attributes, quantity_components
+    from defile_dataset.consolidate import consolidate, validate_tables
+    hist = _historical([('Milan royal', '08:00', '09:00', 5)])
+    hist['detail'] = '1x mâle adulte / 2x femelle adulte'
+    values, audit = historical_attributes(hist, pd.read_csv('config/attributes/historical_attributes.csv', dtype=str))
+    sightings, headers = _trektellen([(1, 10, '10:30', 1, 2)], [(10, '10:00', '11:00', 0)])
+    sightings['direction2'], sightings['local'] = 0, 1
+    sightings['age'], sightings['sex'] = 'A', 'M'
+    ds = B.build(hist.join(values), EMPTY_EFFORT, sightings, headers, TAXONOMY)
+    historical = ds.observations.source.eq('historical')
+    ds.observations.loc[historical, 'direction2'] = 3
+    parts = quantity_components(audit)
+    count, survey, taxa = consolidate(ds, TAXONOMY, parts)
+    h = count.loc[count.source_count_id.str.startswith('H')]
+    assert h.loc[h.count_category.eq('normal'), 'count'].tolist() == [1, 2, 2]
+    reverse = h.loc[h.count_category.eq('reverse')]
+    assert reverse['count'].tolist() == [3]
+    assert reverse[['age', 'sex', 'plumage']].isna().all().all()
+    assert not h.count_category.eq('local').any()
+    t = count.loc[count.source_count_id.eq('T1')].set_index('count_category')
+    assert t['count'].to_dict() == {'normal': 2, 'reverse': 0, 'local': 1}
+    assert t.age.eq('A').all() and t.sex.eq('M').all()
+    assert all(check.status == 'pass' for check in validate_tables(count, survey, taxa, ds, parts))
+    changed = count.copy()
+    changed.loc[changed.count_id.eq('T1-local'), 'count_category'] = 'reverse'
+    assert any(check.status == 'fail' for check in validate_tables(changed, survey, taxa, ds, parts))
+    ds.observations.loc[historical, 'estimation'] = 'x'
+    count, survey, taxa = consolidate(ds, TAXONOMY)
+    h = count.loc[count.source_count_id.str.startswith('H')].set_index('count_category')
+    assert pd.isna(h.loc['normal', 'count']) and h.loc['normal', 'count_estimation'] == 'x'
+    assert h.loc['reverse', 'count'] == 3 and pd.isna(h.loc['reverse', 'count_estimation'])
+    assert all(check.status == 'pass' for check in validate_tables(count, survey, taxa, ds))
