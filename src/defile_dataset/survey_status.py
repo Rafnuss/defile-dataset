@@ -113,7 +113,8 @@ def classify_trektellen(surveys, observations, reviewed):
                 detail='Positive/presence-only birds contradict no counting; coverage unknown, counts retained.'))
         if surveys.loc[i, 'survey_coverage'] == 'unknown':
             findings.append(dict(survey_id=row.survey_id, date=row.date, issue='unknown_coverage',
-                                 detail='Coverage cannot be established from the available records.'))
+                                 detail=surveys.loc[i, 'survey_coverage_comment'] if pd.notna(surveys.loc[i, 'survey_coverage_comment']) else
+                                     'Coverage cannot be established from the available records.'))
         if row.survey_coverage != 'none' and (pd.isna(row.start_original) or pd.isna(row.end_original)):
             findings.append(dict(survey_id=row.survey_id, date=row.date, issue='missing_survey_hours',
                                  detail='Original survey hours missing; calendar bounds are not effort.'))

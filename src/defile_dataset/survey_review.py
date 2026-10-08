@@ -5,7 +5,107 @@ from pathlib import Path
 
 import pandas as pd
 
-from defile_dataset.consolidate import local_dates
+from defile_dataset.consolidate import ERA, local_dates
+
+
+EMPTY_HOUR_NOTE = 'hour inside the declared day window with no record: counted, nothing seen'
+
+
+def integrate_historical_gaps(survey, historical, breaks):
+    """Subtract the union of released periods from each declared historical day window."""
+    periods = survey.assign(date=local_dates(survey.datetime),
+        start=pd.to_datetime(survey.datetime.str.split('/').str[0], utc=True),
+        end=pd.to_datetime(survey.datetime.str.split('/').str[1], utc=True))
+    days = dict(tuple(periods.groupby('date')))
+    rows, audit = [], []
+    for (sheet, date), day in historical.groupby(['sheet', 'date'], sort=True):
+        begin, end = day.day_start.min(), day.day_end.max()
+        gaps, cursor = [], begin
+        native = days.get(date.strftime('%Y-%m-%d'), periods.iloc[:0])
+        for start, stop in native.sort_values('start')[['start', 'end']].itertuples(index=False, name=None):
+            if cursor < min(start, end):
+                gaps.append((cursor, min(start, end)))
+            cursor = max(cursor, stop)
+        if cursor < end:
+            gaps.append((cursor, end))
+        for left, right in gaps:
+            boundaries = {left, right}
+            reviewed = breaks.loc[breaks.date.eq(date.strftime('%Y-%m-%d'))]
+            for item in reviewed.itertuples(index=False):
+                start, stop = [pd.Timestamp(t).tz_convert('UTC') for t in item.datetime.split('/')]
+                boundaries.update(t for t in (start, stop) if left < t < right)
+            boundaries = sorted(boundaries)
+            for start, stop in zip(boundaries, boundaries[1:]):
+                hours = (stop-start).total_seconds()/3600
+                coverage = 'complete'
+                note = ('Minute-scale boundary gap between recorded periods; exact times retained, continuous effort assumed.'
+                        if hours <= 1/60 else
+                        'Empty interval inferred from the declared day window and omitted empty-hour recording convention; attendance not independently verified.')
+                if hours >= 3:
+                    note += ' Long gap reviewed against available workbook notes; no timed interruption documented.'
+                for item in reviewed.itertuples(index=False):
+                    break_start, break_end = [pd.Timestamp(t).tz_convert('UTC') for t in item.datetime.split('/')]
+                    if break_start <= start and stop <= break_end:
+                        coverage = item.survey_coverage
+                        note = item.note
+                source_id = f'H{date:%Y%m%d}-{start.tz_convert("Europe/Paris"):%H%M%S}-declared-gap'
+                interval = start.isoformat().replace('+00:00', 'Z') + '/' + stop.isoformat().replace('+00:00', 'Z')
+                rows.append(dict(survey_id=source_id, datetime=interval, recording_era=ERA[sheet],
+                    survey_coverage=coverage, survey_coverage_comment=note or pd.NA,
+                    remark_processing=EMPTY_HOUR_NOTE if coverage == 'complete' else
+                        'Break inside the declared day window; not counted.' if coverage == 'none' else
+                        'Gap inside the declared day window; observation coverage unresolved, not a zero count.'))
+                audit.append(dict(source_survey_id=source_id, sheet=sheet, date=date.strftime('%Y-%m-%d'),
+                    datetime=interval, day_start=begin, day_end=end, hours=(stop-start).total_seconds()/3600,
+                    survey_coverage=coverage, note=note))
+    return pd.concat([survey, pd.DataFrame(rows).reindex(columns=survey.columns)], ignore_index=True), pd.DataFrame(audit)
+
+
+def empty_survey_review(survey, count, observations, gaps):
+    """Document all released periods without bird rows, independently of coverage."""
+    rows = survey.loc[~survey.survey_id.isin(count.survey_id)].copy()
+    rows['date'] = local_dates(rows.datetime)
+    rows['duration_hours'] = (pd.to_datetime(rows.datetime.str.split('/').str[1], utc=True) -
+                              pd.to_datetime(rows.datetime.str.split('/').str[0], utc=True)).dt.total_seconds()/3600
+    rows['no_species_entries'] = rows.source_survey_id.map(
+        observations.loc[observations.taxon_kind.eq('no_species')].groupby('survey_id').size()).fillna(0).astype(int)
+    rows['review_class'] = 'empty_native_header'
+    rows.loc[rows.no_species_entries.gt(0), 'review_class'] = 'explicit_no_species'
+    rows.loc[rows.source_survey_id.isin(gaps.source_survey_id), 'review_class'] = 'declared_empty_interval'
+    rows.loc[rows.source_survey_id.isin(gaps.source_survey_id) & rows.duration_hours.le(1/60), 'review_class'] = 'minute_boundary_gap'
+    rows.loc[rows.source_survey_id.isin(gaps.source_survey_id) & rows.duration_hours.ge(3), 'review_class'] = 'long_declared_gap'
+    rows.loc[rows.survey_coverage.eq('none'), 'review_class'] = 'non_counting'
+    rows.loc[rows.survey_coverage.eq('unknown'), 'review_class'] = 'unresolved_coverage'
+    missing_counts = rows.survey_coverage_comment.fillna('').str.contains(r'missing count data|counts? (?:were )?deleted', case=False)
+    missing_counts |= rows.remark_processing.fillna('').str.contains('entries were deleted')
+    rows.loc[missing_counts, 'review_class'] = 'missing_count_data'
+    bird_dates = set(local_dates(count.datetime.fillna(count.survey_id.map(survey.set_index('survey_id').datetime))))
+    rows['day_has_released_birds'] = rows.date.isin(bird_dates)
+    return rows[['survey_id', 'source_survey_id', 'date', 'datetime', 'duration_hours', 'recording_era',
+        'survey_coverage', 'survey_coverage_comment', 'review_class', 'day_has_released_birds',
+        'no_species_entries', 'observers', 'weather', 'remark', 'remark_processing']].sort_values(['date', 'datetime', 'survey_id'])
+
+
+def validate_historical_gaps(survey, count, gaps):
+    """Check final gap rows against their declared bounds, other surveys and count links."""
+    from defile_dataset.checks import Check
+
+    periods = survey.assign(date=local_dates(survey.datetime),
+        start=pd.to_datetime(survey.datetime.str.split('/').str[0], utc=True),
+        end=pd.to_datetime(survey.datetime.str.split('/').str[1], utc=True))
+    added = periods.loc[periods.survey_id.isin(gaps.survey_id)].merge(
+        gaps[['survey_id', 'day_start', 'day_end']], on='survey_id', validate='one_to_one')
+    outside = added.loc[(added.start < added.day_start) | (added.end > added.day_end) | (added.start >= added.end)]
+    pairs = added[['survey_id', 'date', 'start', 'end']].merge(
+        periods[['survey_id', 'date', 'start', 'end']], on='date', suffixes=('', '_other'))
+    overlaps = pairs.loc[pairs.survey_id.ne(pairs.survey_id_other) & (pairs.start < pairs.end_other) & (pairs.end > pairs.start_other)]
+    linked = count.loc[count.survey_id.isin(gaps.survey_id)]
+    return [Check('Historical effort gaps inside declared windows', 'fail' if len(outside) else 'pass',
+                  f'{len(outside)} gaps outside their day window.', outside),
+            Check('Historical effort gaps do not overlap surveys', 'fail' if len(overlaps) else 'pass',
+                  f'{len(overlaps)} overlapping gap/survey pairs.', overlaps),
+            Check('Historical effort gaps have no counts', 'fail' if len(linked) else 'pass',
+                  f'{len(linked)} count rows linked to added gaps.', linked)]
 
 
 def integrate_interruptions(survey, count, root, status_intervals=None):
@@ -116,10 +216,13 @@ def interruption_review(survey, observations, root, interruptions=None):
             short = pd.isna(hours) or (pd.notna(window.partial_threshold_hours) and hours < window.partial_threshold_hours)
             marker = entries.taxon_kind.eq('no_species').any()
             if day.empty or short or marker or day.survey_coverage.isin(['none', 'partial', 'unknown']).any() or date in review_notes:
+                unresolved = survey.loc[released_dates.eq(date)].empty or day.survey_coverage.eq('unknown').any() or pd.isna(hours)
+                resolved = day.survey_coverage.isin(['none', 'partial']).any() or marker or survey.loc[released_dates.eq(date),'recording_era'].eq('curated').any()
                 rows.append(dict(date=date, native_survey_ids=json.dumps(day.survey_id.tolist()), native_hours=hours,
                     bird_rows=int(entries.taxon_kind.eq('bird').sum()), bird_total=entries.loc[entries.taxon_kind.eq('bird'),'count'].sum(),
                     no_species_marker=bool(marker), reported_closure_days=window.reported_closure_days,
                     partial_threshold_hours=window.partial_threshold_hours,
-                    assessment='linked_curated_evidence' if day.survey_coverage.isin(['none', 'partial', 'unknown']).any() or survey.loc[released_dates.eq(date),'recording_era'].eq('curated').any() else 'unresolved',
-                    note=review_notes.get(date, 'Missing survey, short coverage or no-species marker alone does not establish a weather interruption.')))
+                    assessment='unresolved' if unresolved or not resolved else 'linked_curated_evidence',
+                    note=review_notes.get(date, ' | '.join(day.survey_coverage_comment.dropna().unique()) or
+                        'Missing survey, short coverage or no-species marker alone does not establish a weather interruption.')))
     return pd.DataFrame(rows)

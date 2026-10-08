@@ -1,4 +1,8 @@
 date,note
+2017-08-08,"The 2017 report describes monitoring over all 129 dates, but this date has no count or declared effort window in the historical sources. Treat as missing survey data; no timed effort or closure can be recovered from a seasonal statement."
+2021-08-04,"One non-counting day is reported for 2021, but three dates lack survey records (4 August, 30 October, 1 November). The closure date is not identified; retain unresolved rather than assign none to every gap."
+2021-10-30,"One non-counting day is reported for 2021, but three dates lack survey records (4 August, 30 October, 1 November). The closure date is not identified; retain unresolved rather than assign none to every gap."
+2021-11-01,"One non-counting day is reported for 2021, but three dates lack survey records (4 August, 30 October, 1 November). The closure date is not identified; retain unresolved rather than assign none to every gap."
 2016-08-20,"Rain all day and no-species marker, but observer attendance 10:00–11:00 and native one-hour header exist. Full-day closure is not established."
 2025-09-01,"Narrative describes waiting four hours in a car, leaving at 18:30 and returning after a shower. No exact unavailable interval can be recovered; waiting in a car does not alone establish stopped observation."
 2025-10-20,"Narrative says HP morning and arrival in early afternoon, but native morning bird timestamps exist and no exact restart time is stated. Do not mark morning bird counts as impossible or invent precise bounds."
