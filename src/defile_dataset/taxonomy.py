@@ -1,14 +1,16 @@
 """Taxonomy: source names -> Avibase concept id -> AviList (eBird where AviList has none).
 
-The only hand-maintained file is `taxonomy/source_taxa.csv`: one row per historical (French)
+The observation crosswalk is `taxonomy/source_taxa.csv`: one row per historical (French)
 name and per Trektellen species id, giving its `avibase_id` and its `kind` (`bird`,
-`no_species`: an effort marker, or `non_bird`: butterflies, dragonflies, ...). Everything else
-comes from the two reference checklists in `taxonomy/reference/`, used as downloaded:
+`no_species`: an effort marker, or `non_bird`: butterflies, dragonflies, ...). Resolved checklist fields
+come from the two reference checklists in `taxonomy/reference/`, used as downloaded:
 
 - AviList (species and subspecies, each with its Avibase id): preferred, field by field.
 - eBird/Clements: for what AviList has no entry for (slashes, "sp.", hybrids, domestic forms,
   eBird groups) and for fields AviList leaves empty (English names of subspecies), plus the
-  eBird code and English name, which the forecast uses.
+  eBird code.
+
+`taxonomy/report_taxa.csv` separately maps published report labels to source taxa.
 
 To upgrade either checklist, add the new file to `taxonomy/reference/`, point AVILIST_FILE /
 EBIRD_FILE (and the version labels) at it, and rebuild. The "Avibase ids in the checklists"
@@ -42,7 +44,6 @@ TAXON_COLUMNS = [
     "family",
     "taxonomy_source",
     "ebird_code",
-    "ebird_english_name",
 ]
 
 
@@ -103,7 +104,6 @@ def resolve(avibase_ids: pd.Series, avilist: pd.DataFrame, ebird: pd.DataFrame) 
         .where(a["scientific_name"].notna() | e["scientific_name"].notna())
     )
     out["ebird_code"] = e["ebird_code"]
-    out["ebird_english_name"] = e["english_name"]
     return out.reset_index()
 
 

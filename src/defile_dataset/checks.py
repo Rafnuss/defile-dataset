@@ -10,11 +10,10 @@ from defile_dataset.build import (
     FLAG_NO_SURVEY,
     FLAG_NO_TIME,
     FLAG_TIME_OUTSIDE_SURVEY,
-    NIGHT_TOLERANCE,
     Dataset,
     has_flag,
 )
-from defile_dataset.site import NIGHT_SUN_ALTITUDE, civil_twilight
+from defile_dataset.site import civil_twilight
 from defile_dataset.taxonomy import (
     AVILIST_VERSION,
     EBIRD_VERSION,
@@ -23,7 +22,8 @@ from defile_dataset.taxonomy import (
     Taxonomy,
 )
 
-LONG_SURVEY_WARNING = pd.Timedelta(hours=16)  # a July dawn-to-dusk day is ~15 h 20
+LONG_SURVEY_WARNING = pd.Timedelta(hours=15)
+LONG_SURVEY_MINIMUM = pd.Timedelta(hours=12)
 
 
 @dataclass
@@ -32,6 +32,13 @@ class Check:
     status: str  # "pass" | "warn" | "fail"
     detail: str
     rows: pd.DataFrame = field(default_factory=pd.DataFrame)
+    action: str = ""
+    file: str = ""
+    columns: tuple = ()
+    key: str = ""
+    group: str = "Counts and data integrity"
+    filter_column: str = ""
+    filter_threshold: float = 0
 
 
 def _check(name, bad: pd.DataFrame, detail: str, severity="fail") -> Check:
@@ -78,30 +85,24 @@ def run_checks(ds: Dataset, taxonomy: Taxonomy) -> list[Check]:
     )
 
     dawn, dusk = civil_twilight(s["date"])
-    night = s[
-        (s["start"] < s["date"].map(dawn) - NIGHT_TOLERANCE)
-        | (s["end"] > s["date"].map(dusk) + NIGHT_TOLERANCE)
-    ]
-    checks.append(
-        _check(
-            "Surveys in daylight",
-            night,
-            f"{len(night)} survey(s) start or end more than "
-            f"{NIGHT_TOLERANCE.total_seconds() / 60:.0f} min into the night (sun below "
-            f"{NIGHT_SUN_ALTITUDE:g}°). By source: {night['source'].value_counts().to_dict()}.",
-            "warn",
-        )
-    )
-
-    bad = s[dur > LONG_SURVEY_WARNING]
-    checks.append(
-        _check(
-            f"Surveys up to {LONG_SURVEY_WARNING.total_seconds() / 3600:.0f} h",
-            bad,
-            f"{len(bad)} survey(s) longer: likely a mis-entered start or end.",
-            "warn",
-        )
-    )
+    not_surveyed = s.get("survey_coverage", pd.Series(index=s.index, dtype="string")).eq("none").fillna(False)
+    night = s.loc[~not_surveyed].copy()
+    if not night.empty:
+        sunrise, sunset = civil_twilight(night['date'], threshold_deg=-0.833)
+        night['sunrise'] = night.date.map(sunrise)
+        night['sunset'] = night.date.map(sunset)
+        night['civil_dawn'] = night.date.map(dawn)
+        night['civil_dusk'] = night.date.map(dusk)
+        night['duration_hours'] = (night.end-night.start).dt.total_seconds()/3600
+        night['minutes_before_sunrise'] = ((night[['end', 'sunrise']].min(axis=1) - night.start).dt.total_seconds()/60).clip(lower=0).round(1)
+        night['minutes_after_sunset'] = ((night.end - night[['start', 'sunset']].max(axis=1)).dt.total_seconds()/60).clip(lower=0).round(1)
+        night['night_minutes'] = (((night[['end', 'civil_dawn']].min(axis=1) - night.start).dt.total_seconds()/60).clip(lower=0)
+                                  + ((night.end - night[['start', 'civil_dusk']].max(axis=1)).dt.total_seconds()/60).clip(lower=0)).round(1)
+    checks.append(_check('Surveys into the night', night.loc[night.night_minutes.gt(0)],
+                         'Minutes before civil dawn or after civil dusk (sun below −6°). Sunrise and sunset are shown for context.', 'warn'))
+    long = night.loc[dur.loc[night.index] > LONG_SURVEY_MINIMUM].copy()
+    checks.append(Check('Long surveys', 'warn' if long.duration_hours.gt(LONG_SURVEY_WARNING.total_seconds()/3600).any() else 'pass',
+                        'End minus start. All periods over 12 hours are retained; the initial review threshold is 15 hours.', long))
 
     t = o.merge(s[["survey_id", "start", "end"]], on="survey_id", how="inner")
     out = t[

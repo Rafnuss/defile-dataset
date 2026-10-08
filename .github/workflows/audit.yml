@@ -1,0 +1,63 @@
+name: Audit report
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.11'
+      - run: uv sync --locked
+      - name: Build dataset and audit
+        run: uv run --no-sync python scripts/build_dataset.py --online-report-links
+      - name: Keep audit evidence, including blocked builds
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-report
+          path: |
+            output/audit/
+            output/metadata.json
+            output.building/audit/
+          if-no-files-found: warn
+      - name: Prepare site entry point
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: cp output/audit/report.html output/audit/index.html
+      - name: Upload Pages site
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: output/audit
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v5
+      - name: Deploy audit report
+        id: deployment
+        uses: actions/deploy-pages@v4
