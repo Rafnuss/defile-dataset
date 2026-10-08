@@ -1,7 +1,17 @@
-# Built tables and reports: regenerate with `python scripts/build_dataset.py`, publish as a release.
+# Generated products and local execution files.
 output/
+output.building/
+interim/
+tmp/
 .venv/
 __pycache__/
 *.pyc
+.pytest_cache/
 .DS_Store
 ~$*.xlsx
+
+# Research material kept outside the core repository for now.
+archive/
+docs/
+paper/
+references/

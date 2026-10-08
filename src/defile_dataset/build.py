@@ -8,7 +8,7 @@ the forecast drops flagged rows its model cannot use, a GBIF export may keep the
 Entry errors worth correcting at the source (in Trektellen) are also collected in `issues`, one
 row per survey and issue, with the species and birds concerned.
 
-See README.md for the tables' columns and the rationale of each correction.
+The schema in config/schema/datapackage.json defines the consolidated table columns.
 """
 
 from dataclasses import dataclass
@@ -17,34 +17,25 @@ import numpy as np
 import pandas as pd
 
 from defile_dataset.read import EFFORT_SHEET, TREKTELLEN_FIRST_YEAR
+from defile_dataset.attributes import ATTRIBUTE_COLUMNS
 from defile_dataset.site import NIGHT_SUN_ALTITUDE, TIMEZONE, civil_twilight
 from defile_dataset.taxonomy import TAXON_COLUMNS, Taxonomy
 
-# Trektellen: an entry timestamped up to this long outside its count period is moved just
-# inside it (`time_adjusted`); further out, it is flagged `time_outside_survey`.
-TIMESTAMP_TOLERANCE = pd.Timedelta(minutes=10)
-TIMESTAMP_NUDGE = pd.Timedelta(minutes=1)
-# Trektellen: a count period reaching further than this into the night (sun below
-# NIGHT_SUN_ALTITUDE) is clipped to dawn/dusk. Counts entered the same evening end at most
-# ~30 min after dusk; every period beyond 45 min was entered days to months later.
+# Audit threshold only: night periods remain unchanged and eligible for processing.
 NIGHT_TOLERANCE = pd.Timedelta(minutes=45)
-# Trektellen: a survey counts as timed when fewer than this share of its entries with migrating
-# birds lack a time;
-# its untimed entries are then flagged `untimed_in_timed_survey`.
-UNTIMED_SHARE_TIMED_SURVEY = 0.5
 
 # Observation flags
 FLAG_NO_TIME = "no_time"  # historical record without start/end: no survey
 FLAG_NO_SURVEY = "no_survey"  # Trektellen entry whose count id is not in the header export
-FLAG_DUPLICATE_SURVEY = "duplicate_survey"  # entry of a survey overlapping a longer one
-FLAG_TIME_ADJUSTED = "time_adjusted"  # timestamp moved into its survey (TIMESTAMP_TOLERANCE)
+FLAG_DUPLICATE_SURVEY = "duplicate_survey"  # entry of a later overlapping survey
+FLAG_TIME_ADJUSTED = "time_adjusted"  # legacy flag; no longer generated
 FLAG_TIME_OUTSIDE_SURVEY = "time_outside_survey"  # timestamp further outside its survey
 FLAG_UNTIMED_IN_TIMED_SURVEY = "untimed_in_timed_survey"
 # Survey flags
 FLAG_NO_ENTRIES = "no_entries"  # survey with no observation at all (see README)
 FLAG_RECORDS_DELETED = "records_deleted"  # records deleted in the manual cleaning
-FLAG_START_CLIPPED = "start_clipped_to_dawn"
-FLAG_END_CLIPPED = "end_clipped_to_dusk"
+FLAG_START_CLIPPED = "start_clipped_to_dawn"  # legacy; no longer generated
+FLAG_END_CLIPPED = "end_clipped_to_dusk"  # legacy; no longer generated
 
 
 SURVEY_COLUMNS = [
@@ -58,7 +49,8 @@ SURVEY_COLUMNS = [
     "duplicate_of",
     "flags",
 ]
-HISTORICAL_SURVEY_COLUMNS = ["day_start", "day_end", "sheet"]
+HISTORICAL_SURVEY_COLUMNS = ["day_start", "day_end", "sheet", "observers", "weather", "remarks",
+                             "survey_coverage", "survey_coverage_comment"]
 # Header-export fields kept as exported (renamed only where the name would be ambiguous).
 TREKTELLEN_SURVEY_COLUMNS = {
     "id": "trektellen_count_id",
@@ -95,6 +87,9 @@ OBSERVATION_COLUMNS = [
     *TAXON_COLUMNS,
     "count",
     "flags",
+    "day_id",
+    "time_resolution",
+    "use_for_counts",
 ]
 HISTORICAL_OBSERVATION_COLUMNS = {
     "sheet": "sheet",
@@ -143,7 +138,7 @@ INTEGER_OBSERVATION_COLUMNS = [
 # (README -> Manual cleaning): surveyed, but not "nothing seen".
 RECORDS_DELETED_DAYS = (pd.Timestamp("2021-10-29"),)
 
-ISSUE_COLUMNS = ["date", "survey_id", "start", "end", "issue", "detail", "entries", "birds"]
+ISSUE_COLUMNS = ["date", "survey_id", "start", "end", "issue", "detail", "entries", "birds", "outside_minutes"]
 
 
 @dataclass
@@ -167,7 +162,7 @@ def _local_date(ts: pd.Series) -> pd.Series:
 
 
 def _hm(ts) -> str:
-    return ts.tz_convert(TIMEZONE).strftime("%H:%M")
+    return ts.tz_convert(TIMEZONE).strftime("%H:%M:%S")
 
 
 def _time_range(t: pd.Series) -> str:
@@ -202,6 +197,9 @@ def historical_tables(hist: pd.DataFrame, effort: pd.DataFrame, taxonomy: Taxono
     Days of the effort sheet without any record are surveys too, flagged `no_entries`.
     """
     h = hist.copy()
+    for column in ATTRIBUTE_COLUMNS:
+        if column not in h:
+            h[column] = pd.NA
     surveyed = h["start"].notna() & h["end"].notna()
     h["survey_id"] = _survey_id(h["start"], h["end"]).where(surveyed)
     h["source"] = "historical"
@@ -226,10 +224,27 @@ def historical_tables(hist: pd.DataFrame, effort: pd.DataFrame, taxonomy: Taxono
         day_end=e["end"],
         sheet=EFFORT_SHEET,
     )
+    # Date-only non-counting records use calendar bounds, never invented survey hours.
+    date_only = e.get("survey_coverage", pd.Series(index=e.index, dtype="string")).eq("none") & e["start"].isna() & e["end"].isna()
+    e.loc[date_only, "survey_id"] = "H" + e.loc[date_only, "date"].dt.strftime("%Y%m%d") + "-not-surveyed"
+    e.loc[date_only, "start"] = e.loc[date_only, "date"].dt.tz_localize(TIMEZONE).dt.tz_convert("UTC")
+    e.loc[date_only, "end"] = (e.loc[date_only, "date"] + pd.Timedelta(days=1)).dt.tz_localize(TIMEZONE).dt.tz_convert("UTC")
+    add_flag(e, date_only, "calendar_day_bounds")
     add_flag(e, e["date"].isin(RECORDS_DELETED_DAYS), FLAG_RECORDS_DELETED)
-    surveys = pd.concat([surveys, e], ignore_index=True)[
-        SURVEY_COLUMNS + HISTORICAL_SURVEY_COLUMNS
-    ]
+    # The reference's effort sheet holds daily narratives, not hourly headcounts/readings.
+    metadata = effort.reindex(columns=["date", "observers", "weather", "remark"]).drop_duplicates("date")
+    metadata = metadata.rename(columns={"remark": "remarks"})
+    surveys = surveys.merge(metadata, on="date", how="left", validate="many_to_one")
+    e = e.drop(columns=["observers", "weather", "remark"], errors="ignore").merge(metadata, on="date", how="left", validate="many_to_one")
+    surveys = pd.concat([surveys, e], ignore_index=True)
+    # Coverage is interval-specific; daily observer notes must not spread exceptions.
+    decisions = effort.reindex(columns=["date", "start", "end", "survey_coverage", "survey_coverage_comment"])
+    decisions = decisions.loc[decisions.survey_coverage.notna()].drop_duplicates(["date", "start", "end"], keep="last")
+    surveys = surveys.merge(decisions, on=["date", "start", "end"], how="left", suffixes=("", "_review"), validate="many_to_one")
+    for field in ("survey_coverage", "survey_coverage_comment"):
+        if field + "_review" in surveys:
+            surveys[field] = surveys[field + "_review"].combine_first(surveys[field])
+    surveys = surveys.reindex(columns=SURVEY_COLUMNS + HISTORICAL_SURVEY_COLUMNS)
 
     add_flag(h, ~surveyed, FLAG_NO_TIME)
     h["observation_id"] = "H-" + h["sheet"] + "-r" + h["row"].astype(str)
@@ -237,7 +252,11 @@ def historical_tables(hist: pd.DataFrame, effort: pd.DataFrame, taxonomy: Taxono
     h["trektellen_species_id"] = pd.NA
     h = h.rename(columns={"species": "taxon_name_original", **HISTORICAL_OBSERVATION_COLUMNS})
     h = taxonomy.add_to(h, "historical")
-    obs = h[OBSERVATION_COLUMNS + list(HISTORICAL_OBSERVATION_COLUMNS.values())]
+    h["day_id"] = "DEFILE-" + h["date"].dt.strftime("%Y%m%d")
+    whole_day = (h["start"] == h["day_start"]) & (h["end"] == h["day_end"])
+    h["time_resolution"] = np.where(surveyed & ~whole_day, "interval", "day")
+    h["use_for_counts"] = True
+    obs = h[OBSERVATION_COLUMNS + list(HISTORICAL_OBSERVATION_COLUMNS.values()) + ATTRIBUTE_COLUMNS]
     return surveys, obs, pd.DataFrame(columns=ISSUE_COLUMNS)
 
 
@@ -246,8 +265,8 @@ def historical_tables(hist: pd.DataFrame, effort: pd.DataFrame, taxonomy: Taxono
 # ---------------------------------------------------------------------------------------
 
 
-def _clip_to_daylight(s: pd.DataFrame, issues: list) -> None:
-    """Count periods reaching into the night: clipped to civil dawn/dusk, flagged."""
+def _audit_daylight(s: pd.DataFrame, issues: list) -> None:
+    """Audit unusual night periods without changing their times or processing flags."""
     dawn, dusk = civil_twilight(s["date"])
     dawn, dusk = s["date"].map(dawn), s["date"].map(dusk)
     early = s["start"] < dawn - NIGHT_TOLERANCE
@@ -266,26 +285,31 @@ def _clip_to_daylight(s: pd.DataFrame, issues: list) -> None:
                 f"{when.tz_convert(TIMEZONE):%Y-%m-%d %H:%M}, "
                 f"{abs(when - limit).total_seconds() / 3600:.1f} h "
                 f"{'after dusk' if lt else 'before dawn'} ({_hm(limit)}, sun at "
-                f"{NIGHT_SUN_ALTITUDE:g}°); clipped to {'dusk' if lt else 'dawn'}.",
+                f"{NIGHT_SUN_ALTITUDE:g}°); retained unchanged pending source review.",
                 entries=0,
                 birds=0,
             )
         )
-    s.loc[early, "start"] = dawn[early]
-    s.loc[late, "end"] = dusk[late]
-    add_flag(s, early, FLAG_START_CLIPPED)
-    add_flag(s, late, FLAG_END_CLIPPED)
 
 
 def _mark_overlaps(s: pd.DataFrame) -> None:
-    """Overlapping count periods count the same birds twice: all but the longest of each
-    overlapping group get `duplicate_of` = the kept survey."""
-    p = s.sort_values("start")
-    group = (p["start"] >= p["end"].cummax().shift().fillna(p["start"].iloc[0])).cumsum()
-    keep = (p["end"] - p["start"]).groupby(group).idxmax()
-    kept_id = group.map(s.loc[keep.values, "survey_id"].set_axis(keep.index))
-    dup = p["survey_id"] != kept_id
-    s.loc[dup[dup].index, "duplicate_of"] = kept_id[dup]
+    """Within each day, retain earliest start (native ID breaks ties); exclude later overlaps.
+
+    Compare against retained periods only, so a chain does not exclude disjoint surveys.
+    Night-spanning periods do not cause another day's count to be excluded.
+    """
+    for _, day in s.sort_values(["start", "id"]).groupby("date"):
+        retained = []
+        for i, row in day.iterrows():
+            overlap = next(
+                (j for j in retained if row["start"] < s.at[j, "end"]
+                 and row["end"] > s.at[j, "start"]), None
+            )
+            if overlap is None:
+                retained.append(i)
+            else:
+                s.at[i, "duplicate_of"] = s.at[overlap, "survey_id"]
+                add_flag(s, s.index == i, FLAG_DUPLICATE_SURVEY)
 
 
 def _issues_by_survey(rows: pd.DataFrame, surveys: pd.DataFrame, issue: str, detail) -> list:
@@ -318,7 +342,7 @@ def trektellen_tables(sightings: pd.DataFrame, counts: pd.DataFrame, taxonomy: T
     s["start_original"], s["end_original"] = s["start"], s["end"]
     s["duplicate_of"] = pd.NA
     s["flags"] = ""
-    _clip_to_daylight(s, issues)
+    _audit_daylight(s, issues)
     _mark_overlaps(s)
     s = s.rename(columns=TREKTELLEN_SURVEY_COLUMNS)
 
@@ -352,8 +376,9 @@ def trektellen_tables(sightings: pd.DataFrame, counts: pd.DataFrame, taxonomy: T
     duplicate = period["duplicate_of"].notna().values
     add_flag(o, no_survey, FLAG_NO_SURVEY)
     add_flag(o, duplicate, FLAG_DUPLICATE_SURVEY)
-    for sid, g in o[duplicate].groupby("survey_id"):
-        p = s.loc[s["survey_id"] == sid].iloc[0]
+    for _, p in s[s["duplicate_of"].notna()].iterrows():
+        sid = p["survey_id"]
+        g = o[o["survey_id"] == sid]
         kept = s.loc[s["survey_id"] == p["duplicate_of"]].iloc[0]
         issues.append(
             dict(
@@ -363,53 +388,46 @@ def trektellen_tables(sightings: pd.DataFrame, counts: pd.DataFrame, taxonomy: T
                 end=p["end"],
                 issue="Overlapping periods",
                 detail=f"Overlaps {kept['survey_id']} ({_hm(kept['start'])}-{_hm(kept['end'])}), "
-                f"which is longer and kept; this one is flagged duplicate: {_species_counts(g)}.",
+                f"which starts first (native ID breaks ties) and is kept; later overlap excluded from processed totals: {_species_counts(g)}.",
                 entries=len(g),
                 birds=int(g["count"].sum()),
             )
         )
 
-    valid = ~no_survey & ~duplicate
+    # Audit original times even on excluded overlaps; then apply the processing policy.
+    valid = ~no_survey
     start, end = period["start"].set_axis(o.index), period["end"].set_axis(o.index)
-    t = o["datetime"]
-    early = valid & (t < start) & ((start - t) < TIMESTAMP_TOLERANCE)
-    o.loc[early, "datetime"] = start[early] + TIMESTAMP_NUDGE
-    late = valid & (o["datetime"] >= end) & ((o["datetime"] - end) < TIMESTAMP_TOLERANCE)
-    o.loc[late, "datetime"] = end[late] - TIMESTAMP_NUDGE
-    add_flag(o, early | late, FLAG_TIME_ADJUSTED)
-
-    outside = valid & ((o["datetime"] < start) | (o["datetime"] > end))
+    outside = valid & ((o["datetime_original"] < start) | (o["datetime_original"] > end))
     add_flag(o, outside, FLAG_TIME_OUTSIDE_SURVEY)
     issues += _issues_by_survey(
-        o[outside],
-        s,
-        "Timestamp outside period",
-        lambda g, p: f"Timestamped {_time_range(g['datetime'])}, more than "
-        f"{TIMESTAMP_TOLERANCE.total_seconds() / 60:.0f} min outside the period "
-        f"{_hm(p['start'])}-{_hm(p['end'])}: {_species_counts(g)}.",
+        o[outside], s, "Timestamp outside period",
+        lambda g, p: f"Timestamped {_time_range(g['datetime_original'])}, outside "
+        f"{_hm(p['start'])}-{_hm(p['end'])}; retained at day level: {_species_counts(g)}.",
     )
-
-    inside = valid & ~outside
-    # Share over entries with migrating birds: untimed local-only entries (count 0) are routine.
-    migrating = inside & (o["count"] > 0)
-    untimed_share = o["datetime"].isna()[migrating].groupby(o["survey_id"][migrating]).mean()
-    timed_survey = o["survey_id"].map(untimed_share < UNTIMED_SHARE_TIMED_SURVEY).eq(True)
-    untimed = inside & timed_survey & o["datetime"].isna()
+    untimed = valid & o["datetime_original"].isna()
     add_flag(o, untimed, FLAG_UNTIMED_IN_TIMED_SURVEY)
-    # Untimed entries of local birds only (no migrating bird) are routine, not an error.
     issues += _issues_by_survey(
-        o[untimed & (o["count"] > 0)],
-        s,
-        "Entry without time",
-        lambda g, p: "No time, in a count otherwise timed, so it cannot be placed in the "
-        f"day: {_species_counts(g)}.",
+        o[untimed], s, "Entry without time",
+        lambda g, p: f"No hour; retained at day level: {_species_counts(g)}.",
     )
+    o.loc[outside, "datetime"] = pd.NaT
+    o["day_id"] = "DEFILE-" + o["date"].dt.strftime("%Y%m%d")
+    o["time_resolution"] = np.where(o["datetime"].notna(), "point", "day")
+    o["use_for_counts"] = ~duplicate
 
+    for issue in issues:
+        if issue["issue"] == "Period into the night":
+            records = o[o["survey_id"] == issue["survey_id"]]
+            issue["entries"] = len(records)
+            issue["birds"] = int(records["count"].sum())
     o = taxonomy.add_to(o, "trektellen")
     add_flag(s, ~s["survey_id"].isin(o["survey_id"]), FLAG_NO_ENTRIES)
     surveys = s[SURVEY_COLUMNS + list(TREKTELLEN_SURVEY_COLUMNS.values())]
     obs = o[OBSERVATION_COLUMNS + list(TREKTELLEN_OBSERVATION_COLUMNS.values())]
-    return surveys, obs, pd.DataFrame(issues, columns=ISSUE_COLUMNS)
+    review = pd.DataFrame(issues, columns=ISSUE_COLUMNS)
+    offsets = pd.concat([start-o.datetime_original, o.datetime_original-end], axis=1).max(axis=1).dt.total_seconds().div(60).clip(lower=0)
+    review['outside_minutes'] = review.survey_id.map(offsets.groupby(o.survey_id).max()).where(review.issue.eq('Timestamp outside period'))
+    return surveys, obs, review
 
 
 def build(hist, effort, sightings, counts, taxonomy: Taxonomy) -> Dataset:
@@ -434,3 +452,18 @@ def build(hist, effort, sightings, counts, taxonomy: Taxonomy) -> Dataset:
     issues = pd.concat(found, ignore_index=True) if found else ti
     issues = issues.sort_values(["date", "survey_id"])
     return Dataset(surveys, observations, issues.reset_index(drop=True))
+
+
+def daily_counts(ds: Dataset) -> pd.DataFrame:
+    """Daily reconciliation of retained source records, without filling missing hours."""
+    o = ds.observations[ds.observations["use_for_counts"]].copy()
+    for resolution in ("point", "interval", "day"):
+        o[resolution + "_count"] = o["count"].where(o["time_resolution"] == resolution, 0)
+    return o.groupby(
+        ["day_id", "date", "source", "taxon_name_original", "avibase_id", "taxon_kind"],
+        dropna=False,
+    ).agg(
+        count=("count", "sum"), records=("observation_id", "size"),
+        point_count=("point_count", "sum"), interval_count=("interval_count", "sum"),
+        day_count=("day_count", "sum"), direction2=("direction2", "sum"), local=("local", "sum"),
+    ).reset_index()

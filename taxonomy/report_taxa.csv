@@ -1,0 +1,395 @@
+species,dataset_source,dataset_taxa
+Accenteur mouchet,historical,Accenteur mouchet
+Accenteur mouchet,trektellen,Dunnock
+Aigle botté,historical,Aigle botté
+Aigle criard,historical,Aigle criard
+Aigle criard,trektellen,Greater Spotted Eagle
+Aigle des steppes,historical,Aigle des steppes
+Aigle indéterminé (Aquila),historical,Aigle indéterminé (Aquila)
+Aigle pomarin,historical,Aigle pomarin
+Aigle pomarin,trektellen,Lesser Spotted Eagle
+Aigle pomarin ou criard,historical,Aigle pomarin ou criard
+Aigle pomarin ou criard,trektellen,Lesser Spotted / Greater Spotted Eagle
+Aigle royal,historical,Aigle royal
+Aigle royal,trektellen,Golden Eagle
+Aigrette garzette,historical,Aigrette garzette
+Aigrette garzette,trektellen,Little Egret
+Alouette calandrelle,historical,Alouette calandrelle
+Alouette des champs,historical,Alouette des champs
+Alouette des champs,trektellen,Skylark
+Alouette indéterminée,historical,Alouette indéterminée
+Alouette indéterminée,trektellen,lark sp.
+Alouette lulu,historical,Alouette lulu
+Alouette lulu,trektellen,Wood Lark
+Autour / Epervier,trektellen,Sparrowhawk/Goshawk
+Autour des palombes,historical,Autour des palombes
+Autour des palombes,trektellen,Goshawk
+Balbuzard pêcheur,historical,Balbuzard pêcheur
+Balbuzard pêcheur,trektellen,Osprey
+Barge rousse,historical,Barge rousse
+Barge rousse,trektellen,Bar-tailed Godwit
+Bec-croisé des sapins,historical,Bec-croisé des sapins
+Bec-croisé des sapins,trektellen,Crossbill
+Bergeronnette des ruisseaux,historical,Bergeronnette des ruisseaux
+Bergeronnette des ruisseaux,trektellen,Grey Wagtail
+Bergeronnette grise,historical,Bergeronnette grise
+Bergeronnette grise,trektellen,White Wagtail
+Bergeronnette printanière,historical,Bergeronnette printanière
+Bergeronnette sp.,trektellen,Motacilla (wagtail) sp.
+Bihoreau gris,historical,Bihoreau gris
+Bihoreau gris,trektellen,Night Heron
+Bondrée apivore,historical,Bondrée apivore
+Bondrée apivore,trektellen,Honey Buzzard
+Bouvreuil pivoine,historical,Bouvreuil pivoine
+Bouvreuil pivoine,trektellen,Bullfinch
+Bruant des roseaux,historical,Bruant des roseaux
+Bruant des roseaux,trektellen,Reed Bunting
+Bruant fou,historical,Bruant fou
+Bruant fou,trektellen,Rock Bunting
+Bruant indéterminé,trektellen,bunting sp.
+Bruant jaune,historical,Bruant jaune
+Bruant jaune,trektellen,Yellowhammer
+Bruant ortolan,historical,Bruant ortolan
+Bruant ortolan,trektellen,Ortolan Bunting
+Bruant proyer,historical,Bruant proyer
+Bruant proyer,trektellen,Corn Bunting
+Bruant sp.,trektellen,bunting sp.
+Bruant spec.,trektellen,bunting sp.
+Bruant zizi,historical,Bruant zizi
+Bruant zizi,trektellen,Cirl Bunting
+Busard Saint-Martin,historical,Busard Saint-Martin
+Busard Saint-Martin,trektellen,Hen Harrier
+Busard Saint-Martin / cendré / pâle,trektellen,Hen/Montagu's/Pallid Harrier
+Busard cendré,historical,Busard cendré
+Busard cendré,trektellen,Montagu's Harrier
+Busard des roseaux,historical,Busard des roseaux
+Busard des roseaux,trektellen,Marsh Harrier
+Busard indétereminé,historical,Busard indéterminé
+Busard indéterminé,historical,Busard indéterminé
+Busard indéterminé,trektellen,harrier sp.
+Busard pâle,historical,Busard pâle
+Busard pâle,trektellen,Pallid Harrier
+Busard pâle / cendré,trektellen,Montagu's/Pallid Harrier
+Buse féroce,trektellen,Long-legged Buzzard
+Buse indéterminée,trektellen,buzzard sp.
+Buse ou Bondrée,trektellen,Buzzard/Honey Buzzard
+Buse pattue,historical,Buse pattue
+Buse variable,historical,Buse variable
+Buse variable,trektellen,Common Buzzard
+Bécasseau variable,historical,Bécasseau variable
+Bécasseau variable,trektellen,Dunlin
+Bécassine des marais,historical,Bécassine des marais
+Bécassine des marais,trektellen,Snipe
+Bécassine sourde,historical,Bécassine sourde
+Canard chipeau,historical,Canard chipeau
+Canard colvert,historical,Canard colvert
+Canard indéterminé,historical,Canard indéterminé
+Canard indéterminé,trektellen,duck sp.
+Canard pilet,historical,Canard pilet
+Canard pilet,trektellen,Pintail
+Canard siffleur,historical,Canard siffleur
+Canard siffleur,trektellen,Wigeon
+Canard souchet,historical,Canard souchet
+Canard souchet,trektellen,Shoveler
+Cassenoix moucheté,historical,Cassenoix moucheté
+Chardonneret élégant,historical,Chardonneret élégant
+Chardonneret élégant,trektellen,Goldfinch
+Chevalier aboyeur,historical,Chevalier aboyeur
+Chevalier aboyeur,trektellen,Greenshank
+Chevalier arlequin,trektellen,Spotted Redshank
+Chevalier culblanc,historical,Chevalier culblanc
+Chevalier gambette,historical,Chevalier gambette
+Chevalier guignette,historical,Chevalier guignette
+Chevalier guignette,trektellen,Common Sandpiper
+Chevalier indéterminé (Tringa),trektellen,Tringa sp.
+Chevalier sylvain,historical,Chevalier sylvain
+Chevalier sylvain,trektellen,Wood Sandpiper
+Choucas des tours,historical,Choucas des tours
+Choucas des tours,trektellen,Jackdaw
+Cigogne blanche,historical,Cigogne blanche
+Cigogne blanche,trektellen,White Stork
+Cigogne indéterminée,historical,Cigogne indéterminée
+Cigogne indéterminée,trektellen,Ciconia sp.
+Cigogne noire,historical,Cigogne noire
+Cigogne noire,trektellen,Black Stork
+Circaète Jean-le-Blanc,historical,Circaète Jean-le-Blanc
+Circaète Jean-le-Blanc,trektellen,Short-toed Eagle
+Cisticole des joncs,historical,Cisticole des joncs
+Combattant varié,historical,Combattant varié
+Corbeau freux,historical,Corbeau freux
+Corbeau freux,trektellen,Rook
+Cormoran pygmée,trektellen,Pygmy Cormorant
+Corneille noire,historical,Corneille noire
+Corneille noire,trektellen,Carrion Crow
+Corvidé indéterminé,trektellen,Corvus sp.
+Coucou gris,historical,Coucou gris
+Coucou gris,trektellen,Cuckoo
+Courlis cendré,historical,Courlis cendré
+Courlis cendré,trektellen,Curlew
+Courlis corlieu,historical,Courlis corlieu
+Courlis corlieu,trektellen,Whimbrel
+Courlis indéterminé,historical,Courlis indéterminé
+Courlis indéterminé,trektellen,Numenius sp.
+Faucon crécerelle,historical,Faucon crécerelle
+Faucon crécerelle,trektellen,Kestrel
+Faucon crécerelle/crécerellette,trektellen,Common / Lesser Kestrel
+Faucon d'Eléonore,trektellen,Eleonora's Falcon
+Faucon hobereau,historical,Faucon hobereau
+Faucon hobereau,trektellen,Hobby
+Faucon hobereau / Faucon kobez,trektellen,Hobby / Red-footed Falcon
+Faucon indéterminé,historical,Faucon indéterminé
+Faucon indéterminé,trektellen,falcon sp.
+Faucon kobez,historical,Faucon kobez
+Faucon kobez,trektellen,Red-footed Falcon
+Faucon pèlerin,historical,Faucon pèlerin
+Faucon pèlerin,trektellen,Peregrine
+Faucon émerillon,historical,Faucon émerillon
+Faucon émerillon,trektellen,Merlin
+Fauvette à tête noire,historical,Fauvette à tête noire
+Fauvette à tête noire,trektellen,Blackcap
+Flamant rose,trektellen,Greater Flamingo
+Fringille indéterminé,historical,Fringille indéterminé
+Fringille indéterminé,trektellen,finch sp.
+Fuligule milouin,historical,Fuligule milouin
+Fuligule milouin,trektellen,Pochard
+Garrot à oeil d’or,historical,Garrot à oeil d’or
+Garzette / Garde-boeufs,trektellen,Cattle Egret / Little Egret
+Geai des chênes,historical,Geai des chênes
+Geai des chênes,trektellen,Jay
+Gobemouche noir,historical,Gobemouche noir
+Gobemouche noir,trektellen,Pied Flycatcher
+Goéland brun,historical,Goéland brun
+Goéland brun,trektellen,Lesser Black-backed Gull
+Goéland cendré,historical,Goéland cendré
+Goéland cendré,trektellen,Common Gull
+Goéland indéterminé,historical,Goéland indéterminé
+Goéland indéterminé,trektellen,large gull sp.
+Goéland leucophée,historical,Goéland leucophée
+Goéland leucophée,trektellen,Yellow-legged Gull
+Goéland marin,trektellen,Great Black-backed Gull
+Goéland pontique,trektellen,Caspian Gull
+Grand Corbeau,historical,Grand Corbeau
+Grand Corbeau,trektellen,Raven
+Grand Cormoran,historical,Grand Cormoran
+Grand Cormoran,trektellen,Cormorant
+Grand Gravelot,historical,Grand Gravelot
+Grand Gravelot,trektellen,Ringed Plover
+Grande Aigrette,historical,Grande Aigrette
+Grande Aigrette,trektellen,Great White Egret
+Grimpereau des jardins,historical,Grimpereau des jardins
+Grive draine,historical,Grive draine
+Grive draine,trektellen,Mistle Thrush
+Grive litorne,historical,Grive litorne
+Grive litorne,trektellen,Fieldfare
+Grive mauvis,historical,Grive mauvis
+Grive mauvis,trektellen,Redwing
+Grive musicienne,historical,Grive musicienne
+Grive musicienne,trektellen,Song Thrush
+Grosbec casse-noyaux,historical,Grosbec casse-noyaux
+Grosbec casse-noyaux,trektellen,Hawfinch
+Grue cendrée,historical,Grue cendrée
+Grue cendrée,trektellen,Crane
+Guifette noire,historical,Guifette noire
+Guêpier d'Europe,historical,Guêpier d'Europe
+Guêpier d'Europe,trektellen,European Bee-eater
+Harle bièvre,historical,Harle bièvre
+Harle bièvre,trektellen,Goosander
+Harle huppé,historical,Harle huppé
+Hibou des marais,historical,Hibou des marais
+Hirondelle de fenêtre,historical,Hirondelle de fenêtre
+Hirondelle de fenêtre,trektellen,House Martin
+Hirondelle de rivage,historical,Hirondelle de rivage
+Hirondelle de rivage,trektellen,Sand Martin
+Hirondelle de rochers,historical,Hirondelle de rochers
+Hirondelle de rochers,trektellen,Crag Martin
+Hirondelle indéterminée,historical,Hirondelle indéterminée
+Hirondelle indéterminée,trektellen,swallow sp.
+Hirondelle rustique,historical,Hirondelle rustique
+Hirondelle rustique,trektellen,Swallow
+Huîtrier pie,historical,Huîtrier pie
+Hybride Aigle criard x pomarin,historical,Hybride Aigle criard x pomarin
+Hybride Corneille noire x mantelée,trektellen,Carrion/Hooded Crow hybrid
+Héron cendré,historical,Héron cendré
+Héron cendré,trektellen,Grey Heron
+Héron garde-boeufs,historical,Héron garde-boeufs
+Héron garde-boeufs,trektellen,Cattle Egret
+Héron pourpré,historical,Héron pourpré
+Héron pourpré,trektellen,Purple Heron
+Ibis chauve,trektellen,Bald Ibis
+Ibis falcinelle,historical,Ibis falcinelle
+Ibis falcinelle,trektellen,Glossy Ibis
+Ibis sacré,historical,Ibis sacré
+Labbe indéterminé,historical,Labbe indéterminé
+Labbe parasite,historical,Labbe parasite
+Labbe pomarin,historical,Labbe pomarin
+Labbe à longue queue,historical,Labbe à longue queue
+Laridé indéterminé,trektellen,Laridae sp.
+Limicole indéterminé,historical,Limicole indéterminé
+Limicole indéterminé,trektellen,wader sp.
+Limicoles indéterminés,historical,Limicole indéterminé
+Linotte mélodieuse,historical,Linotte mélodieuse
+Linotte mélodieuse,trektellen,Linnet
+Loriot d'Europe,historical,Loriot d'Europe
+Loriot d'Europe,trektellen,Golden Oriole
+Macreuse noire,historical,Macreuse noire
+Martin-pêcheur d'Europe,historical,Martin-pêcheur d'Europe
+Martinet noir,historical,Martinet noir
+Martinet noir,trektellen,Swift
+Martinet noir/pâle,trektellen,Swift / Pallid Swift
+Martinet pâle,historical,Martinet pâle
+Martinet à ventre blanc,historical,Martinet à ventre blanc
+Martinet à ventre blanc,trektellen,Alpine Swift
+Merle / Grive indéterminé,historical,Merle / Grive indéterminé
+Merle / Grive indéterminé,trektellen,thrush sp.
+Merle noir,historical,Merle noir
+Merle noir,trektellen,Blackbird
+Merle à plastron,historical,Merle à plastron
+Merle à plastron,trektellen,Ring Ouzel
+Milan indéterminé,historical,Milan indéterminé
+Milan indéterminé,trektellen,Milvus sp.
+Milan noir,historical,Milan noir
+Milan noir,trektellen,Black Kite
+Milan royal,historical,Milan royal
+Milan royal,trektellen,Red Kite
+Moineau domestique,historical,Moineau domestique
+Moineau friquet,historical,Moineau friquet
+Moineau friquet,trektellen,Tree Sparrow
+Mouette indéterminée,historical,Mouette indéterminée
+Mouette indéterminée,trektellen,small gull sp.
+Mouette mélanocéphale,historical,Mouette mélanocéphale
+Mouette mélanocéphale,trektellen,Mediterranean Gull
+Mouette pygmée,historical,Mouette pygmée
+Mouette rieuse,historical,Mouette rieuse
+Mouette rieuse,trektellen,Black-headed Gull
+Mouette tridactyle,historical,Mouette tridactyle
+Mésange bleue,historical,Mésange bleue
+Mésange bleue,trektellen,Blue Tit
+Mésange charbonnière,historical,Mésange charbonnière
+Mésange charbonnière,trektellen,Great Tit
+Mésange huppée,trektellen,Crested Tit
+Mésange indéterminée,historical,Mésange indéterminée
+Mésange indéterminée,trektellen,Parus (tit) sp.
+Mésange noire,historical,Mésange noire
+Mésange noire,trektellen,Coal Tit
+Mésange nonnette,historical,Mésange nonnette
+Mésange nonnette,trektellen,Marsh Tit
+Mésange à longue queue,historical,Mésange à longue queue
+Mésange à longue queue,trektellen,Long-tailed Tit
+Oie cendrée,historical,Oie cendrée
+Oie cendrée,trektellen,Greylag Goose
+Oie indéterminée,historical,Oie indéterminée
+Oie indéterminée,trektellen,Anser sp.
+Ouette d’Égypte,trektellen,Egyptian Goose
+Passereau indéterminé,historical,Passereau indéterminé
+Passereau indéterminé,trektellen,passerine sp.
+Petit Gravelot,trektellen,Little Ringed Plover
+Petit limicole indéterminé,historical,petit limicole indéterminé
+Petit limicole indéterminé,trektellen,small wader
+Pic noir,historical,Pic noir
+Pic épeiche,historical,Pic épeiche
+Pic épeiche,trektellen,Great Spotted Woodpecker
+Pie bavarde,historical,Pie bavarde
+Pie-grièche grise,historical,Pie-grièche grise
+Pigeon biset domestique,historical,Pigeon biset domestique
+Pigeon biset domestique,trektellen,Feral Pigeon
+Pigeon colombin,historical,Pigeon colombin
+Pigeon colombin,trektellen,Stock Dove
+Pigeon indéterminé,historical,Pigeon indéterminé
+Pigeon indéterminé,trektellen,dove (Columba) sp.
+Pigeon ramier,historical,Pigeon ramier
+Pigeon ramier,trektellen,Woodpigeon
+Pigeon ramier & Pigeon sp.,trektellen,dove (Columba) sp.|Woodpigeon
+Pinson des arbres,historical,Pinson des arbres
+Pinson des arbres,trektellen,Chaffinch
+Pinson des arbres / du Nord,historical,Pinson des arbres / du Nord
+Pinson des arbres / du Nord,trektellen,Chaffinch/Brambling
+Pinson du Nord,historical,Pinson du Nord
+Pinson du Nord,trektellen,Brambling
+Pipit de Richard,trektellen,Richard's Pipit
+Pipit des arbres,historical,Pipit des arbres
+Pipit des arbres,trektellen,Tree Pipit
+Pipit des arbres/dos olive,trektellen,Tree Pipit/Olive-backed Pipit
+Pipit farlouse,historical,Pipit farlouse
+Pipit farlouse,trektellen,Meadow Pipit
+Pipit indéterminé,historical,Pipit indéterminé
+Pipit indéterminé,trektellen,pipit sp.
+Pipit rousseline,historical,Pipit rousseline
+Pipit rousseline,trektellen,Tawny Pipit
+Pipit spioncelle,historical,Pipit spioncelle
+Pipit spioncelle,trektellen,Water Pipit
+Pipit à gorge rousse,trektellen,Red-throated Pipit
+Pluvier doré,historical,Pluvier doré
+Pluvier doré,trektellen,Golden Plover
+Pouillot indéterminé,trektellen,Phylloscopus sp.
+Pouillot véloce,historical,Pouillot véloce
+Pouillot véloce,trektellen,Chiffchaff
+Pouillot à grands sourcils,historical,Pouillot à grands sourcils
+Pouillot à grands sourcils,trektellen,Yellow-browed Warbler
+Pygargue à queue blanche,historical,Pygargue à queue blanche
+Pygargue à queue blanche,trektellen,White-tailed Eagle
+Pélican blanc,historical,Pélican blanc
+Rapace indéterminé,historical,Rapace indéterminé
+Rapace indéterminé,trektellen,raptor sp.
+Rapace moyen,trektellen,MediumRaptor
+Roitelet huppé,historical,Roitelet huppé
+Roitelet indéterminé,trektellen,Regulus sp.
+Roitelet à triple bandeau,historical,Roitelet à triple bandeau
+Roitelet à triple bandeau,trektellen,Firecrest
+Rollier d’Europe,trektellen,European Roller
+Rougegorge familier,trektellen,Robin
+Rougequeue noir,historical,Rougequeue noir
+Rougequeue noir,trektellen,Black Redstart
+Rougequeue à front blanc,historical,Rougequeue à front blanc
+Rougequeue à front blanc,trektellen,Redstart
+Rémiz penduline,historical,Rémiz penduline
+Rémiz penduline,trektellen,Penduline Tit
+Sarcelle d'hiver,historical,Sarcelle d'hiver
+Sarcelle d'été,historical,Sarcelle d'été
+Serin cini,historical,Serin cini
+Serin cini,trektellen,Serin
+Sittelle torchepot,historical,Sittelle torchepot
+Sittelle torchepot,trektellen,Nuthatch
+Sizerin cabaret,historical,Sizerin cabaret
+Sizerin cabaret,trektellen,Lesser Redpoll
+Sizerin flammé/ Sizerin cabaret,trektellen,Redpoll
+Sizerin flammé/cabaret,trektellen,Redpoll
+Spatule blanche,historical,Spatule blanche
+Spatule blanche,trektellen,Spoonbill
+Sterne caspienne,historical,Sterne caspienne
+Sterne caspienne,trektellen,Caspian Tern
+Sterne pierregarin,historical,Sterne pierregarin
+Sterne pierregarin,trektellen,Common Tern
+Tadorne casarca,historical,Tadorne casarca
+Tadorne de Belon,historical,Tadorne de Belon
+Tadorne de Belon,trektellen,Shelduck
+Tarier des prés,historical,Tarier des prés
+Tarier pâtre,historical,Tarier pâtre
+Tarin des aulnes,historical,Tarin des aulnes
+Tarin des aulnes,trektellen,Siskin
+Tichodrome échelette,historical,Tichodrome échelette
+Tourterelle des bois,historical,Tourterelle des bois
+Tourterelle des bois,trektellen,Turtle Dove
+Tourterelle turque,historical,Tourterelle turque
+Traquet motteux,historical,Traquet motteux
+Traquet motteux,trektellen,Wheatear
+Vanneau huppé,historical,Vanneau huppé
+Vanneau huppé,trektellen,Lapwing
+Vautour fauve,historical,Vautour fauve
+Vautour fauve,trektellen,Griffon Vulture
+Venturon montagnard,trektellen,Citril Finch
+Verdier d'Europe,historical,Verdier d'Europe
+Verdier d'Europe,trektellen,Greenfinch
+Voilier indéterminé,historical,Rapace indéterminé
+ardéidé spec.,trektellen,heron sp.
+bergeronnette spec.,trektellen,Motacilla (wagtail) sp.
+buse ou bondrée,trektellen,Buzzard/Honey Buzzard
+corvidé spec.,trektellen,Corvus sp.
+gravelot spec.,trektellen,Charadrius sp.
+laridé spec.,trektellen,Laridae sp.
+pouillot spec.,trektellen,Phylloscopus sp.
+Élanion blanc,historical,Élanion blanc
+Élanion blanc,trektellen,Black-winged Kite
+Épervier d'Europe,historical,Épervier d'Europe
+Épervier d'Europe,trektellen,Sparrowhawk
+Étourneau sansonnet,historical,Étourneau sansonnet
+Étourneau sansonnet,trektellen,Starling

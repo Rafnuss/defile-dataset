@@ -23,7 +23,7 @@ EFFORT_SHEET = "Pression observation"
 TREKTELLEN_DIR = "trektellen"
 # count_2021.xlsx covers up to 2021, hand-cleaned and hour by hour, so Trektellen is read from
 # 2022. The Trektellen 2021 export (`Trektellen_data_2422_2021.xlsx`, day totals only, no header
-# export) is the same season -- 378,802 birds vs. 379,934 -- and is kept in raw/ but not read.
+# export) is the same season -- 378,802 birds vs. 379,934 -- and is not a build input.
 TREKTELLEN_FIRST_YEAR = 2022
 TREKTELLEN_DATA_PATTERN = "Trektellen_data_{site}_{year}.xlsx"
 TREKTELLEN_HEADER_PATTERN = "Trektellen_headerdata_{site}_{year}.xlsx"
@@ -74,13 +74,31 @@ def read_effort(raw_dir: str) -> pd.DataFrame:
 
 
 def trektellen_years(raw_dir: str) -> list[int]:
-    """Years with a Trektellen export present, from TREKTELLEN_FIRST_YEAR -- every one found,
-    not a fixed range."""
-    pattern = os.path.join(
-        raw_dir, TREKTELLEN_DIR, TREKTELLEN_DATA_PATTERN.format(site=TREKTELLEN_SITE_ID, year="*")
-    )
-    years = (int(re.search(r"_(\d{4})\.xlsx$", f).group(1)) for f in glob.glob(pattern))
-    return sorted(y for y in years if y >= TREKTELLEN_FIRST_YEAR)
+    """Years with both Trektellen exports present, from TREKTELLEN_FIRST_YEAR onward."""
+    folder = os.path.join(raw_dir, TREKTELLEN_DIR)
+    files = {
+        kind: glob.glob(os.path.join(folder, pattern.format(site=TREKTELLEN_SITE_ID, year="*")))
+        for kind, pattern in (
+            ("data", TREKTELLEN_DATA_PATTERN),
+            ("header", TREKTELLEN_HEADER_PATTERN),
+        )
+    }
+    years = {
+        kind: {int(re.search(r"_(\d{4})\.xlsx$", path).group(1)) for path in paths}
+        for kind, paths in files.items()
+    }
+    years = {
+        kind: {year for year in found if year >= TREKTELLEN_FIRST_YEAR}
+        for kind, found in years.items()
+    }
+    missing_headers = sorted(years["data"] - years["header"])
+    missing_data = sorted(years["header"] - years["data"])
+    if missing_headers or missing_data:
+        raise ValueError(
+            "Trektellen exports must be paired by year; "
+            f"missing headers for {missing_headers}, missing data for {missing_data}."
+        )
+    return sorted(years["data"])
 
 
 def _timestamp_to_str(t):
