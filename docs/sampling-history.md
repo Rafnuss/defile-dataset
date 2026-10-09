@@ -30,7 +30,7 @@ The 2019 paper p. 3 describes individual counting of raptors/large birds, estima
 
 ## What survives in the received data
 
-Run `uv run python scripts/review/profile_temporal_resolution.py`. Diagnostic outputs go to `interim/diagnostics/temporal-profile/`; no rows or times are changed. Counts include raw taxa and unreviewed periods and are not publication totals.
+In the local research checkout, run `uv run python scripts/review/profile_temporal_resolution.py`. Diagnostic outputs go to `interim/diagnostics/temporal-profile/`; no rows or times are changed. Counts include raw taxa and unreviewed periods and are not publication totals.
 
 - The manually cleaned historical workbook has day-window-sized records through 2013 and mostly shorter intervals from 2014 onward. Shorter intervals have a median of 60 minutes. Some original entry clocks survive in later years.
 - No date in that cleaned historical baseline mixes day-window-sized and partial-day rows. This does not disprove mixed recording: earlier manual deletions may have removed that evidence. The audit must return to the original workbooks, not only `count_2021.xlsx`.

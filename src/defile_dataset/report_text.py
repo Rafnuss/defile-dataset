@@ -1,6 +1,54 @@
 """English/French interface copy; source evidence stays in its original language."""
 # Each check explains its computation, independently of the number of findings.
 CHECK_TEXT = {
+    "survey-associations-preserved": (
+        "Survey associations preserved",
+        "Liens aux suivis conservés",
+        "Each released count stays linked to its source survey when that survey is released; splits around weather stops and absences follow the count's own time.",
+        "Chaque comptage publié reste lié à son suivi source lorsque celui-ci est publié ; les découpages autour des arrêts météo et des absences suivent l’heure propre du comptage.",
+    ),
+    "reviewed-taxonomy-assignments-preserved": (
+        "Reviewed taxonomy assignments preserved",
+        "Attributions taxonomiques revues conservées",
+        "Released taxa are compared with the reviewed projection of historical species text.",
+        "Les taxons publiés sont comparés à la projection revue du texte d’espèce historique.",
+    ),
+    "taxon-parents-are-released-and-acyclic": (
+        "Taxon parents are released and acyclic",
+        "Parents des taxons publiés et sans boucle",
+        "Every parent_taxon_id is a released taxon, and following parents never loops.",
+        "Chaque parent_taxon_id est un taxon publié, et la chaîne des parents ne boucle jamais.",
+    ),
+    "historical-effort-gaps-inside-declared-windows": (
+        "Historical effort gaps inside declared windows",
+        "Intervalles historiques ajoutés dans les fenêtres déclarées",
+        "Each added empty interval lies inside its declared day window.",
+        "Chaque intervalle vide ajouté se situe dans la fenêtre journalière déclarée.",
+    ),
+    "historical-effort-gaps-do-not-overlap-surveys": (
+        "Historical effort gaps do not overlap surveys",
+        "Intervalles historiques ajoutés sans chevauchement",
+        "Added empty intervals never overlap another released survey of the same day.",
+        "Les intervalles vides ajoutés ne chevauchent aucun autre suivi publié du même jour.",
+    ),
+    "historical-effort-gaps-have-no-counts": (
+        "Historical effort gaps have no counts",
+        "Intervalles historiques ajoutés sans comptage",
+        "No count is linked to, or timed inside, an added empty interval (counted, nothing seen).",
+        "Aucun comptage n’est lié à un intervalle vide ajouté (compté, rien vu), ni daté à l’intérieur.",
+    ),
+    "weather-stops-hold-no-counts": (
+        "Weather stops hold no counts",
+        "Arrêts météo sans comptage",
+        "A weather stop is complete with no bird: no released count may be linked to it.",
+        "Un arrêt météo est complet sans oiseau : aucun comptage publié ne peut y être lié.",
+    ),
+    "released-surveys-do-not-overlap": (
+        "Released surveys do not overlap",
+        "Suivis publiés sans chevauchement",
+        "Survey rows, including weather stops and added intervals, are compared across the whole table.",
+        "Les suivis, y compris arrêts météo et intervalles ajoutés, sont comparés sur toute la table.",
+    ),
     "surveys-into-the-night": (
         "Surveys into the night",
         "Suivis empiétant sur la nuit",
@@ -66,12 +114,6 @@ CHECK_TEXT = {
         "Horaires de suivi manquants",
         "Survey start/end times are missing; calendar-day weather stops are excluded.",
         "Horaires de début/fin manquants ; les arrêts météo sur la journée entière sont exclus.",
-    ),
-    "survey-status-unclassified_empty_header": (
-        "Empty surveys with unknown status",
-        "Suivis vides au statut inconnu",
-        "No bird entries are linked to these periods. Duration helps review short periods; “View day” combines all periods on that date.",
-        "Aucune donnée d’oiseau liée à ces périodes. La durée aide à examiner les périodes courtes ; « Voir la journée » regroupe toutes les périodes de cette date.",
     ),
     "survey-status-birds_in_interruption": (
         "Records inside a weather stop or absence",

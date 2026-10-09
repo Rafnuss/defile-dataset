@@ -5,6 +5,7 @@ from local time (Europe/Paris) to UTC. Corrections live in `defile_dataset.build
 one is flagged.
 """
 
+import functools
 import glob
 import os
 import re
@@ -23,7 +24,7 @@ EFFORT_SHEET = "Pression observation"
 TREKTELLEN_DIR = "trektellen"
 # count_2021.xlsx covers up to 2021, hand-cleaned and hour by hour, so Trektellen is read from
 # 2022. The Trektellen 2021 export (`Trektellen_data_2422_2021.xlsx`, day totals only, no header
-# export) is the same season -- 378,802 birds vs. 379,934 -- and is kept in raw/ but not read.
+# export) is the same season -- 378,802 birds vs. 379,934 -- and is not read (kept locally only).
 TREKTELLEN_FIRST_YEAR = 2022
 TREKTELLEN_DATA_PATTERN = "Trektellen_data_{site}_{year}.xlsx"
 TREKTELLEN_HEADER_PATTERN = "Trektellen_headerdata_{site}_{year}.xlsx"
@@ -43,6 +44,17 @@ def _clock(times: pd.Series) -> pd.Series:
     return pd.to_timedelta(pd.to_datetime(times, format="%H:%M:%S").dt.time.astype(str))
 
 
+@functools.lru_cache(maxsize=1)
+def _historical_sheets(path: str, mtime: float) -> dict[str, pd.DataFrame]:
+    """Every sheet read from `count_2021.xlsx`, parsed once per build (the workbook is large)."""
+    return pd.read_excel(path, sheet_name=[*HISTORICAL_SHEETS, EFFORT_SHEET])
+
+
+def _historical_sheet(raw_dir: str, sheet: str) -> pd.DataFrame:
+    path = os.path.join(raw_dir, HISTORICAL_FILE)
+    return _historical_sheets(path, os.path.getmtime(path))[sheet].copy()
+
+
 def read_historical(raw_dir: str) -> pd.DataFrame:
     """All records of `count_2021.xlsx` (1966-2021), one row per spreadsheet row.
 
@@ -50,10 +62,9 @@ def read_historical(raw_dir: str) -> pd.DataFrame:
     period, UTC) and `day_start`/`day_end` (that day's whole survey window, UTC; the record's
     period where the sheet has none, i.e. 1966-2013). Every original column is kept.
     """
-    path = os.path.join(raw_dir, HISTORICAL_FILE)
     sheets = []
     for s in HISTORICAL_SHEETS:
-        df = pd.read_excel(path, sheet_name=s)
+        df = _historical_sheet(raw_dir, s)
         sheets.append(df.assign(sheet=s, row=df.index + 2))
     df = pd.concat(sheets, ignore_index=True)
     start = df["date"] + _clock(df["startTime"])
@@ -67,7 +78,7 @@ def read_historical(raw_dir: str) -> pd.DataFrame:
 
 def read_effort(raw_dir: str) -> pd.DataFrame:
     """The EFFORT_SHEET of `count_2021.xlsx`: one row per survey day, `start`/`end` in UTC."""
-    df = pd.read_excel(os.path.join(raw_dir, HISTORICAL_FILE), sheet_name=EFFORT_SHEET)
+    df = _historical_sheet(raw_dir, EFFORT_SHEET)
     df["start"] = local_to_utc(df["date"] + _clock(df["startTime"]))
     df["end"] = local_to_utc(df["date"] + _clock(df["endTime"]))
     return df

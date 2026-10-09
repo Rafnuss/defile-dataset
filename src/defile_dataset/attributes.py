@@ -192,12 +192,13 @@ def split_historical_counts(observations, components):
             ].groupby("observation_id", sort=False)
         )
     )
-    for row in observations.to_dict("records"):
-        parts = groups.get(row["observation_id"])
-        if parts is None:
-            rows.append(row)
-            continue
-        for part in parts.to_dict("records"):
+    observations = observations.reset_index(drop=True)
+    split = observations.observation_id.isin(groups.keys())
+    # Only split records are expanded row by row; the rest keep their order.
+    for position, row in zip(
+        observations.index[split], observations.loc[split].to_dict("records")
+    ):
+        for part in groups[row["observation_id"]].to_dict("records"):
             value = dict(row, count=part["component_count"])
             value["observation_id"] = part["released_count_id"]
             for attribute in ("age", "sex", "plumage"):
@@ -207,5 +208,12 @@ def split_historical_counts(observations, components):
             value[field] = (
                 "\n\n".join(text for text in (part["residual"], context) if text) or pd.NA
             )
-            rows.append(value)
-    return pd.DataFrame(rows, columns=observations.columns)
+            rows.append(dict(value, _position=position))
+    parts = pd.DataFrame(rows, columns=[*observations.columns, "_position"])
+    kept = observations.loc[~split].assign(_position=observations.index[~split])
+    return (
+        pd.concat([kept, parts], ignore_index=True)
+        .sort_values("_position", kind="stable")
+        .drop(columns="_position")
+        .reset_index(drop=True)
+    )

@@ -73,9 +73,10 @@ occurrences["occurrenceID"] = "defile:2422:count:" + occurrences.count_id
 occurrences["individualCount"] = occurrences["count"].astype("Int64")
 occurrences["eventDate"] = occurrences.timing
 occurrences["basisOfRecord"] = "HumanObservation"
-occurrences["occurrenceStatus"] = ""
+# GBIF reads individualCount=0 as an absence: zero category quantities stay in count.csv only.
 present = occurrences["count"].gt(0) | occurrences.count_estimation.eq("x")
-occurrences.loc[present, "occurrenceStatus"] = "present"
+occurrences = occurrences.loc[present].copy()
+occurrences["occurrenceStatus"] = "present"
 occurrences["taxonID"] = occurrences.taxon_id
 occurrences["scientificName"] = occurrences.scientific_name
 occurrences["taxonRank"] = occurrences.taxon_rank.where(
@@ -85,7 +86,7 @@ occurrences["nameAccordingTo"] = occurrences.taxonomy_source
 occurrences["sex"] = occurrences.sex.map({"M": "male", "F": "female"})
 occurrences[
     "occurrenceRemarks"
-] = "individualCount is the recorded quantity for count_category in dynamicProperties. No absence inferred from zero. Full source information is retained in the companion research dataset."
+] = "individualCount is the recorded quantity for count_category in dynamicProperties. Zero quantities are not exported. Full source information is retained in the companion research dataset."
 properties = ["source_count_id", "count_category", "count_estimation", "age"]
 occurrences["dynamicProperties"] = [
     json.dumps({key: value for key, value in row.items() if pd.notna(value)}, ensure_ascii=False)

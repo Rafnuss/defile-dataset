@@ -112,7 +112,7 @@ def test_export_preserves_survey_and_count_rows(export_input):
     assert result.returncode == 0, result.stderr
     events = pd.read_csv(export_input / "gbif/event.csv").set_index("eventID")
     occurrences = pd.read_csv(export_input / "gbif/occurrence.csv").set_index("occurrenceID")
-    assert len(events) == 4 and len(occurrences) == 7
+    assert len(events) == 4 and len(occurrences) == 6  # T4 is a zero
     assert occurrences.individualCount.sum() == 21
     assert occurrences.loc["defile:2422:count:T1-normal", "eventID"] == "defile:2422:survey:S1"
     assert occurrences.loc["defile:2422:count:T1-normal", "eventDate"] == "2024-07-31T22:30:00Z"
@@ -159,8 +159,9 @@ def test_export_preserves_survey_and_count_rows(export_input):
     assert not occurrences.eventID.isin(["defile:2422:survey:S2", "defile:2422:survey:S3"]).any()
     assert pd.isna(occurrences.loc["defile:2422:count:T3-normal", "individualCount"])
     assert occurrences.loc["defile:2422:count:T3-normal", "occurrenceStatus"] == "present"
-    assert occurrences.loc["defile:2422:count:T4-normal", "individualCount"] == 0
-    assert pd.isna(occurrences.loc["defile:2422:count:T4-normal", "occurrenceStatus"])
+    # A zero quantity would read as an absence in GBIF: it is not exported.
+    assert "defile:2422:count:T4-normal" not in occurrences.index
+    assert occurrences.occurrenceStatus.eq("present").all()
     assert occurrences.eventID.isin(events.index).all()
     assert (
         occurrences.loc[

@@ -13,7 +13,6 @@ SITE_NAME = "Défilé de l'Écluse"
 # (`src/data/weather.py` LOCATIONS["Defile"]).
 LATITUDE = 46.117215
 LONGITUDE = 5.914877
-COORDINATE_UNCERTAINTY_M = 100
 COUNTRY_CODE = "FR"
 TIMEZONE = "Europe/Paris"
 TREKTELLEN_SITE_ID = 2422

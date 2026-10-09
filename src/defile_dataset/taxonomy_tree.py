@@ -82,7 +82,7 @@ def tree_section(taxa: pd.DataFrame, count: pd.DataFrame) -> str:
     children = t.groupby("parent_taxon_id").groups
     biggest = max(int(t["total_birds"].max()), 1)
 
-    def cells(i, own_only=False):
+    def cells(i):
         r = t.loc[i]
         return (
             f'<span class="num">{r.total_records:,}</span><span class="num own">{r.own_records:,}</span>'

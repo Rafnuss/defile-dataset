@@ -10,18 +10,31 @@ from defile_dataset.consolidate import ERA, local_dates
 EMPTY_HOUR_NOTE = "hour inside the declared day window with no record: counted, nothing seen"
 
 
-def integrate_historical_gaps(survey, historical, breaks):
+def _iso(t):
+    return t.isoformat().replace("+00:00", "Z")
+
+
+def _periods(table):
+    """`table` with `date` (local), `start` and `end` (UTC) from its `datetime` interval."""
+    return table.assign(
+        date=local_dates(table.datetime),
+        start=pd.to_datetime(table.datetime.str.split("/").str[0], utc=True, format="ISO8601"),
+        end=pd.to_datetime(table.datetime.str.split("/").str[1], utc=True, format="ISO8601"),
+    )
+
+
+def integrate_historical_gaps(survey, historical, breaks, count=None):
     """Subtract the union of released periods from each declared historical day window.
 
-    What remains is added as complete empty intervals (`status` `added`), except where `breaks`
-    (config/audit-settings/historical-gap-breaks.csv) documents an absence: that time is cut, no
-    row (`cut`).
+    Released periods are the surveys and the counts' own time ranges (a count timed over a range
+    shows someone counting then). What remains is added as complete empty intervals (`status`
+    `added`), except where `breaks` (config/audit-settings/historical-gap-breaks.csv) documents an
+    absence: that time is cut, no row (`cut`).
     """
-    periods = survey.assign(
-        date=local_dates(survey.datetime),
-        start=pd.to_datetime(survey.datetime.str.split("/").str[0], utc=True),
-        end=pd.to_datetime(survey.datetime.str.split("/").str[1], utc=True),
-    )
+    periods = _periods(survey)[["date", "start", "end"]]
+    if count is not None:
+        ranged = count.loc[count.datetime.fillna("").str.contains("T.*/", regex=True)]
+        periods = pd.concat([periods, _periods(ranged)[["date", "start", "end"]]])
     days = dict(tuple(periods.groupby("date")))
     rows, audit = [], []
     for (sheet, date), day in historical.groupby(["sheet", "date"], sort=True):
@@ -62,11 +75,7 @@ def integrate_historical_gaps(survey, historical, breaks):
                 source_id = (
                     f'H{date:%Y%m%d}-{start.tz_convert("Europe/Paris"):%H%M%S}-declared-gap'
                 )
-                interval = (
-                    start.isoformat().replace("+00:00", "Z")
-                    + "/"
-                    + stop.isoformat().replace("+00:00", "Z")
-                )
+                interval = _iso(start) + "/" + _iso(stop)
                 if status == "added":
                     rows.append(
                         dict(
@@ -165,11 +174,7 @@ def validate_historical_gaps(survey, count, gaps):
     from defile_dataset.checks import Check
 
     gaps = gaps.loc[gaps.status.eq("added")]
-    periods = survey.assign(
-        date=local_dates(survey.datetime),
-        start=pd.to_datetime(survey.datetime.str.split("/").str[0], utc=True),
-        end=pd.to_datetime(survey.datetime.str.split("/").str[1], utc=True),
-    )
+    periods = _periods(survey)
     added = periods.loc[periods.survey_id.isin(gaps.survey_id)].merge(
         gaps[["survey_id", "day_start", "day_end"]], on="survey_id", validate="one_to_one"
     )
@@ -185,6 +190,26 @@ def validate_historical_gaps(survey, count, gaps):
         & (pairs.end > pairs.start_other)
     ]
     linked = count.loc[count.survey_id.isin(gaps.survey_id)]
+    # A count timed inside an "empty" gap contradicts it, whichever survey it is linked to.
+    timed = count.loc[count.datetime.fillna("").str.contains("T")]
+    timed = timed.assign(
+        datetime=timed.datetime.where(
+            timed.datetime.str.contains("/"), timed.datetime + "/" + timed.datetime
+        )
+    )
+    clocks = _periods(timed)[["count_id", "date", "start", "end"]].merge(
+        added[["survey_id", "date", "start", "end"]], on="date", suffixes=("", "_gap")
+    )
+    inside = clocks.loc[
+        (clocks.start < clocks.end_gap)
+        & (
+            (clocks.end > clocks.start_gap)
+            | (clocks.start.eq(clocks.end) & clocks.start.ge(clocks.start_gap))
+        )
+    ]
+    linked = pd.concat([linked, count.loc[count.count_id.isin(inside.count_id)]]).drop_duplicates(
+        "count_id"
+    )
     return [
         Check(
             "Historical effort gaps inside declared windows",
@@ -201,14 +226,37 @@ def validate_historical_gaps(survey, count, gaps):
         Check(
             "Historical effort gaps have no counts",
             "fail" if len(linked) else "pass",
-            f"{len(linked)} count rows linked to added gaps.",
+            f"{len(linked)} count rows linked to, or timed inside, added gaps.",
             linked,
         ),
     ]
 
 
-def _iso(t):
-    return t.isoformat().replace("+00:00", "Z")
+def validate_survey_rows(survey, count):
+    """Final survey table: weather stops hold no bird, and no two survey rows overlap."""
+    from defile_dataset.checks import Check
+
+    stops = survey.survey_id.loc[
+        survey.weather_stop.astype("string").str.lower().eq("true").fillna(False)
+    ]
+    in_stops = count.loc[count.survey_id.isin(stops)]
+    periods = _periods(survey).sort_values(["start", "end"])
+    previous_end = periods.end.cummax().shift()
+    overlaps = periods.loc[periods.start < previous_end, ["survey_id", "datetime"]]
+    return [
+        Check(
+            "Weather stops hold no counts",
+            "fail" if len(in_stops) else "pass",
+            f"{len(in_stops)} count rows linked to a weather stop.",
+            in_stops,
+        ),
+        Check(
+            "Released surveys do not overlap",
+            "fail" if len(overlaps) else "pass",
+            f"{len(overlaps)} survey rows starting before an earlier one ends.",
+            overlaps,
+        ),
+    ]
 
 
 def _weather_stop(row, note):
@@ -218,7 +266,7 @@ def _weather_stop(row, note):
     return row
 
 
-def integrate_interruptions(survey, count, root, status_intervals=None):
+def integrate_interruptions(survey, count, status_intervals=None):
     """Apply timed weather stops and absences to the survey rows; returns `(survey, count, intervals)`.
 
     Every survey overlapping an interval is cut around it. A weather stop then becomes its own
@@ -240,7 +288,7 @@ def integrate_interruptions(survey, count, root, status_intervals=None):
         date = begin.tz_convert("Europe/Paris").strftime("%Y-%m-%d")
         starts = pd.to_datetime(survey.datetime.str.split("/").str[0], utc=True, format="ISO8601")
         ends = pd.to_datetime(survey.datetime.str.split("/").str[1], utc=True, format="ISO8601")
-        hit = survey.index[local_dates(survey.datetime).eq(date) & (starts < end) & (ends > begin)]
+        hit = survey.index[(starts < end) & (ends > begin)]
         added = []
         for i in hit:
             sid, a, b = survey.loc[i, "survey_id"], starts[i], ends[i]
@@ -312,7 +360,7 @@ def integrate_interruptions(survey, count, root, status_intervals=None):
     return survey, count, interruptions
 
 
-def observed_hours(survey, interruptions=None):
+def observed_hours(survey):
     """Hours counted (union of complete, non-weather-stop rows); unknown if any row is incomplete."""
     if "survey_complete" in survey and (~survey.survey_complete.fillna(True).astype(bool)).any():
         return float("nan")
@@ -328,7 +376,7 @@ def observed_hours(survey, interruptions=None):
     return hours
 
 
-def interruption_review(survey, observations, root, interruptions=None):
+def interruption_review(survey, observations, root):
     """Review gaps/short days without converting ambiguous absences into weather closures."""
     windows = pd.read_csv(Path(root) / "config/audit-settings/report-season-windows.csv")
     native = survey.loc[~survey.recording_era.eq("curated")].copy()
@@ -350,7 +398,7 @@ def interruption_review(survey, observations, root, interruptions=None):
         for date in pd.date_range(window.start, window.end).strftime("%Y-%m-%d"):
             day = native.loc[native.date.eq(date)]
             entries = observation_days.get(date, observed.iloc[:0])
-            hours = observed_hours(day, interruptions)
+            hours = observed_hours(day)
             short = pd.isna(hours) or (
                 pd.notna(window.partial_threshold_hours) and hours < window.partial_threshold_hours
             )

@@ -29,14 +29,11 @@ NIGHT_TOLERANCE = pd.Timedelta(minutes=45)
 FLAG_NO_TIME = "no_time"  # historical record without start/end: no survey
 FLAG_NO_SURVEY = "no_survey"  # Trektellen entry whose count id is not in the header export
 FLAG_DUPLICATE_SURVEY = "duplicate_survey"  # entry of a later overlapping survey
-FLAG_TIME_ADJUSTED = "time_adjusted"  # legacy flag; no longer generated
 FLAG_TIME_OUTSIDE_SURVEY = "time_outside_survey"  # timestamp further outside its survey
 FLAG_UNTIMED_IN_TIMED_SURVEY = "untimed_in_timed_survey"
 # Survey flags
 FLAG_NO_ENTRIES = "no_entries"  # survey with no observation at all (see README)
 FLAG_RECORDS_DELETED = "records_deleted"  # records deleted in the manual cleaning
-FLAG_START_CLIPPED = "start_clipped_to_dawn"  # legacy; no longer generated
-FLAG_END_CLIPPED = "end_clipped_to_dusk"  # legacy; no longer generated
 
 
 SURVEY_COLUMNS = [
@@ -147,7 +144,7 @@ INTEGER_OBSERVATION_COLUMNS = [
     "group_id",
 ]
 # Historical days whose records were all deleted in the manual cleaning of count_2021.xlsx
-# (README -> Manual cleaning): surveyed, but not "nothing seen".
+# (local evidence: `archive/historical-cleaning.md`): surveyed, but not "nothing seen".
 RECORDS_DELETED_DAYS = (pd.Timestamp("2021-10-29"),)
 
 ISSUE_COLUMNS = [
@@ -286,6 +283,17 @@ def historical_tables(hist: pd.DataFrame, effort: pd.DataFrame, taxonomy: Taxono
     for field in STATUS_COLUMNS:
         if field + "_review" in surveys:
             surveys[field] = surveys[field + "_review"].combine_first(surveys[field])
+    # A decision on a day-window row reaches that day's hourly surveys inside it, unless a
+    # survey has its own decision.
+    matched = decisions.merge(surveys[["date", "start", "end"]], on=["date", "start", "end"])
+    unmatched = decisions.merge(
+        matched[["date", "start", "end"]], how="left", indicator=True
+    ).query("_merge == 'left_only'")
+    for d in unmatched.itertuples(index=False):
+        inside = surveys.date.eq(d.date) & surveys.start.ge(d.start) & surveys.end.le(d.end)
+        inside &= surveys[STATUS_COLUMNS].isna().all(axis=1)
+        for field in STATUS_COLUMNS:
+            surveys.loc[inside, field] = getattr(d, field)
     surveys = surveys.reindex(columns=SURVEY_COLUMNS + HISTORICAL_SURVEY_COLUMNS)
 
     add_flag(h, ~surveyed, FLAG_NO_TIME)
@@ -537,7 +545,7 @@ def daily_counts(ds: Dataset) -> pd.DataFrame:
     o = ds.observations[ds.observations["use_for_counts"]].copy()
     for resolution in ("point", "interval", "day"):
         o[resolution + "_count"] = o["count"].where(o["time_resolution"] == resolution, 0)
-    return (
+    daily = (
         o.groupby(
             ["day_id", "date", "source", "taxon_name_original", "avibase_id", "taxon_kind"],
             dropna=False,
@@ -550,6 +558,12 @@ def daily_counts(ds: Dataset) -> pd.DataFrame:
             day_count=("day_count", "sum"),
             direction2=("direction2", "sum"),
             local=("local", "sum"),
+            direction2_recorded=("direction2", "count"),
+            local_recorded=("local", "count"),
         )
         .reset_index()
     )
+    # Reverse/local never recorded (historical sheets) stay missing, not zero.
+    for field in ("direction2", "local"):
+        daily[field] = daily[field].where(daily.pop(field + "_recorded").gt(0))
+    return daily

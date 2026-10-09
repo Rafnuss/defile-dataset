@@ -58,7 +58,7 @@ def test_weather_stops_cut_headers_and_fill_the_time_between_surveys(tmp_path):
         ]
     )
     counts = pd.DataFrame([dict(survey_id="T2", datetime="2024-09-27T07:30:00Z")])
-    result, counts, _ = integrate_interruptions(survey, counts, tmp_path, events)
+    result, counts, _ = integrate_interruptions(survey, counts, events)
     rows = result.set_index("survey_id")
     assert rows.datetime.to_dict() == {
         "T3": "2024-09-27T10:00:00Z/2024-09-27T11:00:00Z",
@@ -108,7 +108,7 @@ def test_inferred_workbook_day_links_report_without_duplicate_gap(tmp_path):
         ]
     )
     counts = pd.DataFrame(columns=["survey_id", "datetime"])
-    result, _, _ = integrate_interruptions(survey, counts, tmp_path, events)
+    result, _, _ = integrate_interruptions(survey, counts, events)
     assert len(result) == 1 and result.weather_stop.iloc[0] and result.survey_complete.iloc[0]
 
 
@@ -170,6 +170,16 @@ def test_historical_gaps_subtract_union_clip_window_and_cut_break():
     again, audit = integrate_historical_gaps(result, historical, breaks)
     pd.testing.assert_frame_equal(again, result)
     assert audit.status.tolist() == ["cut"]
+    # A count timed over the gap (09:00-10:00Z) shows counting then: no empty interval.
+    count = pd.DataFrame(
+        dict(
+            count_id=["C1"],
+            survey_id=["H1"],
+            datetime=["2018-08-17T08:30:00Z/2018-08-17T10:30:00Z"],
+        )
+    )
+    timed, audit = integrate_historical_gaps(survey, historical, breaks, count)
+    assert len(timed) == 3 and audit.status.tolist() == ["cut"]
 
 
 def test_historical_gaps_cover_edges_and_daily_surveys_leave_no_gap():
@@ -219,9 +229,18 @@ def test_historical_gap_validation_detects_bounds_overlap_and_count_link():
             day_end=pd.to_datetime(["2019-08-20T18:30:00Z"]),
         )
     )
-    checks = validate_historical_gaps(survey, pd.DataFrame(dict(survey_id=["N1"])), gaps)
+    count = pd.DataFrame(
+        dict(
+            count_id=["C1", "C2", "C3"],
+            survey_id=["N1", "N2", "N2"],
+            # C2 is timed inside the gap although linked to another survey; C3 is a day total.
+            datetime=["2019-08-20T06:00:00Z", "2019-08-20T10:00:00Z", "2019-08-20"],
+        )
+    )
+    checks = validate_historical_gaps(survey, count, gaps)
     assert [check.status for check in checks] == ["fail", "fail", "fail"]
-    assert [len(check.rows) for check in checks] == [1, 1, 1]
+    assert [len(check.rows) for check in checks] == [1, 1, 2]
+    assert set(checks[2].rows.count_id) == {"C1", "C2"}
 
 
 def test_attendance_break_is_cut_not_counted_effort():

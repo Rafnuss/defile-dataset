@@ -132,14 +132,16 @@ def convert_remark_text(count, survey):
                     converted.append("datetime")
             parts[n] = "\n\n".join(text for text in (head, context) if text)
         count.at[i, "remark"] = " | ".join(part.strip() for part in parts if part.strip()) or pd.NA
-        if notes:
+        if notes or "datetime" in converted:
             old = row.remark_processing if pd.notna(row.remark_processing) else ""
             if "datetime" in converted:
                 old = old.replace(
                     "Entry time outside the native survey; retained at day level pending correction.",
                     "Entry time outside the native survey; explicit recorded event time retained.",
                 )
-            count.at[i, "remark_processing"] = " ".join([old, *dict.fromkeys(notes)]).strip()
+            count.at[i, "remark_processing"] = (
+                " ".join([old, *dict.fromkeys(notes)]).strip() or pd.NA
+            )
         if converted or notes:
             changes.append(
                 dict(

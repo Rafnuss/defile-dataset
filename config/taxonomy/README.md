@@ -24,7 +24,7 @@ The compact table keeps whole-count and subset cases separate. For example, `don
 
 ## Reproduce
 
-After a dataset build, run from the repository root:
+After a dataset build, run from the root of the local research checkout (`scripts/review/` is not in the public core):
 
 ```sh
 uv run python scripts/review/review_historical_taxonomy_text.py
@@ -32,4 +32,4 @@ uv run python scripts/review/review_historical_taxonomy_text.py
 
 Additional UTF-8 CSVs under `interim/diagnostics/taxonomy/` contain the complete original-text inventory, its summary and all historical source-name mappings. `historical-text-manifest.json` records input fingerprints and row counts. Original wording remains in the evidence; case, accents and whitespace are normalised only for matching. Published day-level annotations do not establish a record identification. Proposed IDs are checked against the pinned checklist.
 
-Approved decisions are compiled with `uv run python scripts/review/resolve_historical_taxonomy_review.py`, then applied by the next dataset build. A review note containing an exact eBird code or scientific name overrides the proposed target; narrative notes remain notes. The build projects main-direction historical counts onto the accepted concepts, preserves the source ledger and creates explicit taxonomic subgroups where necessary. Independent age/time subgroups are not cross-assigned. The application audit is `output/audit/historical_taxonomy_review.csv`. Wording that expresses finer distinctions than an accepted broad concept remains in remarks.
+Approved decisions are compiled locally with `uv run python scripts/review/resolve_historical_taxonomy_review.py` (local research checkout); the CSVs in this folder are the frozen result and are applied by the next dataset build. A review note containing an exact eBird code or scientific name overrides the proposed target; narrative notes remain notes. The build projects main-direction historical counts onto the accepted concepts, preserves the source ledger and creates explicit taxonomic subgroups where necessary. Independent age/time subgroups are not cross-assigned. The application audit is `output/audit/historical_taxonomy_review.csv`. Wording that expresses finer distinctions than an accepted broad concept remains in remarks.

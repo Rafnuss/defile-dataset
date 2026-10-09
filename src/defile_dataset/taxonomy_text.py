@@ -5,7 +5,6 @@ import unicodedata
 
 from defile_dataset.attributes import split_daily_context
 
-TEXT_FIELDS = ["detail", "details", "comment", "list_comment", "remark"]
 TAXON_CLUE = r"\b(?:mesanges?|merles?|grives?|pipits?|ppt|bruants?|corvides?|alouettes?|berges?|bergeronnettes?|faucons?|falco|accipiter|epervi\w*|autours?|bondrees?|buses?|herons?|aigrettes?|gravelots?|limicoles?|becasseaux?|courlis|colomb\w*|ramiers?|rustiques?|fenetres?|rieuse|melanocephale|sp|hybrides?)\b|homologation refusee|donnee inutilisable"
 
 

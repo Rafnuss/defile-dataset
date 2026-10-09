@@ -32,7 +32,7 @@ Validation failures block publication; review warnings may describe legitimate r
 
 Sunrise/sunset use solar altitude −0.833° and are calculated to the minute. The night check uses civil twilight (−6°) and retains every positive overlap. The report filter starts at 30 minutes and can be lowered to zero; its threshold is applied to actual overlap duration, replacing the old 45-minute boundary tolerance for this audit. The processing rules for entry timestamps remain unchanged. `night_minutes` is the actual period overlap outside civil twilight. The sunrise/sunset overlap columns include twilight.
 
-All report tables are collapsed initially. Empty surveys with unknown status have a duration filter starting at one hour. Raise it to focus on longer empty periods; short periods remain in the CSV and do not automatically become non-surveys. Trektellen “View day” links combine every period on the date; “Edit count” identifies the specific source period.
+All report tables are collapsed initially. Trektellen “View day” links combine every period on the date; “Edit count” identifies the specific source period.
 
 Entry times outside their source period show the largest offset before the start or after the end, in minutes, for each survey. The initial tolerance hides offsets up to 10 minutes; all findings remain in `entry_issues.csv`. This display filter does not change entry timestamps or the processing policy.
 
@@ -52,4 +52,4 @@ The audit computations are in `defile_dataset.audit` and `defile_dataset.checks`
 
 Complete internal tables and optional diagnostics are under `interim/`. Build provenance and input/output fingerprints are in `output/metadata.json`.
 
-Published report totals remain independent reference values. The comparison sums retained counts over the calendar year; report seasons and taxon groups may differ. Missing sources and unresolved mappings remain blank. No count is adjusted to force agreement. The [dated pilot](https://github.com/Rafnuss/defile-dataset/blob/main/docs/reviews/report-pilot-2026-10-07/README.md) illustrates why matching seasonal scope matters.
+Published report totals remain independent reference values. The comparison sums retained counts over the calendar year; report seasons and taxon groups may differ. Missing sources and unresolved mappings remain blank. No count is adjusted to force agreement. The dated pilot (local evidence: `docs/reviews/report-pilot-2026-10-07/README.md`) illustrates why matching seasonal scope matters.
