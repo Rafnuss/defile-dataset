@@ -32,6 +32,8 @@ def dictionary():
     package = descriptor()
     text = "\n## Column dictionary\n\nGenerated from config/schema/datapackage.json; edit that source rather than these tables.\n"
     text += "\n" + package["x-validationNotes"] + "\n"
+    text += "\n### Survey interpretation\n\n"
+    text += "\n\n".join(package["x-surveySemantics"].values()) + "\n"
     for resource in package["resources"]:
         schema = resource["schema"]
         rules = resource.get("x-validationRules", [])

@@ -43,6 +43,7 @@ def historical_attributes(hist, crosswalk):
             continue
         parts, notes, quantities, components = [], [], [], []
         status = "mapped"
+        review_needed = False
         for component in str(detail).split("/"):
             match = re.fullmatch(r"\s*(\d+)\s*x(?:\s+(.*?))?\s*", component)
             if match is None:
@@ -66,11 +67,13 @@ def historical_attributes(hist, crosswalk):
                     residual = re.sub(r"^(?:mâles?|femelles?)\s+", "", label)
                 if mapped["note"]:
                     notes.append(mapped["note"])
+                    review_needed |= label != "(entendu)"
             else:
                 converted = not label
                 parts.append(["", "", ""])
                 if label:
                     notes.append(f"Unmapped detail phrase: {label}.")
+                    review_needed = True
             components.append(
                 dict(
                     component_count=quantities[-1],
@@ -104,10 +107,8 @@ def historical_attributes(hist, crosswalk):
                             plumage="",
                         )
                     )
-                if not any(any(part) for part in parts):
-                    status = "unassigned"
-                elif notes:
-                    status = "partial"
+                if review_needed:
+                    status = "partial" if any(any(part) for part in parts) else "unassigned"
         note = " ".join(dict.fromkeys(notes))
         if note:
             values.at[i, "remark_processing"] = note

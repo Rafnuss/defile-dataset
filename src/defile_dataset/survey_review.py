@@ -377,7 +377,7 @@ def observed_hours(survey):
 
 
 def interruption_review(survey, observations, root):
-    """Review gaps/short days without converting ambiguous absences into weather closures."""
+    """Describe season coverage without treating missing dates or documented statuses as errors."""
     windows = pd.read_csv(Path(root) / "config/audit-settings/report-season-windows.csv")
     native = survey.loc[~survey.recording_era.eq("curated")].copy()
     native["date"] = local_dates(native.datetime)
@@ -415,12 +415,8 @@ def interruption_review(survey, observations, root):
                 or incomplete.any()
                 or date in review_notes
             ):
-                unresolved = released.empty or incomplete.any() or pd.isna(hours)
-                resolved = (
-                    released.weather_stop.fillna(False).astype(bool).any()
-                    or marker
-                    or released.recording_era.eq("curated").any()
-                )
+                released_incomplete = ~released.survey_complete.fillna(True).astype(bool)
+                released_stopped = released.weather_stop.fillna(False).astype(bool)
                 rows.append(
                     dict(
                         date=date,
@@ -431,13 +427,24 @@ def interruption_review(survey, observations, root):
                         no_species_marker=bool(marker),
                         reported_closure_days=window.reported_closure_days,
                         partial_threshold_hours=window.partial_threshold_hours,
-                        assessment="unresolved"
-                        if unresolved or not resolved
-                        else "linked_curated_evidence",
+                        complete=int((~released_incomplete & ~released_stopped).sum()),
+                        incomplete=int(released_incomplete.sum()),
+                        weather_stop=int(released_stopped.sum()),
+                        assessment="missing_survey"
+                        if released.empty
+                        else "documented_incomplete"
+                        if released_incomplete.any()
+                        else "documented_weather_stop"
+                        if released_stopped.any()
+                        else "no_species_marker"
+                        if marker
+                        else "short_coverage"
+                        if short
+                        else "recorded_coverage",
                         note=review_notes.get(
                             date,
-                            " | ".join(day.survey_comment.dropna().unique())
-                            or "Missing survey, short coverage or no-species marker alone does not establish a weather interruption.",
+                            " | ".join(released.survey_comment.dropna().unique())
+                            or "Coverage context only; missing or short coverage does not establish zero birds or a weather stop.",
                         ),
                     )
                 )

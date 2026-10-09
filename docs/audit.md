@@ -17,7 +17,7 @@ Open `report.html`: one section for each validation or source-review question. F
 | `attribute_quantity_review.csv` | One audit row per detail component, plus an undescribed remainder where the detail total is smaller than the source count. Scientific counts remain unchanged. |
 | `attribute_review.csv` | Historical attribute mappings requiring review, separated by outcome in HTML. |
 | `survey_status_review.csv` | Classification issues with period start/end and duration, separated by issue in HTML. |
-| `interruption_review.csv` | All season coverage findings; HTML shows unresolved dates. |
+| `interruption_review.csv` | Informational coverage context within reported season windows: missing surveys, short days, no-species markers and documented statuses, with counts of complete, incomplete and weather-stop intervals. |
 | `historical_effort_gaps.csv` | Added historical empty intervals (`added`) and reviewed absences cut out of them (`cut`), with released/source IDs, declared day bounds and duration. |
 | `empty_survey_review.csv` | Every released survey without bird rows, distinguishing explicit no-species markers, inferred empty intervals, minute boundaries, missing-count data, weather stops and incomplete surveys. |
 | `excluded_counts.csv`, `excluded_surveys.csv` | Original excluded records and reasons. |
@@ -28,7 +28,7 @@ Open `report.html`: one section for each validation or source-review question. F
 
 ## Interpretation
 
-Validation failures block publication; review warnings may describe legitimate records or unresolved evidence. Tests verify the code separately through pytest.
+Validation failures block publication; review warnings may describe legitimate records or unresolved evidence. Information sections describe coverage and documented statuses without requesting corrections. Tests verify the code separately through pytest.
 
 Sunrise/sunset use solar altitude −0.833° and are calculated to the minute. The night check uses civil twilight (−6°) and retains every positive overlap. The report filter starts at 30 minutes and can be lowered to zero; its threshold is applied to actual overlap duration, replacing the old 45-minute boundary tolerance for this audit. The processing rules for entry timestamps remain unchanged. `night_minutes` is the actual period overlap outside civil twilight. The sunrise/sunset overlap columns include twilight.
 
@@ -36,9 +36,11 @@ All report tables are collapsed initially. Trektellen “View day” links combi
 
 Entry times outside their source period show the largest offset before the start or after the end, in minutes, for each survey. The initial tolerance hides offsets up to 10 minutes; all findings remain in `entry_issues.csv`. This display filter does not change entry timestamps or the processing policy.
 
-The long-survey table retains all periods over 12 hours; its initial filter and build warning threshold are 15 hours. Fifteen hours focuses review while retaining long summer periods as possible legitimate records. Night and duration tables show both metrics: a period can appear in both. Filters affect the view only, not saved evidence, build status or scientific counts. These two tables include all candidate rows, so filtering and sorting operate on the complete set. Other large tables retain bounded previews.
+The long-survey table retains all periods over 12 hours; its initial filter and build warning threshold are 16 hours. Sixteen hours focuses review while retaining long summer periods as possible legitimate records. Night and duration tables show both metrics: a period can appear in both. Filters affect the view only, not saved evidence, build status or scientific counts. These two tables include all candidate rows, so filtering and sorting operate on the complete set. Other large tables retain bounded previews.
 
-Historical “no attributes assigned” means no age, sex or plumage was mapped. “Some attributes assigned” means at least one field was mapped with unresolved details remaining. Attributes are assigned separately to each described subgroup; an undescribed remainder is normal and has no inferred attributes. Quantity warnings cover only details whose sum exceeds the source count. Full subgroup lineage is in `interim/diagnostics/historical_components.csv`.
+Historical “no attributes assigned” means an unresolved description has no mapped age, sex or plumage. Bare quantities and recognised flight/hearing annotations do not trigger attribute review. “Some attributes assigned” means at least one field was mapped with unresolved details remaining. Attributes are assigned separately to each described subgroup; an undescribed remainder is normal and has no inferred attributes. Quantity warnings cover only details whose sum exceeds the source count. Full subgroup lineage is in `interim/diagnostics/historical_components.csv`.
+
+The season-coverage section is informational: missing dates and short days do not establish zero birds, weather closures or incomplete counts. `survey_complete` applies to each recorded interval, not the full day or season. Documented incomplete surveys and weather stops are valid statuses. Status warnings concern unresolved or conflicting source decisions; release validation rejects weather stops marked incomplete, missing required explanations, counts linked to weather stops and overlapping survey intervals.
 
 The coverage figure uses only final `dataset/count.csv` and `dataset/survey.csv`, after selection, overlap removal and reviewed status integration. Its selector shows entries, surveys, survey hours, numerical bird/reverse/local counts, and status counts. No source totals, excluded records, precision percentages or missing-attribute metrics are mixed into this view.
 

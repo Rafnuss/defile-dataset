@@ -14,7 +14,7 @@ A survey row is a period when someone was responsible for the count. Three colum
 
 Times nobody was counting are not survey rows: an absence (lunch, leaving early, arriving late) is cut out of the survey, and a day not monitored for a reason other than weather has no row. A missing date therefore says nothing; it is not a zero.
 
-Every survey is complete unless a decision says otherwise. A weather stop with known times is its own row, so the hours counted and the hours assumed stay apart; when the times are unknown, the survey stays one complete row and the comment says when it rained. A whole day rained out is one row with calendar-day bounds when no hours were recorded. Weather stops are kept as rows so a user can test the assumption that no bird passes when counting is impossible, by dropping them.
+Completeness applies only to the recorded interval, not the full day or season: a short survey can be complete. Every survey is complete unless a decision says otherwise. A weather stop with known times is its own row, so the hours counted and the hours assumed stay apart; when the times are unknown, the survey stays one complete row and the comment says when it rained. A whole day rained out is one row with calendar-day bounds when no hours were recorded. Weather stops are kept as rows so a user can test the assumption that no bird passes when counting is impossible, by dropping them.
 
 Rules checked on release: a weather stop is complete; a weather stop or an incomplete survey has a comment. A survey with linked bird records is never removed.
 
@@ -49,6 +49,8 @@ Times are local Europe/Paris and must lie within the header. Without supported t
 ## Output and effort
 
 Counts of a survey split by a weather stop or an absence move to the piece holding their own time; counts without a time of their own keep the day only (date-only `datetime`). Birds recorded in a weather stop or absence withhold that decision: the birds are kept, the survey stays counted, and the decision is listed for review (`birds_in_interruption`, `birds_in_weather_stop`). This applies to whole-header stops, to timed intervals with a bird clock inside, and to timed intervals covering the whole header while it has untimed birds. Every build checks that no released count is linked to a weather stop and that no two survey rows overlap. Malformed decision values in the CSV (anything but blank/`true` for `weather_stop`, blank/`false`/`remove` for `survey_complete`, or `survey_complete` on a timed row) stop the build.
+
+The audit presents missing dates, short days and documented statuses as coverage information. An incomplete survey with an explanation is valid; it does not automatically need review. Warnings concern unresolved status evidence, while release validation rejects inconsistent status, missing required explanations, counts linked to weather stops and overlapping intervals.
 
 The audit counts the union of complete intervals, weather stops excluded, as observed hours, and reports weather-stop intervals separately. A day with an incomplete survey has unknown observed hours. Calendar-day bounds are never hours. Original source hours remain in the internal tables.
 

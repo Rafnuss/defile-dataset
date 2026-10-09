@@ -127,6 +127,9 @@ def test_dictionary_contains_declared_links_and_conditional_rules():
     assert "survey_id` → `survey.survey_id" in text
     assert "An unlinked count must supply its own date" in text
     assert "minimum: 0" in text
+    assert "Completeness applies to the interval, not the entire day or season" in text
+    assert "A day intersecting any incomplete survey has unknown observed hours" in text
+    assert "not enforced by validate_package alone" in text
 
 
 @pytest.mark.parametrize(

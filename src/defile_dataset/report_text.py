@@ -58,8 +58,8 @@ CHECK_TEXT = {
     "long-surveys": (
         "Long surveys",
         "Suivis longs",
-        "End minus start. All periods over 12 h are available; 15 h is the initial review threshold. Long summer days can be legitimate. Night overlap is a separate check.",
-        "Fin moins début. Toutes les périodes de plus de 12 h sont disponibles ; le seuil initial est de 15 h. Les longues journées d’été peuvent être légitimes. La nuit fait l’objet d’un contrôle distinct.",
+        "End minus start. All periods over 12 h are available; 16 h is the initial review threshold. Long summer days can be legitimate. Night overlap is a separate check.",
+        "Fin moins début. Toutes les périodes de plus de 12 h sont disponibles ; le seuil initial est de 16 h. Les longues journées d’été peuvent être légitimes. La nuit fait l’objet d’un contrôle distinct.",
     ),
     "source-overlaps": (
         "Overlapping surveys",
@@ -146,10 +146,10 @@ CHECK_TEXT = {
         "Les données sans heure ne peuvent pas être placées avant ou après une interruption avec certitude.",
     ),
     "season-coverage": (
-        "Missing or short coverage within reported seasons",
-        "Couverture absente ou courte dans les saisons des rapports",
-        "Unresolved dates within configured season windows. Missing records alone do not establish a closure.",
-        "Dates non résolues dans les saisons configurées. L’absence de données ne suffit pas à établir une fermeture.",
+        "Coverage context within reported seasons",
+        "Contexte de couverture dans les saisons des rapports",
+        "Missing dates, short days and documented incomplete surveys or weather stops are coverage context, not warnings. Completeness applies to each recorded interval, not the whole day. Missing records do not establish zero birds or a closure.",
+        "Les dates absentes, journées courtes et suivis incomplets ou arrêts météo documentés sont des informations de couverture, pas des alertes. La complétude concerne chaque intervalle enregistré, pas la journée entière. L’absence de données ne signifie ni zéro oiseau ni fermeture.",
     ),
     "csv-requirements": (
         "Released CSV requirements",

@@ -26,6 +26,24 @@ def test_warning_is_independent_of_build_validity():
     assert summarize([Check("Unique ids", "fail", "Duplicated")])["build_status"] == "blocked"
 
 
+def test_season_coverage_information_does_not_request_corrections():
+    from defile_dataset.report import render
+
+    check = Check(
+        "Coverage context within reported seasons",
+        "info",
+        "",
+        pd.DataFrame({"date": ["2020-09-01"], "assessment": ["documented_incomplete"]}),
+        key="season-coverage",
+        group="Coverage and published totals",
+    )
+    document = render([check], summarize([check]))
+    assert "information" in document and "documented_incomplete" in document
+    assert "not warnings" in document
+    assert "Missing or short coverage within reported seasons" not in document
+    assert summarize([check])["build_status"] == "passed"
+
+
 def test_quantity_components_show_remainder_and_conflict_without_changing_source():
     source = pd.DataFrame(
         [
@@ -146,13 +164,13 @@ def test_report_filters_use_complete_candidates_and_download_follows_table():
         key="long-surveys",
         group="Surveys",
         filter_column="duration_hours",
-        filter_threshold=15,
+        filter_threshold=16,
         file="validation_findings.csv",
     )
     document = render([check], {})
     assert document.count("<tr data-filter-value=") == 220
     assert 'data-filter-value="12.5"' in document and 'data-sort="15.5"' in document
-    assert "finding-threshold" in document and 'value="15"' in document
+    assert "finding-threshold" in document and 'value="16"' in document
     assert "Suivis longs" in document and "report-language" in document
     assert document.index("</table>") < document.index('href="validation_findings.csv"')
     assert 'aria-sort="none"' in document

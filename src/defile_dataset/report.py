@@ -13,7 +13,7 @@ from defile_dataset.report_text import CHECK_TEXT, COLUMNS_FR, COVERAGE_METRICS,
 from defile_dataset.site import SITE_NAME, TIMEZONE, TREKTELLEN_SITE_ID
 
 MAX_TABLE_ROWS = 200
-STATUS_COLORS = {"pass": "#1a7f37", "warn": "#9a6700", "fail": "#cf222e"}
+STATUS_COLORS = {"pass": "#1a7f37", "warn": "#9a6700", "fail": "#cf222e", "info": "#57606a"}
 CSS = """
 :root { --fg:#26312e; --muted:#65716c; --line:#d8dfdc; --soft:#f4f7f5; }
 body { font:14px/1.55 -apple-system,"Segoe UI",Arial,sans-serif; color:var(--fg); max-width:1320px; margin:0 auto; padding:24px 24px 60px; }
@@ -122,6 +122,7 @@ def _badge(status: str) -> str:
         "pass": ("pass", "conforme"),
         "warn": ("review", "à revoir"),
         "fail": ("fail", "échec"),
+        "info": ("information", "information"),
     }
     return f'<span class="badge" style="background:{STATUS_COLORS[status]}">{_t(*labels[status])}</span>'
 

@@ -55,7 +55,7 @@ The [Biolovision/ornitho FAQ](https://www.ornitho.ch/index.php?item=3&langu=en&m
 | mâle immature / femelle immature | I | M / F | Same age assumption; retain explicit sex. Plural forms also map. |
 | type femelle immature | I | FC | Same age assumption; female type does not establish female sex. |
 | > 1 an; mâle/femelle > 1 an | >1y | empty or M/F | Literal lower bound in years; adult status unspecified. Dataset extension, excluded from adult/non-adult proportions. |
-| type femelle adulte | empty | empty | Ambiguous combined class, retained in observer text for review. |
+| type femelle adulte / type femelles adultes | A | FC | Explicit adult age; female type does not establish female sex. |
 
 ### Assumption for historical immature labels (8 October 2026)
 
@@ -65,7 +65,7 @@ The source workbook contains 269 records with immature descriptors, describing 6
 
 Platform terminology remains broader: the [French Biolovision FAQ](https://wiki.biolovision.net/FAQ_utilisateurs) defines immature from signs of immature plumage when exact age is unknown, without a calendar-year minimum. [Ornitho guidance from June 2024](https://www.ornitho.ch/index.php?a=995&langu=en&m_id=1164) also discusses immature among labels used for birds born that year. Trektellen's `I` displays as `>1cy (imm)` in English and `>1 an` in French. The autumn observation window does not itself establish hatch year. If local immature labels included first-year birds, this mapping would overstate their calendar age.
 
-Each mapped descriptor carries an assumption note into the processing audit and remarks, so these assignments remain identifiable for later review. Explicit first-year ages remain `1`; mixed groups retain their separate subgroup ages. Original detail text and source totals are preserved. The separate `> 1 an` descriptors remain unresolved in this change.
+Each mapped descriptor carries an assumption note into the processing audit and remarks, so these assignments remain identifiable for later review. Explicit first-year ages remain `1`; mixed groups retain their separate subgroup ages. Original detail text and source totals are preserved. The separate `> 1 an` descriptors map literally to `>1y`; they do not establish adult or immature status.
 
 No plumage value is extracted from a bird's age, taxon name or general prose. The dedicated historical descriptors currently provide no reviewed morph conversion. General comment/ remark fields are retained as observer text and are not scanned for speculative keywords.
 
@@ -75,12 +75,12 @@ Implemented in [attributes.py](../src/defile_dataset/attributes.py), called by t
 
 1. Parse only the dedicated historical detail field. Components have the form `Nx description` and are separated by `/`. A bare `Nx` contributes an unspecified component.
 2. Normalise Unicode, casing and spacing. Ignore only the explicitly documented trailing `(en vol)` annotation for attribute lookup; preserve the full original text. `(entendu)` carries hearing information rather than an age/sex/plumage class.
-3. Look up each whole descriptor explicitly. Do not search for an adult/sex substring in arbitrary prose. Unknown and ambiguous expressions remain in the audit.
+3. Look up each whole descriptor explicitly. Do not search for an adult/sex substring in arbitrary prose. Unknown and ambiguous expressions remain in the audit. Bare quantities, `(en vol)` and `(entendu)` do not require attribute review because they contain no age, sex or plumage information.
 4. If subgroup quantities are smaller than the source count, add an undescribed remainder. If they exceed it, keep the unsplit source row and flag the conflict. Unparsed text also stays unsplit. Zero-quantity components do not create released rows.
 5. Give each subgroup its own supported age, sex and plumage. Unknown descriptions and the remainder have missing attributes. Parsing and mapping are shared by the release and audit.
 6. Retain source IDs in the source ledger. Internal normal subgroup IDs append `-part1`, `-part2`, etc., in source component order; released count IDs use the readable entry base, preserve the subgroup suffix and then append `-normal`. Reverse/local quantities are separate category rows, released once per original source entry. `source_count_id` retains the original ID. Fully converted descriptions are omitted from released remarks; unresolved wording and explicitly attributed daily context remain. Original text and subgroup lineage are preserved internally. Full lineage is in `interim/diagnostics/historical_components.csv`. Conservation checks sum released components back to their source and check expected IDs and collection dates.
 
-Examples: `1x mâle adulte / 2x femelle adulte` with count=3 produces one adult male row with count=1 and one adult female row with count=2. `1x mâle adulte` with count=2 produces one adult male row and one undescribed row, each with count=1. `1x mâle > 1 an` can get sex=M while its age stays unresolved. No unsupported attribute classes are generated.
+Examples: `1x mâle adulte / 2x femelle adulte` with count=3 produces one adult male row with count=1 and one adult female row with count=2. `1x mâle adulte` with count=2 produces one adult male row and one undescribed row, each with count=1. `1x mâle > 1 an` gets sex=M and age=`>1y`, leaving adult/immature status unspecified. No unsupported attribute classes are generated.
 
 ## Batumi correspondence is secondary
 
@@ -103,10 +103,12 @@ Do not create extra count rows or reduce native code specificity to imitate Batu
 
 `interim/diagnostics/historical_attributes.csv` records each original detail and its mapping outcome. `historical_components.csv` records subgroup quantities, attributes, source IDs and released count IDs. The source ledger remains unsplit.
 
-The 8 October 2026 build assesses 8,310 detail fields: 6,168 mapped, 584 partly mapped, and 1,558 unassigned. Assumption notes keep immature mappings in the partly mapped review category even when all their age/sex codes have been assigned. All 672 previously unequal detail/count quantities are valid subsets, with no detail totals exceeding their source count. Splitting 1,264 retained source rows adds 1,675 released rows; main, reverse and local totals are unchanged for every source ID.
+The 8 October 2026 build assesses 8,310 detail fields: 6,168 mapped, 584 partly mapped, and 1,558 unassigned. Recognised descriptions without attribute information are treated as mapped without assigning codes. Assumption notes keep immature mappings in the partly mapped review category even when all their age/sex codes have been assigned. All 672 previously unequal detail/count quantities are valid subsets, with no detail totals exceeding their source count. Splitting 1,264 retained source rows adds 1,675 released rows; main, reverse and local totals are unchanged for every source ID.
+
+The 9 October 2026 parser update classifies the same 8,310 detail fields as 8,041 mapped and 269 partly mapped. Adult female-type descriptions map to age `A` and sex `FC`; bare quantities and flight/hearing annotations no longer require attribute review. The remaining partly mapped records carry the immature convention note.
 
 The build records the crosswalk version separately from the subgroup splitting policy. Tests cover mixed sex/age, normal subsets, unknown labels, zero quantities, over-described counts, malformed detail, stable IDs, dates and source-total conservation.
 
-Remaining work: confirm the accepted immature mapping assumption with the organisers by email, resolve the separate older-than-one-year descriptors and unverified native codes. Original descriptions remain available for review.
+Remaining work: confirm the accepted immature mapping assumption with the organisers by email, confirm the interpretation of older-than-one-year descriptors and unverified native codes. Original descriptions remain available for review.
 
 Residual remark prefixes `imm`, `imm.`, `im.`, `immature` and plural/case variants are removed when age I is assigned or already present. Explicit conflicting age codes are retained with the original wording and a processing note. Uncertain expressions and quantities describing only a subset are not assigned to the whole row. The historical local-usage assumption for immature remains explicit. `>1y` is a literal age lower bound, not a native Trektellen code or a replacement for I.

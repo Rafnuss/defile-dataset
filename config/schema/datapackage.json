@@ -108,7 +108,7 @@
           {
             "name": "age",
             "type": "string",
-            "description": "Native Trektellen age code or the explicit historical lower-bound code >1y; see source crosswalk. Blank means no supported whole-row class. New codes require a dictionary review.",
+            "description": "Native Trektellen age code or the explicit historical lower-bound code >1y; see source crosswalk. Blank means no supported class for this released count subgroup. New codes require a dictionary review.",
             "constraints": {
               "required": false,
               "enum": [
@@ -240,7 +240,7 @@
           {
             "name": "sex",
             "type": "string",
-            "description": "Trektellen sex code; FC means female type, not necessarily female. Allowed codes are the reviewed inventory; unverified meanings are labelled explicitly. Blank means no supported whole-row class. New codes require a dictionary review.",
+            "description": "Trektellen sex code; FC means female type, not necessarily female. Allowed codes are the reviewed inventory; unverified meanings are labelled explicitly. Blank means no supported class for this released count subgroup. New codes require a dictionary review.",
             "constraints": {
               "required": false,
               "enum": [
@@ -282,7 +282,7 @@
           {
             "name": "plumage",
             "type": "string",
-            "description": "Native or reviewed Trektellen plumage code; unknown codes remain native. Allowed codes are the reviewed inventory; unverified meanings are labelled explicitly. Blank means no supported whole-row class. New codes require a dictionary review.",
+            "description": "Native or reviewed Trektellen plumage code; unknown codes remain native. Allowed codes are the reviewed inventory; unverified meanings are labelled explicitly. Blank means no supported class for this released count subgroup. New codes require a dictionary review.",
             "constraints": {
               "required": false,
               "enum": [
@@ -471,7 +471,7 @@
           {
             "name": "datetime",
             "type": "string",
-            "description": "UTC ISO interval. For curated day-precision closures, calendar boundaries identify an unavailable day, not effort hours. Native header timing is retained even when no counting occurred.",
+            "description": "Increasing UTC ISO interval after reviewed weather stops and absences have been applied. Known absences are cut out and weather stops are separate rows. For whole-day weather stops without recorded hours, Europe/Paris calendar boundaries identify the day; their duration is not observed effort.",
             "constraints": {
               "required": true,
               "pattern": "[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9](\\.[0-9]+)?)?(Z|\\+00:00)/[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9](\\.[0-9]+)?)?(Z|\\+00:00)"
@@ -483,7 +483,7 @@
           {
             "name": "recording_era",
             "type": "string",
-            "description": "notebook, spreadsheet, naturalist or trektellen; historical 2021 is transitional. Curated identifies an added non-counting interval, not a native survey.",
+            "description": "Source recording era: notebook, spreadsheet, naturalist or trektellen; historical 2021 is transitional. Inferred historical empty intervals retain their historical era. Curated identifies an added weather-stop interval outside native surveys, not observed counting effort.",
             "constraints": {
               "required": true,
               "enum": [
@@ -710,7 +710,7 @@
           {
             "name": "survey_complete",
             "type": "boolean",
-            "description": "true: every bird that passed during the interval is in count.csv. This includes intervals when weather (rain, fog, storm) made counting impossible: no bird is assumed to pass (weather_stop). false: someone was counting but birds are known to have passed uncounted (records lost or deleted, birds noted as missed); rare. Times nobody was counting (absences, days not monitored) are not survey rows.",
+            "description": "true: all birds passing during this recorded interval are accounted for, including the explicit no-passage assumption for weather_stop=true. Completeness applies to the interval, not the entire day or season; a short survey can be complete. false: birds are known to have passed uncounted (records lost or deleted, birds noted as missed). Times nobody was counting are excluded rather than marked incomplete. Required on release; blank source values default to true.",
             "constraints": {
               "required": true
             }
@@ -718,7 +718,7 @@
           {
             "name": "weather_stop",
             "type": "boolean",
-            "description": "true: weather made counting impossible over the whole interval, so its zeros are assumed, not observed. Always with survey_complete true. Blank otherwise. Lets a user test the assumption that no bird passes when counting is impossible, by dropping these rows.",
+            "description": "true: weather made counting impossible throughout the interval. No passage is assumed, so zero detections are assumed rather than observed. Requires survey_complete=true and an explanation in survey_comment; no count row may link to it. Blank otherwise. Exclude these intervals from observed hours; retain or drop them explicitly when testing the no-passage assumption.",
             "constraints": {
               "required": false
             }
@@ -726,7 +726,7 @@
           {
             "name": "survey_comment",
             "type": "string",
-            "description": "Short note on the decision for this interval: why it is a weather stop or incomplete, what was cut out of it, or an assumption made. Not the observers' narrative, which stays in remark and weather."
+            "description": "Short explanation of a status decision, removed absence or inferred effort assumption. Required for a weather stop or incomplete survey. Original observer narratives remain in remark and weather; a comment does not itself change status."
           }
         ],
         "primaryKey": "survey_id",
@@ -734,7 +734,7 @@
           ""
         ]
       },
-      "description": "Survey intervals: when someone was responsible for the count, including weather stops (complete, no bird). survey_complete says whether the counts hold every bird that passed.",
+      "description": "Periods of counting responsibility, including documented weather stops and inferred historical empty intervals. Unmonitored absences have no survey row. A missing date does not establish zero birds or a weather closure. survey_complete describes only the recorded interval.",
       "x-validationRules": [
         {
           "kind": "iso8601",
@@ -1263,15 +1263,22 @@
   ],
   "publication_status": "local-reviewed-build; licence/publisher metadata pending",
   "temporal_semantics": "Clock instants and interval endpoints are UTC (canonical Z). Date-only counts retain the collection calendar date in Europe/Paris. For daily aggregation, convert instants to Europe/Paris before selecting the date.",
-  "description": "Bird migration counts, surveys including all interruption and protocol evidence, taxonomy and curated annual-report and Nos Oiseaux paper prose at Défilé de l’Écluse.",
-  "x-schemaVersion": "five-tables-residual-text-age-bounds-v14",
+  "description": "Bird migration counts, survey intervals and their completeness/weather-stop decisions, taxonomy, and curated annual-report and Nos Oiseaux paper prose at Défilé de l’Écluse.",
+  "x-schemaVersion": "five-tables-survey-status-documentation-v15",
   "x-recordingEras": {
     "notebook": "Historical sheet 1966-2013; digitised daily records; original recording medium not confirmed for every row.",
     "spreadsheet": "Historical sheet 2014-2016; mainly hourly forms with some daily records.",
     "naturalist": "Historical sheet 2017-2021; mixed entry and intervals; 2021 is a transition year.",
     "trektellen": "Native paired exports from 2022; earlier 2021 export is archived, not added twice.",
-    "curated": "Evidence-based non-counting interval outside recorded native survey periods; calendar or bounded times identify the interval, never observed effort."
+    "curated": "Documented weather-stop interval added outside native survey periods. Calendar or bounded times identify the interval; its duration is never observed counting effort."
   },
-  "x-validationNotes": "Frictionless validates standard types, constraints, primary keys and foreign keys. x-validationRules declare project rules implemented by the local validator; generic Frictionless validators do not enforce these extensions.",
-  "x-calendarTimezone": "Europe/Paris"
+  "x-validationNotes": "Frictionless validates standard types, constraints, primary keys and foreign keys. x-validationRules declare project rules implemented by the local validator; generic Frictionless validators do not enforce these extensions. Release build checks additionally reject counts linked to weather stops and overlapping survey intervals; these cross-table/time rules are not enforced by validate_package alone. See docs/survey-coverage.md and docs/audit.md for assumptions and interpretation.",
+  "x-calendarTimezone": "Europe/Paris",
+  "x-surveySemantics": {
+    "completeness": "survey_complete refers to birds accounted for within the recorded interval, not daily or seasonal coverage. Documented incomplete surveys are valid records, not unresolved audit findings.",
+    "absence": "Known unmonitored intervals are cut out. Missing survey dates remain unknown; do not zero-fill them.",
+    "observedHours": "Union of complete, non-weather-stop intervals within each Europe/Paris day. A day intersecting any incomplete survey has unknown observed hours. Weather-stop calendar bounds never contribute observed hours.",
+    "historicalEmptyIntervals": "Within declared historical day windows, omitted empty hours are inferred as complete intervals under the organiser recording convention. Reviewed absences are cut out; no species zeros or observer/weather measurements are invented.",
+    "audit": "Missing dates and short days within reported season windows are coverage context, not warnings by themselves. Warnings concern unresolved status evidence; release failures concern inconsistent status, missing required explanations, counts linked to weather stops, and overlapping survey intervals."
+  }
 }

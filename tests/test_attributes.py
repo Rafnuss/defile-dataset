@@ -69,6 +69,41 @@ def test_historical_immature_uses_documented_local_age_assumption():
     assert values.loc[2].isna().all()
 
 
+def test_adult_female_type_and_unspecified_groups_do_not_require_review():
+    hist = pd.DataFrame(
+        dict(
+            sheet=["1966-2013", "2014-2016"] + ["2017-2021"] * 7,
+            row=range(2, 11),
+            date=pd.Timestamp("2020-09-15"),
+            count=[1, 1, 1, 1, 1, 2, 3, 1, 1],
+            detail=["1x type femelles adultes", "1x type femelles adultes"] + [None] * 7,
+            details=[
+                None,
+                None,
+                "1x type femelle adulte",
+                "1x (entendu)",
+                "1x (en vol)",
+                "2x",
+                "1x adulte / 2x (entendu)",
+                "1x stade nouveau",
+                "2x (entendu)",
+            ],
+        )
+    )
+    values, audit = historical_attributes(hist, CROSSWALK)
+    assert values.loc[:2, "age"].eq("A").all()
+    assert values.loc[:2, "sex"].eq("FC").all()
+    assert values.loc[3:6, ["age", "sex", "plumage"]].isna().all().all()
+    assert audit.status.tolist() == ["mapped"] * 7 + ["unassigned", "quantity_mismatch"]
+    released = split_historical_counts(
+        hist.join(values).assign(observation_id=audit.observation_id), quantity_components(audit)
+    )
+    assert pd.isna(released.details.iloc[2])
+    assert released.details.iloc[3] == "(entendu)"
+    assert released.details.iloc[7] == "(entendu)"
+    assert released["count"].sum() == hist["count"].sum()
+
+
 def test_imported_notebook_details_use_the_same_whole_row_policy():
     hist = pd.DataFrame(
         {

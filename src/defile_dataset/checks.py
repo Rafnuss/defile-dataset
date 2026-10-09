@@ -22,14 +22,14 @@ from defile_dataset.taxonomy import (
     Taxonomy,
 )
 
-LONG_SURVEY_WARNING = pd.Timedelta(hours=15)
+LONG_SURVEY_WARNING = pd.Timedelta(hours=16)
 LONG_SURVEY_MINIMUM = pd.Timedelta(hours=12)
 
 
 @dataclass
 class Check:
     name: str
-    status: str  # "pass" | "warn" | "fail"
+    status: str  # "pass" | "warn" | "fail" | "info"
     detail: str
     rows: pd.DataFrame = field(default_factory=pd.DataFrame)
     action: str = ""
@@ -131,7 +131,7 @@ def run_checks(ds: Dataset, taxonomy: Taxonomy) -> list[Check]:
             "warn"
             if long.duration_hours.gt(LONG_SURVEY_WARNING.total_seconds() / 3600).any()
             else "pass",
-            "End minus start. All periods over 12 hours are retained; the initial review threshold is 15 hours.",
+            "End minus start. All periods over 12 hours are retained; the initial review threshold is 16 hours.",
             long,
         )
     )

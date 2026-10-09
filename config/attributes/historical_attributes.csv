@@ -32,7 +32,7 @@ source_sheet,label,age,sex,plumage,note
 1966-2013,type femelle,,FC,,
 1966-2013,type femelle immature,I,FC,,"Assumed local convention: immature means >1cy non-adult, distinct from first-calendar-year birds; organiser confirmation pending. See docs/bird-attributes.md."
 1966-2013,type femelles,,FC,,
-1966-2013,type femelles adultes,,,,Ambiguous combination of female type and adult: retain text pending review.
+1966-2013,type femelles adultes,A,FC,,
 2014-2016,1ère année,1,,,
 2014-2016,2ème année,2,,,
 2014-2016,adulte,A,,,
@@ -52,7 +52,7 @@ source_sheet,label,age,sex,plumage,note
 2014-2016,mâles adultes,A,M,,
 2014-2016,type femelle,,FC,,
 2014-2016,type femelles,,FC,,
-2014-2016,type femelles adultes,,,,Ambiguous combination of female type and adult: retain text pending review.
+2014-2016,type femelles adultes,A,FC,,
 2017-2021,,,,,
 2017-2021,(entendu),,,,"Heard-only information; no age, sex or plumage class."
 2017-2021,1ère année,1,,,
@@ -87,5 +87,5 @@ source_sheet,label,age,sex,plumage,note
 2017-2021,mâles adultes,A,M,,
 2017-2021,type femelle,,FC,,
 2017-2021,type femelle 1ère année civile,1,FC,,
-2017-2021,type femelle adulte,,,,Ambiguous combination of female type and adult: retain text pending review.
+2017-2021,type femelle adulte,A,FC,,
 2017-2021,type femelles,,FC,,

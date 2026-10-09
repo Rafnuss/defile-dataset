@@ -363,7 +363,7 @@ def test_empty_review_distinguishes_marker_missing_data_and_boundary_gap():
     }
 
 
-def test_incomplete_day_stays_unresolved_in_coverage_review(tmp_path):
+def test_incomplete_day_is_documented_status_in_coverage_context(tmp_path):
     folder = tmp_path / "config/audit-settings"
     folder.mkdir(parents=True)
     pd.DataFrame(
@@ -397,5 +397,8 @@ def test_incomplete_day_stays_unresolved_in_coverage_review(tmp_path):
         )
     )
     review = interruption_review(survey, observations, tmp_path)
-    assert review.assessment.tolist() == ["unresolved"]
+    assert review.assessment.tolist() == ["documented_incomplete"]
+    assert review.incomplete.tolist() == [1]
+    assert review.complete.tolist() == [0]
+    assert review.weather_stop.tolist() == [0]
     assert review.note.tolist() == ["Attendance conflict"]

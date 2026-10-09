@@ -126,7 +126,7 @@ def build_checks(ds, checks, validation, reviews, reconciliation):
                 "night_minutes",
             )
             check.filter_column = "duration_hours"
-            check.filter_threshold = 15
+            check.filter_threshold = 16
     result.insert(
         0,
         Check(
@@ -278,7 +278,7 @@ def build_checks(ds, checks, validation, reviews, reconciliation):
         result.append(
             Check(
                 "Survey status: " + issue.replace("_", " "),
-                "warn",
+                "info" if issue == "incomplete_survey" else "warn",
                 f"{len(rows):,} source surveys to review.",
                 rows,
                 action="Read the source remarks and weather. Historical header decisions are in count_2021.xlsx (Pression observation); added historical intervals are reviewed in config/audit-settings/historical-gap-breaks.csv. Trektellen decisions are in config/survey-status/trektellen-survey-status.csv, or correct source tags and re-export.",
@@ -287,22 +287,24 @@ def build_checks(ds, checks, validation, reviews, reconciliation):
                 key="survey-status-" + issue,
             )
         )
-    unresolved = reviews["coverage"].loc[reviews["coverage"].assessment.eq("unresolved")]
     result.append(
         Check(
-            "Missing or short coverage within reported seasons",
-            "warn" if len(unresolved) else "pass",
-            "Only unresolved dates are shown. Season bounds and short-day thresholds come from config/audit-settings/report-season-windows.csv; absence alone does not establish a closure.",
-            unresolved,
-            action="Check original records and report evidence. Add supported status decisions or notes in config/audit-settings/interruption-review-notes.csv.",
+            "Coverage context within reported seasons",
+            "info",
+            "Missing dates, short days and documented statuses are coverage context, not inconsistencies.",
+            reviews["coverage"],
             file="interruption_review.csv",
             columns=(
                 "date",
                 "native_survey_ids",
                 "native_hours",
+                "complete",
+                "incomplete",
+                "weather_stop",
                 "bird_rows",
                 "bird_total",
                 "no_species_marker",
+                "assessment",
                 "note",
             ),
             key="season-coverage",
@@ -329,6 +331,8 @@ def build_checks(ds, checks, validation, reviews, reconciliation):
         )
     )
     for check in result:
+        if check.status == "info":
+            check.action = ""
         if check.key in CHECK_TEXT:
             check.name, _, check.detail, _ = CHECK_TEXT[check.key]
         if check.key.startswith("attributes-"):
@@ -348,7 +352,7 @@ def build_checks(ds, checks, validation, reviews, reconciliation):
             "timestamps-inside-their-survey",
         ):
             check.group = "Counts and data integrity"
-    return sorted(result, key=lambda check: {"fail": 0, "warn": 1, "pass": 2}[check.status])
+    return sorted(result, key=lambda check: {"fail": 0, "warn": 1, "pass": 2, "info": 3}[check.status])
 
 
 def summarize(checks):

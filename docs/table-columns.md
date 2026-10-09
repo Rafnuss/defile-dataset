@@ -5,7 +5,19 @@
 
 Generated from config/schema/datapackage.json; edit that source rather than these tables.
 
-Frictionless validates standard types, constraints, primary keys and foreign keys. x-validationRules declare project rules implemented by the local validator; generic Frictionless validators do not enforce these extensions.
+Frictionless validates standard types, constraints, primary keys and foreign keys. x-validationRules declare project rules implemented by the local validator; generic Frictionless validators do not enforce these extensions. Release build checks additionally reject counts linked to weather stops and overlapping survey intervals; these cross-table/time rules are not enforced by validate_package alone. See docs/survey-coverage.md and docs/audit.md for assumptions and interpretation.
+
+### Survey interpretation
+
+survey_complete refers to birds accounted for within the recorded interval, not daily or seasonal coverage. Documented incomplete surveys are valid records, not unresolved audit findings.
+
+Known unmonitored intervals are cut out. Missing survey dates remain unknown; do not zero-fill them.
+
+Union of complete, non-weather-stop intervals within each Europe/Paris day. A day intersecting any incomplete survey has unknown observed hours. Weather-stop calendar bounds never contribute observed hours.
+
+Within declared historical day windows, omitted empty hours are inferred as complete intervals under the organiser recording convention. Reviewed absences are cut out; no species zeros or observer/weather measurements are invented.
+
+Missing dates and short days within reported season windows are coverage context, not warnings by themselves. Warnings concern unresolved status evidence; release failures concern inconsistent status, missing required explanations, counts linked to weather stops, and overlapping survey intervals.
 
 ### count.csv
 
@@ -27,9 +39,9 @@ Foreign key: `taxon_id` → `taxonomy.taxon_id`.
 | count | integer | Conditional | minimum: 0 | Numerical quantity for this count_category; required except for presence-only count_estimation=x. |
 | count_category | string | Yes | enum: ["normal", "reverse", "local"] | normal: main migration direction; reverse: opposite direction; local: local/non-migrating birds (Trektellen Present). Missing reverse/local quantities produce no row; explicit zeros are retained. Filter normal for main migration totals. |
 | count_estimation | string | No | enum: ["~", ">", "x"] | Recorded count qualifier. Blank means no recorded qualifier, not proof of exactness. Numeric totals retain the supplied number even when estimated or a lower bound. |
-| age | string | No | enum: ["A", "1", "2", "3", "4", "I", "J", "S", "Non-Juv", "Non-adult", "non_adult", ">1y"] | Native Trektellen age code or the explicit historical lower-bound code >1y; see source crosswalk. Blank means no supported whole-row class. New codes require a dictionary review. |
-| sex | string | No | enum: ["M", "F", "FC"] | Trektellen sex code; FC means female type, not necessarily female. Allowed codes are the reviewed inventory; unverified meanings are labelled explicitly. Blank means no supported whole-row class. New codes require a dictionary review. |
-| plumage | string | No | enum: ["D", "L", "W", "I", "B", "E"] | Native or reviewed Trektellen plumage code; unknown codes remain native. Allowed codes are the reviewed inventory; unverified meanings are labelled explicitly. Blank means no supported whole-row class. New codes require a dictionary review. |
+| age | string | No | enum: ["A", "1", "2", "3", "4", "I", "J", "S", "Non-Juv", "Non-adult", "non_adult", ">1y"] | Native Trektellen age code or the explicit historical lower-bound code >1y; see source crosswalk. Blank means no supported class for this released count subgroup. New codes require a dictionary review. |
+| sex | string | No | enum: ["M", "F", "FC"] | Trektellen sex code; FC means female type, not necessarily female. Allowed codes are the reviewed inventory; unverified meanings are labelled explicitly. Blank means no supported class for this released count subgroup. New codes require a dictionary review. |
+| plumage | string | No | enum: ["D", "L", "W", "I", "B", "E"] | Native or reviewed Trektellen plumage code; unknown codes remain native. Allowed codes are the reviewed inventory; unverified meanings are labelled explicitly. Blank means no supported class for this released count subgroup. New codes require a dictionary review. |
 | remark | string | No | — | Residual source prose without field-name prefixes. Fully converted count/age/sex/plumage descriptions and explicit clocks are omitted; unresolved wording, behaviour and source-attributed daily context remain. Original fields are preserved in the internal source ledger. |
 | remark_processing | string | No | — | Processing explanations, distinct from observer text. |
 | trektellen_data_id | integer | No | minimum: 1 | Native count-entry dataid, not the survey-level countid. |
@@ -87,7 +99,7 @@ Additional rules (declared in the descriptor):
 
 ### survey.csv
 
-Survey intervals: when someone was responsible for the count, including weather stops (complete, no bird). survey_complete says whether the counts hold every bird that passed.
+Periods of counting responsibility, including documented weather stops and inferred historical empty intervals. Unmonitored absences have no survey row. A missing date does not establish zero birds or a weather closure. survey_complete describes only the recorded interval.
 
 Primary key: `survey_id`. Missing-value tokens: `[""]` (an empty string means an empty cell).
 
@@ -95,8 +107,8 @@ Primary key: `survey_id`. Missing-value tokens: `[""]` (an empty string means an
 | --- | --- | --- | --- | --- |
 | survey_id | string | Yes | unique: true | Readable release identity: era prefix (B notebook, S spreadsheet, N Naturalist, T Trektellen, C curated), local YYYYMMDD, recorded start HHMM where available, and optional collision suffix. Calendar-day closures omit time. Regenerated each build; corrections can change it. |
 | source_survey_id | string | Yes | unique: true | Original internal survey identity, retained for joins to source audits and reviewed decisions. Trektellen native header ID remains in trektellen_count_id. |
-| datetime | string | Yes | pattern: "[0-9]{4}-(0[1-9]&#124;1[0-2])-(0[1-9]&#124;[12][0-9]&#124;3[01])T([01][0-9]&#124;2[0-3]):[0-5][0-9](:[0-5][0-9](\\.[0-9]+)?)?(Z&#124;\\+00:00)/[0-9]{4}-(0[1-9]&#124;1[0-2])-(0[1-9]&#124;[12][0-9]&#124;3[01])T([01][0-9]&#124;2[0-3]):[0-5][0-9](:[0-5][0-9](\\.[0-9]+)?)?(Z&#124;\\+00:00)" | UTC ISO interval. For curated day-precision closures, calendar boundaries identify an unavailable day, not effort hours. Native header timing is retained even when no counting occurred. |
-| recording_era | string | Yes | enum: ["notebook", "spreadsheet", "naturalist", "trektellen", "curated"] | notebook, spreadsheet, naturalist or trektellen; historical 2021 is transitional. Curated identifies an added non-counting interval, not a native survey. |
+| datetime | string | Yes | pattern: "[0-9]{4}-(0[1-9]&#124;1[0-2])-(0[1-9]&#124;[12][0-9]&#124;3[01])T([01][0-9]&#124;2[0-3]):[0-5][0-9](:[0-5][0-9](\\.[0-9]+)?)?(Z&#124;\\+00:00)/[0-9]{4}-(0[1-9]&#124;1[0-2])-(0[1-9]&#124;[12][0-9]&#124;3[01])T([01][0-9]&#124;2[0-3]):[0-5][0-9](:[0-5][0-9](\\.[0-9]+)?)?(Z&#124;\\+00:00)" | Increasing UTC ISO interval after reviewed weather stops and absences have been applied. Known absences are cut out and weather stops are separate rows. For whole-day weather stops without recorded hours, Europe/Paris calendar boundaries identify the day; their duration is not observed effort. |
+| recording_era | string | Yes | enum: ["notebook", "spreadsheet", "naturalist", "trektellen", "curated"] | Source recording era: notebook, spreadsheet, naturalist or trektellen; historical 2021 is transitional. Inferred historical empty intervals retain their historical era. Curated identifies an added weather-stop interval outside native surveys, not observed counting effort. |
 | remark | string | No | — | Source survey prose and explicit no-species-entry annotation, including historical visitor/person-hour notes. |
 | remark_processing | string | No | — | Processing notes; historical narratives have day-level scope. |
 | trektellen_count_id | integer | No | minimum: 1 | Native header ID for the Trektellen correction link. |
@@ -109,9 +121,9 @@ Primary key: `survey_id`. Missing-value tokens: `[""]` (an empty string means an
 | precipitation | string | No | enum: ["geen", "regen", "mist"] | Reviewed native weather category, retained verbatim. Fog is recorded in this field despite not being precipitation. Blank is unknown; only geen explicitly records none. Other future categories require a dictionary review. |
 | visibility | number | No | minimum: 0 | Visibility in metres, supported by the public display (e.g. 8000m). Native zero is retained and can be a default; it is not asserted to be measured zero visibility. |
 | temperature | number | No | — | Temperature in degrees Celsius. Negative values are allowed. Native zeros are retained and may be defaults; no guessed meteorological bounds are imposed. |
-| survey_complete | boolean | Yes | — | true: every bird that passed during the interval is in count.csv. This includes intervals when weather (rain, fog, storm) made counting impossible: no bird is assumed to pass (weather_stop). false: someone was counting but birds are known to have passed uncounted (records lost or deleted, birds noted as missed); rare. Times nobody was counting (absences, days not monitored) are not survey rows. |
-| weather_stop | boolean | No | — | true: weather made counting impossible over the whole interval, so its zeros are assumed, not observed. Always with survey_complete true. Blank otherwise. Lets a user test the assumption that no bird passes when counting is impossible, by dropping these rows. |
-| survey_comment | string | Conditional | — | Short note on the decision for this interval: why it is a weather stop or incomplete, what was cut out of it, or an assumption made. Not the observers' narrative, which stays in remark and weather. |
+| survey_complete | boolean | Yes | — | true: all birds passing during this recorded interval are accounted for, including the explicit no-passage assumption for weather_stop=true. Completeness applies to the interval, not the entire day or season; a short survey can be complete. false: birds are known to have passed uncounted (records lost or deleted, birds noted as missed). Times nobody was counting are excluded rather than marked incomplete. Required on release; blank source values default to true. |
+| weather_stop | boolean | No | — | true: weather made counting impossible throughout the interval. No passage is assumed, so zero detections are assumed rather than observed. Requires survey_complete=true and an explanation in survey_comment; no count row may link to it. Blank otherwise. Exclude these intervals from observed hours; retain or drop them explicitly when testing the no-passage assumption. |
+| survey_comment | string | Conditional | — | Short explanation of a status decision, removed absence or inferred effort assumption. Required for a weather stop or incomplete survey. Original observer narratives remain in remark and weather; a comment does not itself change status. |
 
 `wind_direction` codes (empty cells remain missing):
 
