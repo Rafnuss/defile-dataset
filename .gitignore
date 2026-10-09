@@ -20,3 +20,15 @@ docs/templates/*
 !docs/templates/gbif-readme.md
 paper/
 references/
+# Research scripts that read the local archive and reference library.
+scripts/archive/
+scripts/review/
+scripts/backup_evidence.py
+scripts/download_references.py
+tests/test_download_references.py
+# Source workbooks already folded into count_2021.xlsx, and the unread 2021 Trektellen export.
+raw/historical/sources/
+raw/trektellen/Trektellen_data_2422_2021.xlsx
+# Issue and PR templates of the research workflow.
+.github/ISSUE_TEMPLATE/
+.github/pull_request_template.md

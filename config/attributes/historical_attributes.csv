@@ -59,18 +59,18 @@ source_sheet,label,age,sex,plumage,note
 2017-2021,1ère année civile,1,,,
 2017-2021,2ème année,2,,,
 2017-2021,3ème année,3,,,
-2017-2021,> 1 an,,,,Age unresolved: preserve older-than-one-year wording; do not equate it automatically with immature I or plumage-based Non-Juv.
+2017-2021,> 1 an,>1y,,,
 2017-2021,adulte,A,,,
 2017-2021,adultes,A,,,
 2017-2021,femelle,,F,,
 2017-2021,femelle 1ère année civile,1,F,,
 2017-2021,femelle 2ème année,2,F,,
 2017-2021,femelle 3ème année,3,F,,
-2017-2021,femelle > 1 an,,F,,Age unresolved: preserve older-than-one-year wording; do not equate it automatically with immature I or plumage-based Non-Juv.
+2017-2021,femelle > 1 an,>1y,F,,
 2017-2021,femelle adulte,A,F,,
 2017-2021,femelle immature,I,F,,"Assumed local convention: immature means >1cy non-adult, distinct from first-calendar-year birds; organiser confirmation pending. See docs/bird-attributes.md."
 2017-2021,femelles,,F,,
-2017-2021,femelles > 1 an,,F,,Age unresolved: preserve older-than-one-year wording; do not equate it automatically with immature I or plumage-based Non-Juv.
+2017-2021,femelles > 1 an,>1y,F,,
 2017-2021,femelles adultes,A,F,,
 2017-2021,immature,I,,,"Assumed local convention: immature means >1cy non-adult, distinct from first-calendar-year birds; organiser confirmation pending. See docs/bird-attributes.md."
 2017-2021,immatures,I,,,"Assumed local convention: immature means >1cy non-adult, distinct from first-calendar-year birds; organiser confirmation pending. See docs/bird-attributes.md."
@@ -79,11 +79,11 @@ source_sheet,label,age,sex,plumage,note
 2017-2021,mâle 2ème année,2,M,,
 2017-2021,mâle 3ème année,3,M,,
 2017-2021,mâle 4ème année,4,M,,
-2017-2021,mâle > 1 an,,M,,Age unresolved: preserve older-than-one-year wording; do not equate it automatically with immature I or plumage-based Non-Juv.
+2017-2021,mâle > 1 an,>1y,M,,
 2017-2021,mâle adulte,A,M,,
 2017-2021,mâle immature,I,M,,"Assumed local convention: immature means >1cy non-adult, distinct from first-calendar-year birds; organiser confirmation pending. See docs/bird-attributes.md."
 2017-2021,mâles,,M,,
-2017-2021,mâles > 1 an,,M,,Age unresolved: preserve older-than-one-year wording; do not equate it automatically with immature I or plumage-based Non-Juv.
+2017-2021,mâles > 1 an,>1y,M,,
 2017-2021,mâles adultes,A,M,,
 2017-2021,type femelle,,FC,,
 2017-2021,type femelle 1ère année civile,1,FC,,

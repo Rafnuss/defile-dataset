@@ -1,12 +1,12 @@
 """Load the single JSON schema, generate documentation and validate released CSVs."""
 
-from datetime import date, datetime
 import json
-from pathlib import Path
 import shutil
+from datetime import date, datetime
+from pathlib import Path
 
-from frictionless import Package
 import pandas as pd
+from frictionless import Package
 
 SCHEMA_FILE = Path(__file__).resolve().parents[2] / "config/schema/datapackage.json"
 
@@ -36,19 +36,40 @@ def dictionary():
         text += "\n| Column | Type | Required | Constraints | Meaning |\n| --- | --- | --- | --- | --- |\n"
         for field in schema["fields"]:
             constraints = field.get("constraints", {})
-            conditional = any(rule["field"] == field["name"] and rule["kind"] == "requiredWhen" for rule in rules)
-            required = "Yes" if constraints.get("required") else "Conditional" if conditional else "No"
-            details = "; ".join(f"{key}: {json.dumps(value, ensure_ascii=False)}" for key, value in constraints.items() if key != "required")
+            conditional = any(
+                rule["field"] == field["name"] and rule["kind"] == "requiredWhen" for rule in rules
+            )
+            required = (
+                "Yes" if constraints.get("required") else "Conditional" if conditional else "No"
+            )
+            details = "; ".join(
+                f"{key}: {json.dumps(value, ensure_ascii=False)}"
+                for key, value in constraints.items()
+                if key != "required"
+            )
             cells = [field["name"], field["type"], required, details or "—", field["description"]]
-            text += "| " + " | ".join(cell.replace("|", "&#124;").replace("\n", " ") for cell in cells) + " |\n"
+            text += (
+                "| "
+                + " | ".join(cell.replace("|", "&#124;").replace("\n", " ") for cell in cells)
+                + " |\n"
+            )
         for field in schema["fields"]:
             definitions = field.get("x-enumDescriptions", {})
             if definitions:
                 text += f"\n`{field['name']}` codes (empty cells remain missing):\n\n| Code | Meaning | Evidence / notes |\n| --- | --- | --- |\n"
                 for code, definition in definitions.items():
-                    evidence = "; ".join(value for value in [definition.get("evidenceStatus", ""), definition.get("note", "")] if value)
+                    evidence = "; ".join(
+                        value
+                        for value in [
+                            definition.get("evidenceStatus", ""),
+                            definition.get("note", ""),
+                        ]
+                        if value
+                    )
                     cells = [code, definition["description"], evidence or "—"]
-                    text += "| " + " | ".join(cell.replace("|", "&#124;") for cell in cells) + " |\n"
+                    text += (
+                        "| " + " | ".join(cell.replace("|", "&#124;") for cell in cells) + " |\n"
+                    )
         if rules:
             text += "\nAdditional rules (declared in the descriptor):\n\n"
             text += "".join(f"- `{rule['field']}`: {rule['description']}\n" for rule in rules)
@@ -64,10 +85,19 @@ def attribute_dictionary():
             continue
         for code in field["constraints"]["enum"]:
             meaning = field["x-enumDescriptions"][code]
-            rows.append({"attribute": field["name"], "trektellen_code": code,
-                         "meaning": meaning["description"], "evidence_status": meaning["evidenceStatus"],
-                         "batumi_code": meaning["batumiCode"], "batumi_match": meaning["batumiMatch"],
-                         "source": meaning["source"], "note": meaning["note"], "example_data_id": meaning["exampleDataId"]})
+            rows.append(
+                {
+                    "attribute": field["name"],
+                    "trektellen_code": code,
+                    "meaning": meaning["description"],
+                    "evidence_status": meaning["evidenceStatus"],
+                    "batumi_code": meaning["batumiCode"],
+                    "batumi_match": meaning["batumiMatch"],
+                    "source": meaning["source"],
+                    "note": meaning["note"],
+                    "example_data_id": meaning["exampleDataId"],
+                }
+            )
     return pd.DataFrame(rows)
 
 
@@ -76,15 +106,26 @@ def generate_docs(dataset_dir, repository_docs=True):
     root = SCHEMA_FILE.parents[2]
     dataset_dir = Path(dataset_dir)
     dataset_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(SCHEMA_FILE, dataset_dir / 'datapackage.json')
-    usage_file = root / 'docs/dataset.md'
-    usage = usage_file.read_text() if usage_file.exists() else '# Dataset\n\n' + descriptor()['description'] + '\n'
-    for name in ('pipeline.md', 'table-columns.md', 'survey-coverage.md', 'audit.md', 'bird-attributes.md', 'processing.md', 'taxonomy.md'):
-        usage = usage.replace(f'({name})', f'(https://github.com/Rafnuss/defile-dataset/blob/main/docs/{name})')
-    (dataset_dir / 'README.md').write_text(usage + dictionary())
-    if repository_docs and usage_file.exists():
-        attribute_dictionary().to_csv(root / 'docs/bird_attribute_codes.csv', index=False)
-        (root / 'docs/table-columns.md').write_text('# Dataset column definitions\n\n' + dictionary())
+    shutil.copyfile(SCHEMA_FILE, dataset_dir / "datapackage.json")
+    usage = (root / "docs/dataset.md").read_text()
+    for name in (
+        "pipeline.md",
+        "table-columns.md",
+        "survey-coverage.md",
+        "audit.md",
+        "bird-attributes.md",
+        "processing.md",
+        "taxonomy.md",
+    ):
+        usage = usage.replace(
+            f"({name})", f"(https://github.com/Rafnuss/defile-dataset/blob/main/docs/{name})"
+        )
+    (dataset_dir / "README.md").write_text(usage + dictionary())
+    if repository_docs:
+        attribute_dictionary().to_csv(root / "docs/bird_attribute_codes.csv", index=False)
+        (root / "docs/table-columns.md").write_text(
+            "# Dataset column definitions\n\n" + dictionary()
+        )
 
 
 def valid_iso(value, rule):
@@ -130,7 +171,10 @@ def validate_package(path):
             for rule in rules:
                 field = data[rule["field"]]
                 if rule["kind"] == "iso8601":
-                    valid = {value: valid_iso(value, rule) for value in field[~field.isin(missing)].unique()}
+                    valid = {
+                        value: valid_iso(value, rule)
+                        for value in field[~field.isin(missing)].unique()
+                    }
                     failed = ~field.isin(missing) & field.map(valid).eq(False)
                 else:
                     when = rule["when"]
@@ -146,20 +190,33 @@ def validate_package(path):
                     elif rule["kind"] == "missingWhen":
                         failed = matches & ~field.isin(missing)
                     elif rule["kind"] == "allowedWhen":
-                        valid = field.isin(rule["values"]) if "values" in rule else field.str.fullmatch(rule["pattern"])
+                        valid = (
+                            field.isin(rule["values"])
+                            if "values" in rule
+                            else field.str.fullmatch(rule["pattern"])
+                        )
                         failed = matches & ~valid
                     elif rule["kind"] == "foreignKeyWhen":
                         reference = rule["reference"]
-                        target = next(r for r in package["resources"] if r["name"] == reference["resource"])
-                        linked = pd.read_csv(path.parent / target["path"], dtype=str, keep_default_na=False)
+                        target = next(
+                            r for r in package["resources"] if r["name"] == reference["resource"]
+                        )
+                        linked = pd.read_csv(
+                            path.parent / target["path"], dtype=str, keep_default_na=False
+                        )
                         failed = matches & ~field.isin(linked[reference["fields"]])
                     else:
                         raise ValueError(f"Unknown validation rule: {rule['kind']}")
                 if failed.any():
-                    report["x-projectErrors"].append({
-                        "resource": resource["name"], "field": rule["field"],
-                        "kind": rule["kind"], "message": rule["description"],
-                        "count": int(failed.sum()), "rowNumbers": (data.index[failed][:20] + 2).tolist(),
-                    })
+                    report["x-projectErrors"].append(
+                        {
+                            "resource": resource["name"],
+                            "field": rule["field"],
+                            "kind": rule["kind"],
+                            "message": rule["description"],
+                            "count": int(failed.sum()),
+                            "rowNumbers": (data.index[failed][:20] + 2).tolist(),
+                        }
+                    )
     report["valid"] = report["valid"] and not report["x-projectErrors"]
     return report

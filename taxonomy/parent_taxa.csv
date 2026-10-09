@@ -1,0 +1,272 @@
+taxon_id,english_name,scientific_name,parent_taxon_id,parent_english_name
+avibase-4AED44E8,Greylag Goose,Anser anser,avibase-C9ADFB7A,Anser sp.
+avibase-5F8E7CA8,Golden Eagle,Aquila chrysaetos,avibase-7E9CC505,Aquila sp.
+avibase-A635F565,Steppe Eagle,Aquila nipalensis,avibase-7E9CC505,Aquila sp.
+avibase-8F123A11,Short-eared Owl,Asio flammeus,avibase-31273EB0,Asio sp.
+avibase-A96692E0,Common Pochard,Aythya ferina,avibase-2243C710,Aythya sp.
+avibase-67CEA1C1,Tufted Duck,Aythya fuligula,avibase-2243C710,Aythya sp.
+avibase-3C0C325D,Common Buzzard,Buteo buteo,avibase-E91E7830,Buteo sp.
+avibase-90B13ACF,Rough-legged Buzzard,Buteo lagopus,avibase-E91E7830,Buteo sp.
+avibase-CC65921F,Long-legged Buzzard,Buteo rufinus,avibase-E91E7830,Buteo sp.
+avibase-EDA37B7C,Common Ringed Plover,Charadrius hiaticula,avibase-A40CC76C,Charadrius/Thinornis sp.
+avibase-35EC3BBF,Little Ringed Plover,Thinornis dubius,avibase-A40CC76C,Charadrius/Thinornis sp.
+avibase-68E4C0D1,Stock Dove,Columba oenas,avibase-F837F893,Columba sp.
+avibase-760F307A,Common Wood Pigeon,Columba palumbus,avibase-F837F893,Columba sp.
+avibase-6364E4A5,Eurasian Chaffinch,Fringilla coelebs,avibase-B55CD676,Common Chaffinch/Brambling
+avibase-E16B2C03,Brambling,Fringilla montifringilla,avibase-B55CD676,Common Chaffinch/Brambling
+avibase-4E6EF3F9,Common Swift,Apus apus,avibase-DBACF9F8,Common/Pallid Swift
+avibase-332BC664,Pallid Swift,Apus pallidus,avibase-DBACF9F8,Common/Pallid Swift
+avibase-9A87EBB0,Corn Bunting,Emberiza calandra,avibase-869B5DF7,Emberiza sp.
+avibase-4836E64E,Rock Bunting,Emberiza cia,avibase-869B5DF7,Emberiza sp.
+avibase-9AAB8C21,Cirl Bunting,Emberiza cirlus,avibase-869B5DF7,Emberiza sp.
+avibase-56FB47C0,Yellowhammer,Emberiza citrinella,avibase-869B5DF7,Emberiza sp.
+avibase-47210561,Ortolan Bunting,Emberiza hortulana,avibase-869B5DF7,Emberiza sp.
+avibase-C0B97874,Common Reed Bunting,Emberiza schoeniclus,avibase-869B5DF7,Emberiza sp.
+avibase-DB376A66,Eurasian Sparrowhawk,Accipiter nisus,avibase-3598C8A6,Eurasian Sparrowhawk/Eurasian Goshawk
+avibase-95DD1855,Eurasian Goshawk,Astur gentilis,avibase-3598C8A6,Eurasian Sparrowhawk/Eurasian Goshawk
+avibase-85B03849,Common Firecrest,Regulus ignicapilla,avibase-B6BA78FC,Goldcrest/Common Firecrest
+avibase-1C51C109,Goldcrest,Regulus regulus,avibase-B6BA78FC,Goldcrest/Common Firecrest
+avibase-2DAB45B8,Common Kestrel,Falco tinnunculus,avibase-578C6971,Lesser/Eurasian Kestrel
+avibase-BAC4CA22,Greater Spotted Eagle,Clanga clanga,avibase-2A16982E,Lesser/Greater Spotted Eagle
+avibase-C2565B65,Lesser Spotted Eagle,Clanga pomarina,avibase-2A16982E,Lesser/Greater Spotted Eagle
+avibase-D49A669A,Lesser x Greater Spotted Eagle (hybrid),Clanga pomarina x clanga,avibase-2A16982E,Lesser/Greater Spotted Eagle
+avibase-B7F0B736,Long-tailed Tit (caudatus),Aegithalos caudatus caudatus,avibase-547163C2,Long-tailed Tit
+avibase-22647E26,Pallid Harrier,Circus macrourus,avibase-AEEF72BC,Pallid/Montagu's Harrier
+avibase-63B6412E,Montagu's Harrier,Circus pygargus,avibase-AEEF72BC,Pallid/Montagu's Harrier
+avibase-C00674ED,Western Bonelli's Warbler,Phylloscopus bonelli,avibase-60A9B5E3,Phylloscopus sp.
+avibase-F9F4B04D,Common Chiffchaff,Phylloscopus collybita,avibase-60A9B5E3,Phylloscopus sp.
+avibase-0C120038,Yellow-browed Warbler,Phylloscopus inornatus,avibase-60A9B5E3,Phylloscopus sp.
+avibase-88F4B969,Willow Warbler,Phylloscopus trochilus,avibase-60A9B5E3,Phylloscopus sp.
+avibase-06D9A2C8,Black Kite,Milvus migrans,avibase-3335DE79,Red/Black Kite
+avibase-451D6FC8,Red Kite,Milvus milvus,avibase-3335DE79,Red/Black Kite
+avibase-D41F1614,Redpoll (cabaret),Acanthis flammea cabaret,avibase-B6C8DDB2,Redpoll
+avibase-365F5E97,Tree Pipit,Anthus trivialis,avibase-852BD07B,Tree/Olive-backed Pipit
+avibase-0895DD84,Spotted Redshank,Tringa erythropus,avibase-59C39D59,Tringa sp.
+avibase-8E67DC5F,Wood Sandpiper,Tringa glareola,avibase-59C39D59,Tringa sp.
+avibase-18B415D2,Common Greenshank,Tringa nebularia,avibase-59C39D59,Tringa sp.
+avibase-A7B17EFC,Green Sandpiper,Tringa ochropus,avibase-59C39D59,Tringa sp.
+avibase-D6BFC73A,Common Redshank,Tringa totanus,avibase-59C39D59,Tringa sp.
+avibase-A8A85BCF,Redwing,Turdus iliacus,avibase-690E6849,Turdus sp.
+avibase-88BB4F2A,Common Blackbird,Turdus merula,avibase-690E6849,Turdus sp.
+avibase-D929EB21,Song Thrush,Turdus philomelos,avibase-690E6849,Turdus sp.
+avibase-D120D5A0,Fieldfare,Turdus pilaris,avibase-690E6849,Turdus sp.
+avibase-CE71B4FF,Ring Ouzel,Turdus torquatus,avibase-690E6849,Turdus sp.
+avibase-A95B43F1,Mistle Thrush,Turdus viscivorus,avibase-690E6849,Turdus sp.
+avibase-876F7E82,Western Yellow Wagtail (flava),Motacilla flava flava,avibase-5983D677,Western Yellow Wagtail
+avibase-0C24147B,diurnal raptor sp.,Accipitriformes/Falconiformes sp.,avibase-AF0D818A,bird sp.
+avibase-9505E03D,Common Kingfisher,Alcedo atthis,avibase-AF0D818A,bird sp.
+avibase-D7BF5045,duck sp.,Anatidae (duck sp.),avibase-AF0D818A,bird sp.
+avibase-A0148BE3,goose sp.,Anatidae (goose sp.),avibase-AF0D818A,bird sp.
+avibase-F7D77F4A,swift sp.,Apodidae sp.,avibase-AF0D818A,bird sp.
+avibase-4D321548,heron sp.,Ardeidae sp.,avibase-AF0D818A,bird sp.
+avibase-31273EB0,Asio sp.,Asio sp.,avibase-AF0D818A,bird sp.
+avibase-7FC8B7ED,shorebird sp.,Charadriiformes sp. (shorebird sp.),avibase-AF0D818A,bird sp.
+avibase-E6E02622,stork sp.,Ciconiidae sp.,avibase-AF0D818A,bird sp.
+avibase-F837F893,Columba sp.,Columba sp.,avibase-AF0D818A,bird sp.
+avibase-7451A628,European Roller,Coracias garrulus,avibase-AF0D818A,bird sp.
+avibase-CAFE345D,Common Quail,Coturnix coturnix,avibase-AF0D818A,bird sp.
+avibase-B3D2C3C5,Common Cuckoo,Cuculus canorus,avibase-AF0D818A,bird sp.
+avibase-694C127A,Mute Swan,Cygnus olor,avibase-AF0D818A,bird sp.
+avibase-D754DB85,Great Spotted Woodpecker,Dendrocopos major,avibase-AF0D818A,bird sp.
+avibase-504B2FD4,Middle Spotted Woodpecker,Dendrocoptes medius,avibase-AF0D818A,bird sp.
+avibase-AB2F4BC0,Lesser Spotted Woodpecker,Dryobates minor,avibase-AF0D818A,bird sp.
+avibase-EDB4BBA6,Black Woodpecker,Dryocopus martius,avibase-AF0D818A,bird sp.
+avibase-B20FECE2,Northern Bald Ibis,Geronticus eremita,avibase-AF0D818A,bird sp.
+avibase-99B8841E,Common Crane,Grus grus,avibase-AF0D818A,bird sp.
+avibase-B2E6AB9F,Eurasian Wryneck,Jynx torquilla,avibase-AF0D818A,bird sp.
+avibase-66AA3934,European Bee-eater,Merops apiaster,avibase-AF0D818A,bird sp.
+avibase-AFF49475,Pygmy Cormorant,Microcarbo pygmaeus,avibase-AF0D818A,bird sp.
+avibase-CFD25837,passerine sp.,Passeriformes sp.,avibase-AF0D818A,bird sp.
+avibase-E578ADF2,pelican sp.,Pelecanus sp.,avibase-AF0D818A,bird sp.
+avibase-3DF5C587,Great Cormorant,Phalacrocorax carbo,avibase-AF0D818A,bird sp.
+avibase-2FA39DCD,Common Pheasant,Phasianus colchicus,avibase-AF0D818A,bird sp.
+avibase-0F9B5174,Greater Flamingo,Phoenicopterus roseus,avibase-AF0D818A,bird sp.
+avibase-A01014FF,European Green Woodpecker,Picus viridis,avibase-AF0D818A,bird sp.
+avibase-A0A584C1,Eurasian Spoonbill,Platalea leucorodia,avibase-AF0D818A,bird sp.
+avibase-D4540F88,Glossy Ibis,Plegadis falcinellus,avibase-AF0D818A,bird sp.
+avibase-0C1EFC9B,Eurasian Collared Dove,Streptopelia decaocto,avibase-AF0D818A,bird sp.
+avibase-5788552B,European Turtle Dove,Streptopelia turtur,avibase-AF0D818A,bird sp.
+avibase-550DE745,African Sacred Ibis,Threskiornis aethiopicus,avibase-AF0D818A,bird sp.
+avibase-D4C32F8E,Western Jackdaw,Coloeus monedula,avibase-26BE20B9,corvid sp.
+avibase-F00CC288,crow/raven sp.,Corvus sp.,avibase-26BE20B9,corvid sp.
+avibase-D8D10F2C,Eurasian Jay,Garrulus glandarius,avibase-26BE20B9,corvid sp.
+avibase-D9B001DF,Northern Nutcracker,Nucifraga caryocatactes,avibase-26BE20B9,corvid sp.
+avibase-FBBBA943,Eurasian Magpie,Pica pica,avibase-26BE20B9,corvid sp.
+avibase-B9B272F4,Northern Raven,Corvus corax,avibase-F00CC288,crow/raven sp.
+avibase-81B32602,Carrion Crow (cornix),Corvus corone cornix,avibase-F00CC288,crow/raven sp.
+avibase-FD45C1D7,Carrion Crow (corone),Corvus corone corone,avibase-F00CC288,crow/raven sp.
+avibase-7958D4BC,Carrion x Hooded Crow (hybrid),Corvus corone x cornix,avibase-F00CC288,crow/raven sp.
+avibase-1078FFEA,Rook,Corvus frugilegus,avibase-F00CC288,crow/raven sp.
+avibase-3BB5CBA6,Eurasian Curlew,Numenius arquata,avibase-568DE12E,curlew sp.
+avibase-082F3A63,Eurasian Whimbrel,Numenius phaeopus,avibase-568DE12E,curlew sp.
+avibase-56CCA717,Northern Pintail,Anas acuta,avibase-BD7161A9,dabbling duck sp.
+avibase-BC6C3CCE,Green-winged Teal,Anas crecca,avibase-BD7161A9,dabbling duck sp.
+avibase-85625D75,Mallard,Anas platyrhynchos,avibase-BD7161A9,dabbling duck sp.
+avibase-15EE0D36,Eurasian Wigeon,Mareca penelope,avibase-BD7161A9,dabbling duck sp.
+avibase-C235A4D7,Gadwall,Mareca strepera,avibase-BD7161A9,dabbling duck sp.
+avibase-ED4CE8E7,Northern Shoveler,Spatula clypeata,avibase-BD7161A9,dabbling duck sp.
+avibase-F577BA0F,Garganey,Spatula querquedula,avibase-BD7161A9,dabbling duck sp.
+avibase-69E3504C,eagle sp.,Accipitridae sp. (eagle sp.),avibase-0C24147B,diurnal raptor sp.
+avibase-84E0CEF2,hawk sp.,Accipitridae sp. (hawk sp.),avibase-0C24147B,diurnal raptor sp.
+avibase-158BDC90,Cinereous Vulture,Aegypius monachus,avibase-0C24147B,diurnal raptor sp.
+avibase-A28F0D10,falcon sp.,Falco sp.,avibase-0C24147B,diurnal raptor sp.
+avibase-81DB7410,Bearded Vulture,Gypaetus barbatus,avibase-0C24147B,diurnal raptor sp.
+avibase-5D1987CE,Griffon Vulture,Gyps fulvus,avibase-0C24147B,diurnal raptor sp.
+avibase-1327AC55,Osprey,Pandion haliaetus,avibase-0C24147B,diurnal raptor sp.
+avibase-BD7161A9,dabbling duck sp.,Anatidae sp. (dabbling duck sp.),avibase-D7BF5045,duck sp.
+avibase-2243C710,Aythya sp.,Aythya sp.,avibase-D7BF5045,duck sp.
+avibase-68EA281A,Common Goldeneye,Bucephala clangula,avibase-D7BF5045,duck sp.
+avibase-24698199,Common Scoter,Melanitta nigra,avibase-D7BF5045,duck sp.
+avibase-407E2CA8,Common Merganser,Mergus merganser,avibase-D7BF5045,duck sp.
+avibase-8DB64266,Red-breasted Merganser,Mergus serrator,avibase-D7BF5045,duck sp.
+avibase-3EC2CDA9,Red-crested Pochard,Netta rufina,avibase-D7BF5045,duck sp.
+avibase-1F9D883E,Ruddy Shelduck,Tadorna ferruginea,avibase-D7BF5045,duck sp.
+avibase-5EAB32D3,Common Shelduck,Tadorna tadorna,avibase-D7BF5045,duck sp.
+avibase-7E9CC505,Aquila sp.,Aquila sp.,avibase-69E3504C,eagle sp.
+avibase-8372FFBA,Short-toed Snake Eagle,Circaetus gallicus,avibase-69E3504C,eagle sp.
+avibase-2A16982E,Lesser/Greater Spotted Eagle,Clanga pomarina/clanga,avibase-69E3504C,eagle sp.
+avibase-5A3D91D3,White-tailed Eagle,Haliaeetus albicilla,avibase-69E3504C,eagle sp.
+avibase-4B8CC285,Booted Eagle,Hieraaetus pennatus,avibase-69E3504C,eagle sp.
+avibase-3D3808E3,Lanner Falcon,Falco biarmicus,avibase-A28F0D10,falcon sp.
+avibase-9EA1F12D,Eleonora's Falcon,Falco eleonorae,avibase-A28F0D10,falcon sp.
+avibase-47E58408,Peregrine Falcon,Falco peregrinus,avibase-A28F0D10,falcon sp.
+avibase-37EE6EA4,small falcon sp.,Falco sp. (small falcon sp.),avibase-A28F0D10,falcon sp.
+avibase-B6C8DDB2,Redpoll,Acanthis flammea,avibase-B20C6C46,finch sp.
+avibase-59353A05,European Goldfinch,Carduelis carduelis,avibase-B20C6C46,finch sp.
+avibase-039E0011,Citril Finch,Carduelis citrinella,avibase-B20C6C46,finch sp.
+avibase-65BD2033,European Greenfinch,Chloris chloris,avibase-B20C6C46,finch sp.
+avibase-84E1F114,Hawfinch,Coccothraustes coccothraustes,avibase-B20C6C46,finch sp.
+avibase-B55CD676,Common Chaffinch/Brambling,Fringilla coelebs/montifringilla,avibase-B20C6C46,finch sp.
+avibase-32635892,Common Linnet,Linaria cannabina,avibase-B20C6C46,finch sp.
+avibase-135564AA,Red Crossbill,Loxia curvirostra,avibase-B20C6C46,finch sp.
+avibase-24764DC7,Eurasian Bullfinch,Pyrrhula pyrrhula,avibase-B20C6C46,finch sp.
+avibase-C3227709,European Serin,Serinus serinus,avibase-B20C6C46,finch sp.
+avibase-9820CECA,Eurasian Siskin,Spinus spinus,avibase-B20C6C46,finch sp.
+avibase-DA2F24E3,Egyptian Goose,Alopochen aegyptiaca,avibase-A0148BE3,goose sp.
+avibase-C9ADFB7A,Anser sp.,Anser sp.,avibase-A0148BE3,goose sp.
+avibase-FB02DD96,Black-headed Gull,Chroicocephalus ridibundus,avibase-8D04DAAF,gull sp.
+avibase-F89FD6E3,Little Gull,Hydrocoloeus minutus,avibase-8D04DAAF,gull sp.
+avibase-052BFA8A,Mediterranean Gull,Ichthyaetus melanocephalus,avibase-8D04DAAF,gull sp.
+avibase-F002188E,European Herring Gull,Larus argentatus,avibase-8D04DAAF,gull sp.
+avibase-93CA037F,Caspian Gull,Larus cachinnans,avibase-8D04DAAF,gull sp.
+avibase-00DA9D91,Common Gull,Larus canus,avibase-8D04DAAF,gull sp.
+avibase-2D52E3A5,Lesser Black-backed Gull,Larus fuscus,avibase-8D04DAAF,gull sp.
+avibase-E826E9F3,Great Black-backed Gull,Larus marinus,avibase-8D04DAAF,gull sp.
+avibase-E074D706,Yellow-legged Gull,Larus michahellis,avibase-8D04DAAF,gull sp.
+avibase-FB4D08F0,Black-legged Kittiwake,Rissa tridactyla,avibase-8D04DAAF,gull sp.
+avibase-7AB4E42B,Whiskered Tern,Chlidonias hybrida,avibase-1B8C48CC,gull/tern sp.
+avibase-115AF02D,Black Tern,Chlidonias niger,avibase-1B8C48CC,gull/tern sp.
+avibase-BC06BC0D,Caspian Tern,Hydroprogne caspia,avibase-1B8C48CC,gull/tern sp.
+avibase-8D04DAAF,gull sp.,Larinae sp.,avibase-1B8C48CC,gull/tern sp.
+avibase-4D2FF6F1,Common Tern,Sterna hirundo,avibase-1B8C48CC,gull/tern sp.
+avibase-17310BF0,Little Tern,Sternula albifrons,avibase-1B8C48CC,gull/tern sp.
+avibase-E2A19474,Western Marsh Harrier,Circus aeruginosus,avibase-C235C72D,harrier sp.
+avibase-F558C7F9,Hen Harrier,Circus cyaneus,avibase-C235C72D,harrier sp.
+avibase-AEEF72BC,Pallid/Montagu's Harrier,Circus macrourus/pygargus,avibase-C235C72D,harrier sp.
+avibase-3598C8A6,Eurasian Sparrowhawk/Eurasian Goshawk,Accipiter nisus/Astur gentilis,avibase-84E0CEF2,hawk sp.
+avibase-E91E7830,Buteo sp.,Buteo sp.,avibase-84E0CEF2,hawk sp.
+avibase-C235C72D,harrier sp.,Circus sp.,avibase-84E0CEF2,hawk sp.
+avibase-97C47F3E,Black-winged Kite,Elanus caeruleus,avibase-84E0CEF2,hawk sp.
+avibase-3335DE79,Red/Black Kite,Milvus milvus/migrans,avibase-84E0CEF2,hawk sp.
+avibase-ED5A7E8F,European Honey Buzzard,Pernis apivorus,avibase-84E0CEF2,hawk sp.
+avibase-6429024D,Grey Heron,Ardea cinerea,avibase-4D321548,heron sp.
+avibase-3395DCF1,Purple Heron,Ardea purpurea,avibase-4D321548,heron sp.
+avibase-D916AABA,white egret sp.,Egretta/Ardea sp.,avibase-4D321548,heron sp.
+avibase-6BB94D7E,Black-crowned Night Heron,Nycticorax nycticorax,avibase-4D321548,heron sp.
+avibase-1D446440,Long-tailed Jaeger,Stercorarius longicaudus,avibase-070E73F9,jaeger/skua sp.
+avibase-39086887,Parasitic Jaeger,Stercorarius parasiticus,avibase-070E73F9,jaeger/skua sp.
+avibase-7CB8F5B7,Pomarine Jaeger,Stercorarius pomarinus,avibase-070E73F9,jaeger/skua sp.
+avibase-BB041C6E,Great Skua,Stercorarius skua,avibase-070E73F9,jaeger/skua sp.
+avibase-ED2AC04E,Eurasian Skylark,Alauda arvensis,avibase-20C23C74,lark sp.
+avibase-4091A51E,Greater Short-toed Lark,Calandrella brachydactyla,avibase-20C23C74,lark sp.
+avibase-742EC2F1,Woodlark,Lullula arborea,avibase-20C23C74,lark sp.
+avibase-9BE53D34,Eurasian Blue Tit,Cyanistes caeruleus,avibase-399FA405,parid sp.
+avibase-E5531933,Crested Tit,Lophophanes cristatus,avibase-399FA405,parid sp.
+avibase-E15BC0CB,Great Tit,Parus major,avibase-399FA405,parid sp.
+avibase-166CD440,Coal Tit,Periparus ater,avibase-399FA405,parid sp.
+avibase-523763E5,Marsh Tit,Poecile palustris,avibase-399FA405,parid sp.
+avibase-52440FBD,Acrocephalus sp.,Acrocephalus sp.,avibase-CFD25837,passerine sp.
+avibase-547163C2,Long-tailed Tit,Aegithalos caudatus,avibase-CFD25837,passerine sp.
+avibase-20C23C74,lark sp.,Alaudidae sp.,avibase-CFD25837,passerine sp.
+avibase-AD6E9B95,pipit sp.,Anthus sp.,avibase-CFD25837,passerine sp.
+avibase-552E2BA9,Short-toed Treecreeper,Certhia brachydactyla,avibase-CFD25837,passerine sp.
+avibase-AEE2063F,Zitting Cisticola,Cisticola juncidis,avibase-CFD25837,passerine sp.
+avibase-26BE20B9,corvid sp.,Corvidae sp.,avibase-CFD25837,passerine sp.
+avibase-14AFBA82,Common Whitethroat,Curruca communis,avibase-CFD25837,passerine sp.
+avibase-0DCD05BE,Lesser Whitethroat,Curruca curruca,avibase-CFD25837,passerine sp.
+avibase-869B5DF7,Emberiza sp.,Emberiza sp.,avibase-CFD25837,passerine sp.
+avibase-C809B2B9,European Robin,Erithacus rubecula,avibase-CFD25837,passerine sp.
+avibase-6E352E18,European Pied Flycatcher,Ficedula hypoleuca,avibase-CFD25837,passerine sp.
+avibase-B20C6C46,finch sp.,Fringillidae sp.,avibase-CFD25837,passerine sp.
+avibase-55CCEE2D,swallow sp.,Hirundinidae sp.,avibase-CFD25837,passerine sp.
+avibase-F2CEFD1A,Red-backed Shrike,Lanius collurio,avibase-CFD25837,passerine sp.
+avibase-DB2501EE,Great Grey Shrike,Lanius excubitor,avibase-CFD25837,passerine sp.
+avibase-F8FCE84A,wagtail sp.,Motacilla sp.,avibase-CFD25837,passerine sp.
+avibase-EE8206E7,Spotted Flycatcher,Muscicapa striata,avibase-CFD25837,passerine sp.
+avibase-DF526047,Northern Wheatear,Oenanthe oenanthe,avibase-CFD25837,passerine sp.
+avibase-92A772BB,Eurasian Golden Oriole,Oriolus oriolus,avibase-CFD25837,passerine sp.
+avibase-399FA405,parid sp.,Paridae sp.,avibase-CFD25837,passerine sp.
+avibase-240E3390,House Sparrow,Passer domesticus,avibase-CFD25837,passerine sp.
+avibase-C22FBF8D,Eurasian Tree Sparrow,Passer montanus,avibase-CFD25837,passerine sp.
+avibase-612B5C24,Black Redstart,Phoenicurus ochruros,avibase-CFD25837,passerine sp.
+avibase-06DD9D95,Common Redstart,Phoenicurus phoenicurus,avibase-CFD25837,passerine sp.
+avibase-60A9B5E3,Phylloscopus sp.,Phylloscopus sp.,avibase-CFD25837,passerine sp.
+avibase-26530C86,Dunnock,Prunella modularis,avibase-CFD25837,passerine sp.
+avibase-B6BA78FC,Goldcrest/Common Firecrest,Regulus regulus/ignicapilla,avibase-CFD25837,passerine sp.
+avibase-F81EB049,Eurasian Penduline Tit,Remiz pendulinus,avibase-CFD25837,passerine sp.
+avibase-A0EDAEA2,Whinchat,Saxicola rubetra,avibase-CFD25837,passerine sp.
+avibase-0EA8F8B9,European Stonechat,Saxicola rubicola,avibase-CFD25837,passerine sp.
+avibase-9C2B53A0,Eurasian Nuthatch,Sitta europaea,avibase-CFD25837,passerine sp.
+avibase-94A44032,Common Starling,Sturnus vulgaris,avibase-CFD25837,passerine sp.
+avibase-61F9065B,Eurasian Blackcap,Sylvia atricapilla,avibase-CFD25837,passerine sp.
+avibase-A6A4FC63,Garden Warbler,Sylvia borin,avibase-CFD25837,passerine sp.
+avibase-89C42590,Wallcreeper,Tichodroma muraria,avibase-CFD25837,passerine sp.
+avibase-AF700208,Eurasian Wren,Troglodytes troglodytes,avibase-CFD25837,passerine sp.
+avibase-690E6849,Turdus sp.,Turdus sp.,avibase-CFD25837,passerine sp.
+avibase-8BAFB01E,Great White Pelican,Pelecanus onocrotalus,avibase-E578ADF2,pelican sp.
+avibase-250CDA58,Tawny Pipit,Anthus campestris,avibase-AD6E9B95,pipit sp.
+avibase-319D044A,Red-throated Pipit,Anthus cervinus,avibase-AD6E9B95,pipit sp.
+avibase-14873249,Meadow Pipit,Anthus pratensis,avibase-AD6E9B95,pipit sp.
+avibase-41ECD10E,Richard's Pipit,Anthus richardi,avibase-AD6E9B95,pipit sp.
+avibase-0A3FA185,Water Pipit,Anthus spinoletta,avibase-AD6E9B95,pipit sp.
+avibase-852BD07B,Tree/Olive-backed Pipit,Anthus trivialis/hodgsoni,avibase-AD6E9B95,pipit sp.
+avibase-6E8EA94E,small plover sp.,Charadrius/Thinornis/Anarhynchus sp.,avibase-83F7457A,plover sp.
+avibase-20BE9DF1,Eurasian Dotterel,Eudromias morinellus,avibase-83F7457A,plover sp.
+avibase-25A20BA6,European Golden Plover,Pluvialis apricaria,avibase-83F7457A,plover sp.
+avibase-27903EF7,Grey Plover,Pluvialis squatarola,avibase-83F7457A,plover sp.
+avibase-F029489A,Northern Lapwing,Vanellus vanellus,avibase-83F7457A,plover sp.
+avibase-8548B07E,Common Sandpiper,Actitis hypoleucos,avibase-7FC8B7ED,shorebird sp.
+avibase-15369E8E,Dunlin,Calidris alpina,avibase-7FC8B7ED,shorebird sp.
+avibase-2DABF98F,Ruff,Calidris pugnax,avibase-7FC8B7ED,shorebird sp.
+avibase-83F7457A,plover sp.,Charadriidae sp.,avibase-7FC8B7ED,shorebird sp.
+avibase-9151E0BA,Common Snipe,Gallinago gallinago,avibase-7FC8B7ED,shorebird sp.
+avibase-ED663165,Eurasian Oystercatcher,Haematopus ostralegus,avibase-7FC8B7ED,shorebird sp.
+avibase-3CAEB7CE,Black-winged Stilt,Himantopus himantopus,avibase-7FC8B7ED,shorebird sp.
+avibase-1B8C48CC,gull/tern sp.,Laridae sp.,avibase-7FC8B7ED,shorebird sp.
+avibase-9A684C99,Bar-tailed Godwit,Limosa lapponica,avibase-7FC8B7ED,shorebird sp.
+avibase-1A15F0C6,Jack Snipe,Lymnocryptes minimus,avibase-7FC8B7ED,shorebird sp.
+avibase-568DE12E,curlew sp.,Numenius sp.,avibase-7FC8B7ED,shorebird sp.
+avibase-C73ED2F5,Pied Avocet,Recurvirostra avosetta,avibase-7FC8B7ED,shorebird sp.
+avibase-BFE14290,Eurasian Woodcock,Scolopax rusticola,avibase-7FC8B7ED,shorebird sp.
+avibase-070E73F9,jaeger/skua sp.,Stercorarius sp.,avibase-7FC8B7ED,shorebird sp.
+avibase-59C39D59,Tringa sp.,Tringa sp.,avibase-7FC8B7ED,shorebird sp.
+avibase-F3DA111C,Merlin,Falco columbarius,avibase-37EE6EA4,small falcon sp.
+avibase-578C6971,Lesser/Eurasian Kestrel,Falco naumanni/tinnunculus,avibase-37EE6EA4,small falcon sp.
+avibase-E91E287A,Eurasian Hobby,Falco subbuteo,avibase-37EE6EA4,small falcon sp.
+avibase-997A9437,Red-footed Falcon,Falco vespertinus,avibase-37EE6EA4,small falcon sp.
+avibase-A40CC76C,Charadrius/Thinornis sp.,Charadrius/Thinornis sp.,avibase-6E8EA94E,small plover sp.
+avibase-28825494,White Stork,Ciconia ciconia,avibase-E6E02622,stork sp.
+avibase-E2817DAE,Black Stork,Ciconia nigra,avibase-E6E02622,stork sp.
+avibase-30FEC6BE,Western House Martin,Delichon urbicum,avibase-55CCEE2D,swallow sp.
+avibase-58C502EA,Barn Swallow,Hirundo rustica,avibase-55CCEE2D,swallow sp.
+avibase-6F2AF9D0,Eurasian Crag Martin,Ptyonoprogne rupestris,avibase-55CCEE2D,swallow sp.
+avibase-94A1C447,Sand Martin,Riparia riparia,avibase-55CCEE2D,swallow sp.
+avibase-DBACF9F8,Common/Pallid Swift,Apus apus/pallidus,avibase-F7D77F4A,swift sp.
+avibase-FA1CAD29,Alpine Swift,Tachymarptis melba,avibase-F7D77F4A,swift sp.
+avibase-400E032C,White Wagtail,Motacilla alba,avibase-F8FCE84A,wagtail sp.
+avibase-AE073221,Grey Wagtail,Motacilla cinerea,avibase-F8FCE84A,wagtail sp.
+avibase-5983D677,Western Yellow Wagtail,Motacilla flava,avibase-F8FCE84A,wagtail sp.
+avibase-49D9148A,Great Egret,Ardea alba,avibase-D916AABA,white egret sp.
+avibase-AB1CB216,Western Cattle Egret,Ardea ibis,avibase-D916AABA,white egret sp.
+avibase-F2858F9F,Little Egret,Egretta garzetta,avibase-D916AABA,white egret sp.
+avibase-533DD36C,Rock Pigeon (Feral Pigeon),Columba livia (Feral Pigeon),avibase-AF0D818A,bird sp.

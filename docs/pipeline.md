@@ -30,7 +30,7 @@ uv run pytest
 2. Resolve taxa, map historical attributes and preserve original source fields.
 3. Classify surveys from native tags and reviewed decisions; select eligible counts.
 4. Consolidate count, survey and taxonomy; read the accepted report-text CSV directly.
-5. Add supported non-counting gaps and historical empty intervals inside declared day windows, splitting reviewed breaks; compute coverage review, exclusions and comparisons.
+5. Split surveys around timed weather stops (their own rows) and absences (cut), add historical empty intervals inside declared day windows minus reviewed absences; compute coverage review, exclusions and comparisons.
 6. Stage all generated files; validate count conservation, timing, schemas and taxon links.
 7. Replace current generated products after required checks pass; refresh dictionaries.
 
@@ -40,7 +40,7 @@ The report extraction and curation workflow is archived. The annual build does n
 
 ```text
 output/
-  dataset/                 # count, survey, taxonomy, report_text + schema and README
+  dataset/                 # count, survey, taxonomy, report_text, paper_text + schema and README
   audit/                   # findings, exclusions, conservation and validation
   gbif/                    # README and Event/Occurrence CSVs from the separate converter
   metadata.json            # input hashes, output hashes and check results
@@ -58,7 +58,7 @@ Use `--out PATH --interim PATH` to build products in alternate locations. Metada
 
 ## Supporting commands and history
 
-`export_gbif.py` converts the current released tables to `output/gbif/event.csv` and `occurrence.csv` for IPT. Run it after each successful build to refresh the export from the current research tables. The exporter is separate from build validation; publication metadata, persistent exported IDs and GBIF interpretation still need review.
+`export_gbif.py` converts the current released tables to `output/gbif/event.csv` and `occurrence.csv` for IPT. Run it after each successful build: the build replaces `output/gbif/` with its README and removes earlier export CSVs. The exporter is separate from build validation; publication metadata, persistent exported IDs and GBIF interpretation still need review.
 
 `generate_dataset_docs.py` refreshes schema-derived documentation without rebuilding counts. PDF acquisition and optional review commands remain in the local research checkout; they are not required for the public build. Generated dictionaries are `docs/table-columns.md` and `docs/bird_attribute_codes.csv`.
 

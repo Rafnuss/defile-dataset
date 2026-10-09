@@ -4,6 +4,8 @@ The build preserves a complete internal ledger in `interim/processed/observation
 
 Processing retains original labels, source fields and excluded rows in the internal ledger. Historical preservation begins with the received manually cleaned reference: earlier deletions cannot be reconstructed from the release alone. See manual cleaning (local evidence: `archive/historical-cleaning.md`) and completed imports (local evidence: `docs/imports`). Released columns and constraints are defined by [the schema](../config/schema/datapackage.json); [dataset usage](dataset.md) explains analytical joins and identifiers.
 
+Historical `detail`/`details` fields also contain source-attributed remarks from the accepted papers and annual reports (local evidence: `docs/imports/report-events-2026-10-08/README.md`). These preserve the quoted source wording and identify the species/date. Day-level context attached to an hourly row is labelled explicitly and does not assign the published quantity to that hour; shared totals remain collective. Original observer text and counts are retained.
+
 ## Tables
 
 ### `surveys.csv`: one row per survey period
@@ -29,7 +31,7 @@ A survey is one period of counting with its own start and end: for historical da
 | `observation_id` | `H-<sheet>-r<Excel row>` (historical); `T<Trektellen data id>`, or `T<count id>-e<n>` (n-th entry of that count in the export) for exports without native data IDs. Current 2022–2023 re-exports contain native IDs. |
 | `survey_id` | The survey the record belongs to; empty for historical records without time. |
 | `source`, `date` | As in `surveys`. |
-| `datetime`, `datetime_original` | Trektellen entry time, UTC, after / before correction; empty when not timed, and for all historical records. Historical entry clocks remain in `time_local`. |
+| `datetime`, `datetime_original` | Recorded entry time in UTC, after / before correction. Historical NaturaList clocks and unambiguous whole-count clocks in comments are converted too; the original clock/text fields remain intact. Empty when no point time is established. |
 | `taxon_name_original`, `trektellen_species_id` | As recorded. Trektellen names are in the export's language, which varies by year: use the id. |
 | `avibase_id`, `taxon_kind` | From `taxonomy/source_taxa.csv`. `taxon_kind`: `bird`, `no_species` (a placeholder some sheets use to record a survey with no bird; no `avibase_id`) or `non_bird` (butterflies, dragonflies; no `avibase_id`). |
 | `scientific_name`, `english_name`, `taxon_rank`, `order`, `family`, `taxonomy_source` | From the `avibase_id`: AviList where it has the taxon, field by field, else eBird/Clements (slashes, "sp.", hybrids, eBird groups; English names of AviList subspecies). `taxonomy_source` says which checklist named the taxon. |
@@ -42,7 +44,7 @@ A survey is one period of counting with its own start and end: for historical da
 
 ## Corrections and flags
 
-Trektellen corrections should be made in the source system and re-exported; historical corrections belong in the reference workbook with documented evidence.
+Accepted record-level timing decisions are maintained in `config/timing/reviewed-entry-times.csv` and applied during the build without requiring source-system re-entry. Original clocks, source fields and survey associations remain in the internal ledger and `audit/entry_time_corrections.csv`. Known source ranges become observation intervals; rejected clocks without a known range remain empty in the release and inherit their linked survey duration. Point clocks with explicit source evidence can be restored and linked to the correct existing hourly survey. Review evidence and complete decisions for the Explore QA file are in the timing cleanup (local evidence: `docs/imports/timing-cleanup-2026-10-09/README.md`). Other Trektellen corrections should be made in the source system and re-exported; historical source edits belong in the reference workbook with documented evidence.
 
 | Flag | On | Rule |
 | --- | --- | --- |
@@ -51,14 +53,22 @@ Trektellen corrections should be made in the source system and re-exported; hist
 | `untimed_in_timed_survey` | observation | Legacy code now annotates every Trektellen entry without a timestamp, including predominantly untimed surveys. Keep at day level; this is a precision limitation, not an exclusion. |
 | `no_survey` | observation | Count id missing from the header export. |
 | `no_time` | observation | Historical record without start or end time. |
-| `no_entries` | survey | A source survey with no observation rows. This flag alone cannot distinguish zero detections, non-counting or missing records; reviewed coverage and the empty-survey audit supply that interpretation. |
+| `no_entries` | survey | A source survey with no observation rows. This flag alone cannot distinguish zero detections, a weather stop or missing records; `survey_complete`, `weather_stop` and the empty-survey audit supply that interpretation. |
 | `records_deleted` | survey | 2021-10-29: its records were deleted in the manual cleaning (times made no sense); surveyed, but not "nothing seen". |
+
+### Count text and structured values
+
+Released `count.remark` contains residual prose without `detail:`, `comment:` or `remark:` prefixes. Mapped descriptions are removed once the released subgroup carries their count, age, sex and plumage. Unresolved descriptions stay as text: for example `mâle > 1 an` gives sex=M and age=>1y, preserving an explicit lower bound without assigning adult or immature status. Source-attributed daily annotations remain separate from recorded subgroup descriptions and never establish an entry clock. The raw source columns remain unchanged in `interim/processed/observations.csv`.
+
+Historical NaturaList `time_local` values are converted to UTC. Clear whole-count comments such as `à 13h55` also supply a point time, and only the converted clock is removed from released prose. Leading clocks can retain following behaviour or notes about other birds. Approximate times, durations and survey-wide narratives do not supply an exact entry time. Conflicting clocks and clocks outside their native survey are retained for review; outside clocks follow the existing day-fallback policy.
+
+Complete quantity/time lists such as `40:15h06;6:15h55` can produce separate timed rows when their quantities reconcile and their age/sex/plumage and residual detail are interchangeable. Their internal IDs use `-time1`, `-time2`, etc., before the category suffix. Mixed attribute totals are not assigned to timed flocks without an explicit association. `audit/count_text_review.csv` records source clock comments, recovered times, remaining text and the released rows. No source birds, dates or survey associations are changed.
 
 ### Timing and selection
 
 Keep the full time audit in `entry_issues.csv` and the HTML report. Night periods remain unchanged, eligible and without a processing flag; daylight and long-duration warnings remain in the audit. Former clipping/nudging flags are no longer generated.
 
-`observations.csv` adds `day_id` (`DEFILE-YYYYMMDD`), `time_resolution` (`point`, `interval` or `day`) and `use_for_counts`. The latter excludes only later overlapping native Trektellen periods under the interim rule; it does not remove rows. Historical interval/day support is classified by the received start/end and day-window fields, not independently verified precision. Additional day-only entries contribute once alongside timed entries.
+`observations.csv` adds `day_id` (`DEFILE-YYYYMMDD`), `time_resolution` (`point`, `interval` or `day`) and `use_for_counts`. The latter excludes only later overlapping native Trektellen periods under the interim rule; it does not remove rows. Historical point support uses an explicit entry clock or unambiguous whole-count time in source prose. Otherwise interval/day support is classified by the received start/end and day-window fields, not independently verified precision. Additional day-only entries contribute once alongside timed entries.
 
 `daily_source_resolution.csv` groups retained entries by day, source and original taxon, with main count, record count, `point_count`, `interval_count`, `day_count`, opposite-direction and local sums. The three resolution components sum to `count`. These describe time support, not observer effort. No species absences or numerical zero counts are filled. Historical empty survey intervals can be added under the declared-window rule in [survey coverage](survey-coverage.md). `reconciliation.csv` records source, retained and excluded main-count sums by category and year; source = retained + all exclusion categories. These are internal reconciliation products, not a final publication selection. `daily_counts.csv` is the simpler daily view derived only from consolidated count + survey, grouped by date/taxon_id, preserving missing reverse/local components. Its numerical sums agree with the retained source components.
 
@@ -105,3 +115,9 @@ Wind Beaufort is an integer from 0 to 12, and cloud cover an integer from 0 to 8
 Evidence: saved public count HTML in the review workspace; [19 September count](https://www.trektellen.org/count/view/2422/20260919?language=english) and [Trektellen-hosted counting guidance](https://www.trektellen.org/static/doc/Leeuwen_M_van_Timing_changes_2007_2014.pdf).
 
 Daily narrative transfers are documented in the import evidence (local evidence: `docs/imports/survey-metadata-2026-10-07/README.md`). Narrative attendance does not establish constant hourly headcounts or weather. Dated completeness statistics are retained in the metadata review (local evidence: `docs/reviews/survey-metadata-2026-10-07/README.md`).
+
+### Residual remark pass
+
+After subgroup projection, `remark_text.py` trims Unicode whitespace and converts explicit residual age prefixes and whole-record times for both historical and native Trektellen records. Bare four-digit clock notation such as `1200` is interpreted as 12:00 only when it forms the entire phrase, and must fit the linked native survey. Hour-only `12h` and complete ranges such as `9–10h` or `de 11h15 à 11h45` become UTC points or intervals in `datetime`; no midpoint is invented. More precise existing timestamps within the expressed minute/range are retained. Conflicting ages, conflicting clocks and out-of-period clocks keep their wording with a `remark_processing` note. Published day-level context remains outside this parser.
+
+`audit/count_text_changes.csv` records the before/after remark, age, datetime and review note for residual conversions or conflicts, using final released IDs. Source fields remain in the internal ledger. `>1y` represents the literal older-than-one-year wording and is excluded from adult/non-adult comparisons.

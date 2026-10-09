@@ -8,7 +8,7 @@ the forecast drops flagged rows its model cannot use, a GBIF export may keep the
 Entry errors worth correcting at the source (in Trektellen) are also collected in `issues`, one
 row per survey and issue, with the species and birds concerned.
 
-The schema in config/schema/datapackage.json defines the consolidated table columns.
+See docs/dataset.md for the tables' columns and the rationale of each correction.
 """
 
 from dataclasses import dataclass
@@ -16,9 +16,10 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
-from defile_dataset.read import EFFORT_SHEET, TREKTELLEN_FIRST_YEAR
 from defile_dataset.attributes import ATTRIBUTE_COLUMNS
+from defile_dataset.read import EFFORT_SHEET, TREKTELLEN_FIRST_YEAR
 from defile_dataset.site import NIGHT_SUN_ALTITUDE, TIMEZONE, civil_twilight
+from defile_dataset.source_text import HISTORICAL_TEXT_COLUMNS, recover_historical_times
 from defile_dataset.taxonomy import TAXON_COLUMNS, Taxonomy
 
 # Audit threshold only: night periods remain unchanged and eligible for processing.
@@ -49,8 +50,19 @@ SURVEY_COLUMNS = [
     "duplicate_of",
     "flags",
 ]
-HISTORICAL_SURVEY_COLUMNS = ["day_start", "day_end", "sheet", "observers", "weather", "remarks",
-                             "survey_coverage", "survey_coverage_comment"]
+HISTORICAL_SURVEY_COLUMNS = [
+    "day_start",
+    "day_end",
+    "sheet",
+    "observers",
+    "weather",
+    "remarks",
+    "survey_complete",
+    "weather_stop",
+    "survey_comment",
+]
+# The effort sheet's decision columns (blank `survey_complete`: complete; blank `weather_stop`: no).
+STATUS_COLUMNS = ["survey_complete", "weather_stop", "survey_comment"]
 # Header-export fields kept as exported (renamed only where the name would be ambiguous).
 TREKTELLEN_SURVEY_COLUMNS = {
     "id": "trektellen_count_id",
@@ -138,7 +150,17 @@ INTEGER_OBSERVATION_COLUMNS = [
 # (README -> Manual cleaning): surveyed, but not "nothing seen".
 RECORDS_DELETED_DAYS = (pd.Timestamp("2021-10-29"),)
 
-ISSUE_COLUMNS = ["date", "survey_id", "start", "end", "issue", "detail", "entries", "birds", "outside_minutes"]
+ISSUE_COLUMNS = [
+    "date",
+    "survey_id",
+    "start",
+    "end",
+    "issue",
+    "detail",
+    "entries",
+    "birds",
+    "outside_minutes",
+]
 
 
 @dataclass
@@ -224,40 +246,80 @@ def historical_tables(hist: pd.DataFrame, effort: pd.DataFrame, taxonomy: Taxono
         day_end=e["end"],
         sheet=EFFORT_SHEET,
     )
-    # Date-only non-counting records use calendar bounds, never invented survey hours.
-    date_only = e.get("survey_coverage", pd.Series(index=e.index, dtype="string")).eq("none") & e["start"].isna() & e["end"].isna()
-    e.loc[date_only, "survey_id"] = "H" + e.loc[date_only, "date"].dt.strftime("%Y%m%d") + "-not-surveyed"
-    e.loc[date_only, "start"] = e.loc[date_only, "date"].dt.tz_localize(TIMEZONE).dt.tz_convert("UTC")
-    e.loc[date_only, "end"] = (e.loc[date_only, "date"] + pd.Timedelta(days=1)).dt.tz_localize(TIMEZONE).dt.tz_convert("UTC")
+    # A day stopped by weather without recorded hours uses calendar bounds, never invented hours.
+    date_only = e["start"].isna() & e["end"].isna()
+    e.loc[date_only, "survey_id"] = (
+        "H" + e.loc[date_only, "date"].dt.strftime("%Y%m%d") + "-weather-day"
+    )
+    e.loc[date_only, "start"] = (
+        e.loc[date_only, "date"].dt.tz_localize(TIMEZONE).dt.tz_convert("UTC")
+    )
+    e.loc[date_only, "end"] = (
+        (e.loc[date_only, "date"] + pd.Timedelta(days=1))
+        .dt.tz_localize(TIMEZONE)
+        .dt.tz_convert("UTC")
+    )
     add_flag(e, date_only, "calendar_day_bounds")
     add_flag(e, e["date"].isin(RECORDS_DELETED_DAYS), FLAG_RECORDS_DELETED)
     # The reference's effort sheet holds daily narratives, not hourly headcounts/readings.
-    metadata = effort.reindex(columns=["date", "observers", "weather", "remark"]).drop_duplicates("date")
+    metadata = effort.reindex(columns=["date", "observers", "weather", "remark"]).drop_duplicates(
+        "date"
+    )
     metadata = metadata.rename(columns={"remark": "remarks"})
     surveys = surveys.merge(metadata, on="date", how="left", validate="many_to_one")
-    e = e.drop(columns=["observers", "weather", "remark"], errors="ignore").merge(metadata, on="date", how="left", validate="many_to_one")
+    e = e.drop(columns=["observers", "weather", "remark"], errors="ignore").merge(
+        metadata, on="date", how="left", validate="many_to_one"
+    )
     surveys = pd.concat([surveys, e], ignore_index=True)
     # Coverage is interval-specific; daily observer notes must not spread exceptions.
-    decisions = effort.reindex(columns=["date", "start", "end", "survey_coverage", "survey_coverage_comment"])
-    decisions = decisions.loc[decisions.survey_coverage.notna()].drop_duplicates(["date", "start", "end"], keep="last")
-    surveys = surveys.merge(decisions, on=["date", "start", "end"], how="left", suffixes=("", "_review"), validate="many_to_one")
-    for field in ("survey_coverage", "survey_coverage_comment"):
+    decisions = effort.reindex(columns=["date", "start", "end"] + STATUS_COLUMNS)
+    decisions = decisions.loc[decisions[STATUS_COLUMNS].notna().any(axis=1)].drop_duplicates(
+        ["date", "start", "end"], keep="last"
+    )
+    surveys = surveys.merge(
+        decisions,
+        on=["date", "start", "end"],
+        how="left",
+        suffixes=("", "_review"),
+        validate="many_to_one",
+    )
+    for field in STATUS_COLUMNS:
         if field + "_review" in surveys:
             surveys[field] = surveys[field + "_review"].combine_first(surveys[field])
     surveys = surveys.reindex(columns=SURVEY_COLUMNS + HISTORICAL_SURVEY_COLUMNS)
 
     add_flag(h, ~surveyed, FLAG_NO_TIME)
     h["observation_id"] = "H-" + h["sheet"] + "-r" + h["row"].astype(str)
-    h["datetime"] = h["datetime_original"] = pd.NaT
     h["trektellen_species_id"] = pd.NA
     h = h.rename(columns={"species": "taxon_name_original", **HISTORICAL_OBSERVATION_COLUMNS})
+    h = recover_historical_times(h)
     h = taxonomy.add_to(h, "historical")
     h["day_id"] = "DEFILE-" + h["date"].dt.strftime("%Y%m%d")
     whole_day = (h["start"] == h["day_start"]) & (h["end"] == h["day_end"])
     h["time_resolution"] = np.where(surveyed & ~whole_day, "interval", "day")
+    outside = h.datetime.notna() & surveyed & ((h.datetime < h.start) | (h.datetime > h.end))
+    add_flag(h, outside, FLAG_TIME_OUTSIDE_SURVEY)
+    h.loc[outside, "datetime"] = pd.NaT
+    h.loc[outside, "time_resolution"] = "day"
+    h.loc[outside, "time_text_status"] = "clock_outside_native_period"
+    for field in ("comment", "remark"):
+        h.loc[outside, field + "_residual"] = h.loc[outside, field]
+    h.loc[h.datetime.notna(), "time_resolution"] = "point"
     h["use_for_counts"] = True
-    obs = h[OBSERVATION_COLUMNS + list(HISTORICAL_OBSERVATION_COLUMNS.values()) + ATTRIBUTE_COLUMNS]
-    return surveys, obs, pd.DataFrame(columns=ISSUE_COLUMNS)
+    obs = h[
+        OBSERVATION_COLUMNS
+        + list(HISTORICAL_OBSERVATION_COLUMNS.values())
+        + ATTRIBUTE_COLUMNS
+        + HISTORICAL_TEXT_COLUMNS
+    ]
+    issues = _issues_by_survey(
+        h.loc[outside],
+        surveys,
+        "Timestamp outside period",
+        lambda g, p: f"Historical clock {_time_range(g['datetime_original'])}, outside "
+        f"{_hm(p['start'])}-{_hm(p['end'])}; retained at day level: {_species_counts(g)}.",
+    )
+    return surveys, obs, pd.DataFrame(issues, columns=ISSUE_COLUMNS)
 
 
 # ---------------------------------------------------------------------------------------
@@ -302,8 +364,12 @@ def _mark_overlaps(s: pd.DataFrame) -> None:
         retained = []
         for i, row in day.iterrows():
             overlap = next(
-                (j for j in retained if row["start"] < s.at[j, "end"]
-                 and row["end"] > s.at[j, "start"]), None
+                (
+                    j
+                    for j in retained
+                    if row["start"] < s.at[j, "end"] and row["end"] > s.at[j, "start"]
+                ),
+                None,
             )
             if overlap is None:
                 retained.append(i)
@@ -400,14 +466,18 @@ def trektellen_tables(sightings: pd.DataFrame, counts: pd.DataFrame, taxonomy: T
     outside = valid & ((o["datetime_original"] < start) | (o["datetime_original"] > end))
     add_flag(o, outside, FLAG_TIME_OUTSIDE_SURVEY)
     issues += _issues_by_survey(
-        o[outside], s, "Timestamp outside period",
+        o[outside],
+        s,
+        "Timestamp outside period",
         lambda g, p: f"Timestamped {_time_range(g['datetime_original'])}, outside "
         f"{_hm(p['start'])}-{_hm(p['end'])}; retained at day level: {_species_counts(g)}.",
     )
     untimed = valid & o["datetime_original"].isna()
     add_flag(o, untimed, FLAG_UNTIMED_IN_TIMED_SURVEY)
     issues += _issues_by_survey(
-        o[untimed], s, "Entry without time",
+        o[untimed],
+        s,
+        "Entry without time",
         lambda g, p: f"No hour; retained at day level: {_species_counts(g)}.",
     )
     o.loc[outside, "datetime"] = pd.NaT
@@ -425,8 +495,16 @@ def trektellen_tables(sightings: pd.DataFrame, counts: pd.DataFrame, taxonomy: T
     surveys = s[SURVEY_COLUMNS + list(TREKTELLEN_SURVEY_COLUMNS.values())]
     obs = o[OBSERVATION_COLUMNS + list(TREKTELLEN_OBSERVATION_COLUMNS.values())]
     review = pd.DataFrame(issues, columns=ISSUE_COLUMNS)
-    offsets = pd.concat([start-o.datetime_original, o.datetime_original-end], axis=1).max(axis=1).dt.total_seconds().div(60).clip(lower=0)
-    review['outside_minutes'] = review.survey_id.map(offsets.groupby(o.survey_id).max()).where(review.issue.eq('Timestamp outside period'))
+    offsets = (
+        pd.concat([start - o.datetime_original, o.datetime_original - end], axis=1)
+        .max(axis=1)
+        .dt.total_seconds()
+        .div(60)
+        .clip(lower=0)
+    )
+    review["outside_minutes"] = review.survey_id.map(offsets.groupby(o.survey_id).max()).where(
+        review.issue.eq("Timestamp outside period")
+    )
     return surveys, obs, review
 
 
@@ -459,11 +537,19 @@ def daily_counts(ds: Dataset) -> pd.DataFrame:
     o = ds.observations[ds.observations["use_for_counts"]].copy()
     for resolution in ("point", "interval", "day"):
         o[resolution + "_count"] = o["count"].where(o["time_resolution"] == resolution, 0)
-    return o.groupby(
-        ["day_id", "date", "source", "taxon_name_original", "avibase_id", "taxon_kind"],
-        dropna=False,
-    ).agg(
-        count=("count", "sum"), records=("observation_id", "size"),
-        point_count=("point_count", "sum"), interval_count=("interval_count", "sum"),
-        day_count=("day_count", "sum"), direction2=("direction2", "sum"), local=("local", "sum"),
-    ).reset_index()
+    return (
+        o.groupby(
+            ["day_id", "date", "source", "taxon_name_original", "avibase_id", "taxon_kind"],
+            dropna=False,
+        )
+        .agg(
+            count=("count", "sum"),
+            records=("observation_id", "size"),
+            point_count=("point_count", "sum"),
+            interval_count=("interval_count", "sum"),
+            day_count=("day_count", "sum"),
+            direction2=("direction2", "sum"),
+            local=("local", "sum"),
+        )
+        .reset_index()
+    )

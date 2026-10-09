@@ -4,12 +4,16 @@ repos:
     hooks:
       - id: check-added-large-files
         # The raw Excel files and the reference checklists (up to ~12 MB) are the point of
-        # this repo.
-        exclude: ^(raw|taxonomy/reference)/
+        # this repo; archived extracts and import/review records are evidence kept as produced.
+        exclude: ^(raw|taxonomy/reference|archive|docs/(imports|reviews))/
       - id: check-merge-conflict
       - id: check-yaml
       - id: end-of-file-fixer
+        # Archived raw extracts and import/review data are evidence, byte for byte.
+        exclude: ^(archive/|docs/(imports|reviews)/.*\.(csv|json)$|config/survey-status/)
       - id: trailing-whitespace
+        # Literal source wording (archived extracts, review CSV cells, import records) is evidence.
+        exclude: ^(archive/|docs/(imports|reviews)/.*\.(csv|json)$|config/taxonomy/historical_text_(review|evidence|context|mappings)\.csv$|config/survey-status/)
   - repo: https://github.com/psf/black
     rev: 23.1.0
     hooks:

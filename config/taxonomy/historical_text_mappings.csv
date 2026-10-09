@@ -1,0 +1,64 @@
+﻿review_id,review_group,source_taxon,source_field,source_text,target_taxon_id,target_ebird_code,scope,consume_text,decision,review_note
+HT-5b175f47d38984f4,HT-5f5b22e58e,Alouette indéterminée,remark,mélange champs/lulu,avibase-20C23C74,lark1,whole_count_candidate,False,approve,lark1
+HT-8bb1721111c5860b,HT-5770c99d75,Grive musicienne,comment,dont 10 Grive sp.,avibase-690E6849,turdus1,subset_requires_split,True,approve,
+HT-f818891b581c4d1c,HT-73948cb45c,Grive musicienne,comment,Grive sp.,avibase-690E6849,turdus1,whole_count_candidate,True,approve,
+HT-4727aebade0abc07,HT-3a7dc30522,Hirondelle indéterminée,remark,mixte rustique/fenetre,avibase-55CCEE2D,swallo,whole_count_candidate,False,approve,swallo
+HT-fe46e8aa97f425fa,HT-6f8ebfad56,Héron cendré,remark,héron sp,avibase-4D321548,heron1,whole_count_candidate,True,approve,
+HT-6fbb44e775594eed,HT-9b05f36ca7,Limicole indéterminé,remark,Petit limicole sp.,avibase-7FC8B7ED,shoreb1,whole_count_candidate,False,approve,shoreb1
+HT-15e29ae8200f2a6e,HT-a8401beec8,Merle / Grive indéterminé,remark,grives SP.,avibase-690E6849,turdus1,whole_count_candidate,False,approve,
+HT-d9265927e60911a1,HT-a8401beec8,Merle / Grive indéterminé,remark,merle sp,avibase-690E6849,turdus1,whole_count_candidate,False,approve,
+HT-c0be66ef3728b64e,HT-4adf1c2e68,Mouette indéterminée,remark,Rieuse/melanocephale,avibase-8D04DAAF,larus,whole_count_candidate,False,approve,larus
+HT-e5067c8c2571fd4b,HT-1e58d2fa5c,Passereau indéterminé,remark,alouette sp,avibase-20C23C74,lark1,whole_count_candidate,True,approve,
+HT-26885c70ca9e3301,HT-f6f55e346c,Passereau indéterminé,remark,3 Pipit sp.,avibase-AD6E9B95,pipit1,whole_count_candidate,True,approve,
+HT-5b67787398117c10,HT-f6f55e346c,Passereau indéterminé,remark,2 Pipit sp.,avibase-AD6E9B95,pipit1,whole_count_candidate,True,approve,
+HT-8b692fc4bd8bb431,HT-f6f55e346c,Passereau indéterminé,remark,pipit sp,avibase-AD6E9B95,pipit1,whole_count_candidate,True,approve,
+HT-a7168d740addcb1c,HT-f6f55e346c,Passereau indéterminé,remark,6 Pipit sp.,avibase-AD6E9B95,pipit1,whole_count_candidate,True,approve,
+HT-b83b8b3b8f22a1da,HT-f6f55e346c,Passereau indéterminé,remark,7 pipit Sp,avibase-AD6E9B95,pipit1,whole_count_candidate,True,approve,
+HT-e82a0b03ea1e0a9f,HT-f6f55e346c,Passereau indéterminé,remark,1 Pipit sp.,avibase-AD6E9B95,pipit1,whole_count_candidate,True,approve,
+HT-f3666555129eaedc,HT-f6f55e346c,Passereau indéterminé,remark,ppt sp,avibase-AD6E9B95,pipit1,whole_count_candidate,True,approve,
+HT-0e3ab00f1f2af68e,HT-c8d50b19f6,Passereau indéterminé,remark,4 Corvidés sp.,avibase-26BE20B9,corvid2,whole_count_candidate,True,approve,
+HT-2a3dcb3e05012d0f,HT-c8d50b19f6,Passereau indéterminé,remark,Corvidé indéterminé.,avibase-26BE20B9,corvid2,whole_count_candidate,True,approve,
+HT-2dee905a739873bc,HT-c8d50b19f6,Passereau indéterminé,remark,2 corvidés sp.,avibase-26BE20B9,corvid2,whole_count_candidate,True,approve,
+HT-3a3b99a993ad37be,HT-c8d50b19f6,Passereau indéterminé,remark,9 corvidés sp.,avibase-26BE20B9,corvid2,whole_count_candidate,True,approve,
+HT-0181179b5202c73c,HT-ad35e8d0dd,Passereau indéterminé,remark,bruant sp,avibase-869B5DF7,emberi1,whole_count_candidate,True,approve,
+HT-0e4738b484cd6adc,HT-ad35e8d0dd,Passereau indéterminé,remark,1 Bruant sp.,avibase-869B5DF7,emberi1,whole_count_candidate,True,approve,
+HT-ccbbe345aa329807,HT-ad35e8d0dd,Passereau indéterminé,remark,2 x bruants,avibase-869B5DF7,emberi1,whole_count_candidate,True,approve,
+HT-b9e901c1a4e36e62,HT-5075fdd34d,Passereau indéterminé,remark,13 berges sp,avibase-F8FCE84A,wagtai1,whole_count_candidate,True,approve,
+HT-d34c14c43899e0a0,HT-5075fdd34d,Passereau indéterminé,remark,berg sp.,avibase-F8FCE84A,wagtai1,whole_count_candidate,True,approve,
+HT-e4b6d71b65693c19,HT-5075fdd34d,Passereau indéterminé,remark,berge SP.,avibase-F8FCE84A,wagtai1,whole_count_candidate,True,approve,
+HT-12f285b4b9ca71d3,HT-2dbdc40974,Passereau indéterminé,remark,8 x mésanges,avibase-399FA405,parid1,whole_count_candidate,True,approve,
+HT-4809b5591481bf72,HT-2dbdc40974,Passereau indéterminé,remark,16 x mésanges,avibase-399FA405,parid1,whole_count_candidate,True,approve,
+HT-4a3aa0a9938d00c5,HT-2dbdc40974,Passereau indéterminé,remark,12 x mesanges,avibase-399FA405,parid1,whole_count_candidate,True,approve,
+HT-53124c511bd03f12,HT-2dbdc40974,Passereau indéterminé,remark,10 x mésanges,avibase-399FA405,parid1,whole_count_candidate,True,approve,
+HT-58cf0f2c0f0a524d,HT-2dbdc40974,Passereau indéterminé,remark,6 x mésanges,avibase-399FA405,parid1,whole_count_candidate,True,approve,
+HT-58f19c68ab1e6b75,HT-2dbdc40974,Passereau indéterminé,remark,1 x mésange,avibase-399FA405,parid1,whole_count_candidate,True,approve,
+HT-7b0f421896225ddd,HT-2dbdc40974,Passereau indéterminé,remark,5 x mésanges,avibase-399FA405,parid1,whole_count_candidate,True,approve,
+HT-7dea12f9482a06a6,HT-2dbdc40974,Passereau indéterminé,remark,7 x mésanges,avibase-399FA405,parid1,whole_count_candidate,True,approve,
+HT-a1661199a41f11be,HT-2dbdc40974,Passereau indéterminé,remark,4 x mésanges,avibase-399FA405,parid1,whole_count_candidate,True,approve,
+HT-b625fd7b4d940bb9,HT-2dbdc40974,Passereau indéterminé,remark,3 x mésanges,avibase-399FA405,parid1,whole_count_candidate,True,approve,
+HT-bf1ac0cf0bcf604b,HT-2dbdc40974,Passereau indéterminé,remark,20 x mésanges,avibase-399FA405,parid1,whole_count_candidate,True,approve,
+HT-c034b48a4057e903,HT-2dbdc40974,Passereau indéterminé,remark,25 x mesanges,avibase-399FA405,parid1,whole_count_candidate,True,approve,
+HT-c19816619cbd086e,HT-2dbdc40974,Passereau indéterminé,remark,22 x mésanges,avibase-399FA405,parid1,whole_count_candidate,True,approve,
+HT-d763205212199606,HT-2dbdc40974,Passereau indéterminé,remark,2 x mésanges,avibase-399FA405,parid1,whole_count_candidate,True,approve,
+HT-da60443028262c39,HT-2dbdc40974,Passereau indéterminé,remark,9 x mésanges,avibase-399FA405,parid1,whole_count_candidate,True,approve,
+HT-f9f4c367edecea2e,HT-2dbdc40974,Passereau indéterminé,remark,6xmesanges,avibase-399FA405,parid1,whole_count_candidate,True,approve,
+HT-4a2de856602d1128,HT-e8a8d8296f,Petit Gravelot,comment,Gravelot sp.,avibase-6E8EA94E,smaplo1,whole_count_candidate,True,approve,
+HT-bef168eaf7d4923e,HT-8ce661f314,Pigeon indéterminé,remark,mélange colombins/ ramier,avibase-F837F893,columb1,whole_count_candidate,False,approve,columb1
+HT-d308d81513afd9e0,HT-8ce661f314,Pigeon indéterminé,remark,mélange colombiens/ramier,avibase-F837F893,columb1,whole_count_candidate,False,approve,columb1
+HT-fe6b027f28f387f6,HT-fd7581c90d,Pipit indéterminé,remark,mélange farlouse/arbr e,avibase-AD6E9B95,pipit1,whole_count_candidate,False,approve,Anthus sp.
+HT-db1ef2c5451c13b6,HT-2d1d7528fa,Rapace indéterminé,remark,épervier ou autour,avibase-3598C8A6,y00392,whole_count_candidate,True,approve,
+HT-014413825d6c516c,HT-748928f1b7,Rapace indéterminé,remark,1 faucon/epervier,avibase-0C24147B,diurap1,subset_requires_split,False,approve,diurap1
+HT-61abe009b221233f,HT-748928f1b7,Rapace indéterminé,remark,1 faucon /épervier,avibase-0C24147B,diurap1,subset_requires_split,False,approve,diurap1
+HT-89a5362fc877c707,HT-405cce0247,Rapace indéterminé,remark,Épervier/Crécerelle,avibase-0C24147B,diurap1,whole_count_candidate,False,approve,diurap1
+HT-fe7df338ae0b566d,HT-405cce0247,Rapace indéterminé,remark,Crécerelle/épervier,avibase-0C24147B,diurap1,whole_count_candidate,False,approve,diurap1
+HT-13a4109ab4fc8d21,HT-b7f75e3ed9,Rapace indéterminé,remark,épervier ou faucon,avibase-0C24147B,diurap1,whole_count_candidate,False,approve,diurap1
+HT-2ce2a2e476119d75,HT-b7f75e3ed9,Rapace indéterminé,remark,faucon ou épervier,avibase-0C24147B,diurap1,whole_count_candidate,False,approve,diurap1
+HT-428640837e1bc02c,HT-b7f75e3ed9,Rapace indéterminé,remark,Accipiter/Faucon,avibase-0C24147B,diurap1,whole_count_candidate,False,approve,diurap1
+HT-808eb33ae509cd12,HT-b7f75e3ed9,Rapace indéterminé,remark,faucon/epervie,avibase-0C24147B,diurap1,whole_count_candidate,False,approve,diurap1
+HT-99fec93f29d19e48,HT-b7f75e3ed9,Rapace indéterminé,remark,accipiter/faucon sp,avibase-0C24147B,diurap1,whole_count_candidate,False,approve,diurap1
+HT-dc29d70d8c4fe4a6,HT-b7f75e3ed9,Rapace indéterminé,remark,faucon/epervier,avibase-0C24147B,diurap1,whole_count_candidate,False,approve,diurap1
+HT-feb1be591b5c9131,HT-b7f75e3ed9,Rapace indéterminé,remark,Falco/accipiter,avibase-0C24147B,diurap1,whole_count_candidate,False,approve,diurap1
+HT-9189fdcb5488b6af,HT-de1589d6f0,Rapace indéterminé,remark,bondrée/bude,avibase-0C24147B,diurap1,whole_count_candidate,False,approve,diurap1
+HT-992071810f28ecf1,HT-de1589d6f0,Rapace indéterminé,remark,buse/bondrée,avibase-0C24147B,diurap1,whole_count_candidate,False,approve,diurap1
+HT-a122a60f07de856f,HT-de1589d6f0,Rapace indéterminé,remark,bondrees/buses,avibase-0C24147B,diurap1,whole_count_candidate,False,approve,diurap1
+HT-a2a12d13c16251d5,HT-de1589d6f0,Rapace indéterminé,remark,bondrée/buse,avibase-0C24147B,diurap1,whole_count_candidate,False,approve,diurap1
