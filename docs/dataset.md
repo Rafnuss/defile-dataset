@@ -58,11 +58,11 @@ Trektellen status is derived reproducibly from structured DEFILE remark tags and
 
 ## Build and consumers
 
-Run `uv run python scripts/build_dataset.py` after adding paired annual Trektellen exports or changing maintained inputs. The build stages products, checks source conservation and validates all four CSVs before replacing the current output. Failed builds leave previous products available; failure details are in `output.building/audit/`.
+Run `uv run python scripts/build_dataset.py` after adding paired annual Trektellen exports or changing maintained inputs. The build stages products, checks source conservation and validates all five CSVs before replacing the current output. Failed builds leave previous products available; failure details are in `output.building/audit/`.
 
 See [the pipeline guide](pipeline.md) for input and output locations, and [the column dictionary](table-columns.md) for generated definitions. Historical counts and effort are read only from `raw/historical/count_2021.xlsx`; older workbooks are evidence. Taxonomic decisions remain in `taxonomy/`, and processing settings in `config/`.
 
-The forecast's older two-table reader can use `--dataset interim/processed/`, which contains observations.csv, surveys.csv and a compatibility copy of build metadata. New consumers should use the four released tables. Interpolation, zero-filling and modelling belong in the forecast repository. Run the GBIF converter separately after the build; each successful build replaces `output/gbif/` with its README, so regenerate the export CSVs after rebuilding.
+The forecast's older two-table reader can use `--dataset interim/processed/`, which contains observations.csv, surveys.csv and a compatibility copy of build metadata. New consumers should use the five released tables. Interpolation, zero-filling and modelling belong in the forecast repository. Run the GBIF converter separately after the build; each successful build replaces `output/gbif/` with its README, so regenerate the export CSVs after rebuilding.
 
 ## Count categories
 

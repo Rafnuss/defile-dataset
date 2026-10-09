@@ -5,7 +5,7 @@ The publication proposal uses GitHub for code and maintained documentation, Zeno
 ## Prepare a release
 
 1. Review scientific audit findings and document unresolved limitations, source selection and provisional seasons.
-2. Freeze the four research CSVs, descriptor, usage guide, column/attribute dictionaries, provenance hashes and relevant audit evidence together. Include generated files explicitly: a code-only archive omits ignored outputs.
+2. Freeze the five research CSVs, descriptor, usage guide, column/attribute dictionaries, provenance hashes and relevant audit evidence together. Include generated files explicitly: a code-only archive omits ignored outputs.
 3. Generate GBIF Event/Occurrence CSVs from those exact tables. Agree persistent exported IDs, geography, publisher/IPT, rights and public attribution; complete EML and validate interpreted timing, taxonomy, zero/presence and direction categories. See [the GBIF guide](gbif.md).
 4. Deposit the reviewed research product with a version-specific DOI and publish the agreed GBIF representation. Verify downloads, citations and links between products.
 5. Pin forecast/visualisation consumers and paper statistics to the frozen release. Publish future seasons as new versions, clearly marking unfinished seasons provisional.
