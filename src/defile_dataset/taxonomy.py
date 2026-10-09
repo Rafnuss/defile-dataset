@@ -10,6 +10,10 @@ come from the two reference checklists in `taxonomy/reference/`, used as downloa
   eBird groups) and for fields AviList leaves empty (English names of subspecies), plus the
   eBird code.
 
+`taxonomy/parent_taxa.csv` is the curated hierarchy of the released taxa: each taxon's smallest
+enclosing group (a "sp." or slash taxon, or the species of a subspecies), so that a count of
+"harrier sp." can be read as all harriers. Roots (`bird sp.`, local birds) have no row.
+
 `taxonomy/report_taxa.csv` separately maps published report labels to source taxa.
 
 To upgrade either checklist, add the new file to `taxonomy/reference/`, point AVILIST_FILE /
@@ -30,6 +34,7 @@ EBIRD_FILE = os.path.join(
     TAXONOMY_DIR, "reference", "ebird_clements_2025_integrated_checklist.csv"
 )
 EBIRD_VERSION = "eBird/Clements v2025"
+PARENT_FILE = os.path.join(TAXONOMY_DIR, "parent_taxa.csv")
 
 KIND_BIRD = "bird"
 
@@ -50,6 +55,12 @@ TAXON_COLUMNS = [
 def read_source_taxa(root: str) -> pd.DataFrame:
     df = pd.read_csv(os.path.join(root, SOURCE_TAXA_FILE))
     return df.astype({"trektellen_species_id": "Int64"})
+
+
+def read_parents(root: str) -> pd.Series:
+    """`parent_taxon_id` by `taxon_id` from `taxonomy/parent_taxa.csv`."""
+    df = pd.read_csv(os.path.join(root, PARENT_FILE))
+    return df.set_index("taxon_id")["parent_taxon_id"]
 
 
 def read_avilist(root: str) -> pd.DataFrame:
@@ -110,13 +121,33 @@ def resolve(avibase_ids: pd.Series, avilist: pd.DataFrame, ebird: pd.DataFrame) 
 class Taxonomy:
     """Source taxa + reference checklists, loaded once."""
 
-    def __init__(self, source_taxa: pd.DataFrame, avilist: pd.DataFrame, ebird: pd.DataFrame):
+    def __init__(
+        self,
+        source_taxa: pd.DataFrame,
+        avilist: pd.DataFrame,
+        ebird: pd.DataFrame,
+        reviewed=None,
+        parents=None,
+    ):
         self.source_taxa, self.avilist, self.ebird = source_taxa, avilist, ebird
-        self.taxa = resolve(source_taxa["avibase_id"], avilist, ebird)
+        self.parents = pd.Series(dtype=object) if parents is None else parents
+        self.reviewed = reviewed
+        ids = (
+            source_taxa["avibase_id"]
+            if reviewed is None
+            else pd.concat([source_taxa.avibase_id, reviewed.target_taxon_id])
+        )
+        self.taxa = resolve(ids, avilist, ebird)
 
     @classmethod
-    def load(cls, root: str) -> "Taxonomy":
-        return cls(read_source_taxa(root), read_avilist(root), read_ebird(root))
+    def load(cls, root: str, reviewed=None) -> "Taxonomy":
+        return cls(
+            read_source_taxa(root),
+            read_avilist(root),
+            read_ebird(root),
+            reviewed,
+            read_parents(root),
+        )
 
     def _lookup(self, source: str, key: str) -> pd.DataFrame:
         st = self.source_taxa[self.source_taxa["source"] == source]

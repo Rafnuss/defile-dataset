@@ -1,0 +1,41 @@
+phrase,proposed_taxon_id,candidate_taxon_ids,proposal_note
+mesange,avibase-399FA405,,Paridae sp.; no species inferred.
+mesanges,avibase-399FA405,,Paridae sp.; no species inferred.
+merle sp,avibase-690E6849,,Turdus sp.; merle/grive wording does not identify a species.
+grive sp,avibase-690E6849,,Turdus sp.; merle/grive wording does not identify a species.
+grives sp,avibase-690E6849,,Turdus sp.; merle/grive wording does not identify a species.
+pipit sp,avibase-AD6E9B95,,Anthus sp.; ppt abbreviation requires confirmation.
+ppt sp,avibase-AD6E9B95,,Anthus sp.; ppt abbreviation requires confirmation.
+bruant sp,avibase-869B5DF7,,Emberiza sp.; confirm the intended Old World bunting scope.
+bruants,avibase-869B5DF7,,Emberiza sp.; confirm the intended Old World bunting scope.
+corvide indetermine,avibase-26BE20B9,,Corvidae sp.; no species inferred.
+corvides sp,avibase-26BE20B9,,Corvidae sp.; no species inferred.
+alouette sp,avibase-20C23C74,,Alaudidae sp.
+berg sp,avibase-F8FCE84A,,"Motacilla sp.; confirm abbreviation, not a yellow-wagtail species inference."
+berge sp,avibase-F8FCE84A,,"Motacilla sp.; confirm abbreviation, not a yellow-wagtail species inference."
+berges sp,avibase-F8FCE84A,,"Motacilla sp.; confirm abbreviation, not a yellow-wagtail species inference."
+gravelot sp,avibase-6E8EA94E,,Small plover identification set; confirm intended scope against broader plover sp. avibase-83F7457A.
+heron sp,avibase-4D321548,,Ardeidae sp.; source species identification is broader in remark.
+petit limicole sp,,,No exact small shorebird concept; retain source distinction and broad current mapping.
+epervier / autour,avibase-3598C8A6,,Existing Eurasian Goshawk/Eurasian Sparrowhawk identification set; confirm source scope.
+epervier ou autour,avibase-3598C8A6,,Existing Eurasian Goshawk/Eurasian Sparrowhawk identification set; confirm source scope.
+bondree/buse,,avibase-ED5A7E8F | avibase-3C0C325D,Unresolved identification set; these alternatives are not quantities to split. Exact pinned concept needs review.
+buse/bondree,,avibase-ED5A7E8F | avibase-3C0C325D,Unresolved identification set; these alternatives are not quantities to split. Exact pinned concept needs review.
+bondrees/buses,,avibase-ED5A7E8F | avibase-3C0C325D,Unresolved identification set; these alternatives are not quantities to split. Exact pinned concept needs review.
+bondree/bude,,avibase-ED5A7E8F | avibase-3C0C325D,Unresolved identification set; these alternatives are not quantities to split. Exact pinned concept needs review.
+crecerelle/epervier,,avibase-2DAB45B8 | avibase-DB376A66,Unresolved Kestrel/Sparrowhawk set; no species assignment.
+epervier/crecerelle,,avibase-2DAB45B8 | avibase-DB376A66,Unresolved Kestrel/Sparrowhawk set; no species assignment.
+faucon/epervier,,,Unresolved falcon/sparrowhawk or Accipiter/Falco set; no exact pinned concept established.
+faucon/epervie,,,Unresolved falcon/sparrowhawk or Accipiter/Falco set; no exact pinned concept established.
+faucon /epervier,,,Unresolved falcon/sparrowhawk or Accipiter/Falco set; no exact pinned concept established.
+faucon ou epervier,,,Unresolved falcon/sparrowhawk or Accipiter/Falco set; no exact pinned concept established.
+epervier ou faucon,,,Unresolved falcon/sparrowhawk or Accipiter/Falco set; no exact pinned concept established.
+accipiter/faucon,,,Unresolved falcon/sparrowhawk or Accipiter/Falco set; no exact pinned concept established.
+falco/accipiter,,,Unresolved falcon/sparrowhawk or Accipiter/Falco set; no exact pinned concept established.
+accipiter/faucon sp,,,Unresolved falcon/sparrowhawk or Accipiter/Falco set; no exact pinned concept established.
+mixte rustique/fenetre,,,Mixed taxa without subgroup quantities; retain current group pending review.
+melange champs/lulu,,,Mixed taxa without subgroup quantities; retain current group pending review.
+melange colombiens/ramier,,,Mixed taxa without subgroup quantities; retain current group pending review.
+melange colombins/ ramier,,,Mixed taxa without subgroup quantities; retain current group pending review.
+melange farlouse/arbr e,,,Mixed taxa without subgroup quantities; retain current group pending review.
+rieuse/melanocephale,,,Unresolved Black-headed/Mediterranean Gull set; no species or hybrid inference.

@@ -7,10 +7,9 @@ local (Europe/Paris), as in the raw files, so a row can be looked up there.
 import html
 import json
 
-from defile_dataset.report_text import CHECK_TEXT, GROUPS, COLUMNS_FR, COVERAGE_METRICS
-
 import pandas as pd
 
+from defile_dataset.report_text import CHECK_TEXT, COLUMNS_FR, COVERAGE_METRICS, GROUPS
 from defile_dataset.site import SITE_NAME, TIMEZONE, TREKTELLEN_SITE_ID
 
 MAX_TABLE_ROWS = 200
@@ -56,64 +55,156 @@ def _t(en, fr):
     return f'<span class="en">{html.escape(en)}</span><span class="fr">{html.escape(fr)}</span>'
 
 
-def _table(df: pd.DataFrame, max_rows=MAX_TABLE_ROWS, links=(), audit=False, table_class=None, filter_column='') -> str:
+def _table(
+    df: pd.DataFrame,
+    max_rows=MAX_TABLE_ROWS,
+    links=(),
+    audit=False,
+    table_class=None,
+    filter_column="",
+) -> str:
     if df is None or df.empty:
-        return '<p class="muted">'+_t('No rows.', 'Aucune ligne.')+'</p>'
+        return '<p class="muted">' + _t("No rows.", "Aucune ligne.") + "</p>"
     display = _local(df.head(max_rows))
-    if filter_column and 'date' in df:
-        for column in ('start', 'end', 'sunrise', 'sunset', 'civil_dawn', 'civil_dusk'):
+    if filter_column and "date" in df:
+        for column in ("start", "end", "sunrise", "sunset", "civil_dawn", "civil_dusk"):
             if column in df:
                 local = df[column].head(max_rows).dt.tz_convert(TIMEZONE)
-                display[column] = local.dt.strftime('%H:%M')
-                different_day = local.dt.tz_localize(None).dt.normalize().ne(df.date.head(max_rows))
-                display.loc[different_day, column] = local.loc[different_day].dt.strftime('%m-%d %H:%M')
+                display[column] = local.dt.strftime("%H:%M")
+                different_day = (
+                    local.dt.tz_localize(None).dt.normalize().ne(df.date.head(max_rows))
+                )
+                display.loc[different_day, column] = local.loc[different_day].dt.strftime(
+                    "%m-%d %H:%M"
+                )
     out = f'<table class="sortable {table_class or "audit-table"}"><thead><tr>'
     for column in df:
-        out += '<th scope="col" aria-sort="none"><button type="button">'+_t(column.replace('_', ' '), COLUMNS_FR.get(column, column.replace('_', ' ')))+'</button></th>'
-    out += '</tr></thead><tbody>'
+        out += (
+            '<th scope="col" aria-sort="none"><button type="button">'
+            + _t(column.replace("_", " "), COLUMNS_FR.get(column, column.replace("_", " ")))
+            + "</button></th>"
+        )
+    out += "</tr></thead><tbody>"
     for position, (_, row) in enumerate(display.iterrows()):
-        value = df.iloc[position][filter_column] if filter_column else ''
+        value = df.iloc[position][filter_column] if filter_column else ""
         out += f'<tr data-filter-value="{value}">'
         for column, value in row.items():
             raw = df.iloc[position][column]
-            sort = '' if pd.isna(raw) else str(raw)
-            cell = '' if pd.isna(value) else f'{value:.2f}'.rstrip('0').rstrip('.') if isinstance(value, float) else str(value)
+            sort = "" if pd.isna(raw) else str(raw)
+            cell = (
+                ""
+                if pd.isna(value)
+                else f"{value:.2f}".rstrip("0").rstrip(".")
+                if isinstance(value, float)
+                else str(value)
+            )
             if column not in links:
                 cell = html.escape(cell)
             out += f'<td data-sort="{html.escape(sort, quote=True)}">{cell}</td>'
-        out += '</tr>'
-    out += '</tbody></table>'
-    more = len(df)-max_rows
-    note = '<p class="muted">'+_t(f'Preview: {max_rows} of {len(df):,} rows. Download the complete table.', f'Aperçu : {max_rows} lignes sur {len(df):,}. Télécharger la table complète.')+'</p>' if more > 0 else ''
+        out += "</tr>"
+    out += "</tbody></table>"
+    more = len(df) - max_rows
+    note = (
+        '<p class="muted">'
+        + _t(
+            f"Preview: {max_rows} of {len(df):,} rows. Download the complete table.",
+            f"Aperçu : {max_rows} lignes sur {len(df):,}. Télécharger la table complète.",
+        )
+        + "</p>"
+        if more > 0
+        else ""
+    )
     return f'<div class="table-wrap">{out}</div>{note}'
 
 
 def _badge(status: str) -> str:
-    labels = {'pass': ('pass', 'conforme'), 'warn': ('review', 'à revoir'), 'fail': ('fail', 'échec')}
+    labels = {
+        "pass": ("pass", "conforme"),
+        "warn": ("review", "à revoir"),
+        "fail": ("fail", "échec"),
+    }
     return f'<span class="badge" style="background:{STATUS_COLORS[status]}">{_t(*labels[status])}</span>'
 
 
 def _section_reconciliation(comparison, taxonomy_order):
-    years = comparison.loc[comparison['report_count'].notna(), 'year']
-    data = comparison.astype(object).where(comparison.notna(), None).to_dict('records')
-    body = '<p>'+_t('R = report; D = dataset; Δ = D − R. Dataset totals cover the whole year; reports use their published seasons. Percentages use R as the baseline. Blank means missing, zero is a count.', 'R = rapport ; D = données ; Δ = D − R. Les données couvrent l’année entière ; les rapports suivent leurs saisons publiées. Les pourcentages utilisent R comme référence. Vide signifie absent, zéro est un effectif.')+'</p>'
+    years = comparison.loc[comparison["report_count"].notna(), "year"]
+    data = comparison.astype(object).where(comparison.notna(), None).to_dict("records")
+    body = (
+        "<p>"
+        + _t(
+            "R = report; D = dataset; Δ = D − R. Dataset totals cover the whole year; reports use their published seasons. Percentages use R as the baseline. Blank means missing, zero is a count.",
+            "R = rapport ; D = données ; Δ = D − R. Les données couvrent l’année entière ; les rapports suivent leurs saisons publiées. Les pourcentages utilisent R comme référence. Vide signifie absent, zéro est un effectif.",
+        )
+        + "</p>"
+    )
     body += '<form id="count-matrix-form" class="matrix-controls">'
     for field, label, label_fr, options in [
-        ('mode','Colour by','Couleur selon',[('difference','Difference','Différence'),('percentage','Percentage difference','Écart en pourcentage'),('report_count','Report count','Effectif du rapport'),('dataset_count','Dataset count','Effectif des données')]),
-        ('coverage','Show','Afficher',[('reports','Species/years with report counts','Espèces/années avec effectifs des rapports'),('all','All available species/years','Toutes les espèces/années disponibles')]),
-        ('sort','Sort species by','Trier les espèces selon',[('abundance','Abundance','Abondance'),('taxonomy','Taxonomy','Taxonomie')])]:
+        (
+            "mode",
+            "Colour by",
+            "Couleur selon",
+            [
+                ("difference", "Difference", "Différence"),
+                ("percentage", "Percentage difference", "Écart en pourcentage"),
+                ("report_count", "Report count", "Effectif du rapport"),
+                ("dataset_count", "Dataset count", "Effectif des données"),
+            ],
+        ),
+        (
+            "coverage",
+            "Show",
+            "Afficher",
+            [
+                (
+                    "reports",
+                    "Species/years with report counts",
+                    "Espèces/années avec effectifs des rapports",
+                ),
+                ("all", "All available species/years", "Toutes les espèces/années disponibles"),
+            ],
+        ),
+        (
+            "sort",
+            "Sort species by",
+            "Trier les espèces selon",
+            [("abundance", "Abundance", "Abondance"), ("taxonomy", "Taxonomy", "Taxonomie")],
+        ),
+    ]:
         # Options cannot contain spans; the language switch replaces their labels.
-        body += '<label>'+_t(label,label_fr)+f' <select id="matrix-{field}">'
-        for value,en,fr in options:
+        body += "<label>" + _t(label, label_fr) + f' <select id="matrix-{field}">'
+        for value, en, fr in options:
             body += f'<option value="{value}" data-en="{en}" data-fr="{fr}">{en}</option>'
-        body += '</select></label>'
-    for field,en,fr,value in [('from','From year','Année de début',years.min()),('to','To year','Année de fin',years.max())]:
-        body += '<label>'+_t(en,fr)+f' <input id="matrix-{field}" type="number" value="{value}" min="{comparison.year.min()}" max="{comparison.year.max()}"></label>'
-    body += '<label>'+_t('Species','Espèce')+' <input id="matrix-species" type="search"></label></form>'
+        body += "</select></label>"
+    for field, en, fr, value in [
+        ("from", "From year", "Année de début", years.min()),
+        ("to", "To year", "Année de fin", years.max()),
+    ]:
+        body += (
+            "<label>"
+            + _t(en, fr)
+            + f' <input id="matrix-{field}" type="number" value="{value}" min="{comparison.year.min()}" max="{comparison.year.max()}"></label>'
+        )
+    body += (
+        "<label>"
+        + _t("Species", "Espèce")
+        + ' <input id="matrix-species" type="search"></label></form>'
+    )
     body += '<p id="matrix-availability" class="muted"></p><p id="matrix-legend" class="muted"></p><div id="count-matrix" class="matrix-wrap"></div>'
-    body += '<p><a href="report_reconciliation.csv">'+_t('Download counts','Télécharger les effectifs')+'</a></p>'
-    body += '<script id="annual-counts" type="application/json">'+json.dumps(data, ensure_ascii=False).replace('<', r'\u003c')+'</script>'
-    body += '<script id="annual-taxonomy" type="application/json">'+json.dumps(taxonomy_order, ensure_ascii=False).replace('<', r'\u003c')+'</script>'
+    body += (
+        '<p><a href="report_reconciliation.csv">'
+        + _t("Download counts", "Télécharger les effectifs")
+        + "</a></p>"
+    )
+    body += (
+        '<script id="annual-counts" type="application/json">'
+        + json.dumps(data, ensure_ascii=False).replace("<", r"\u003c")
+        + "</script>"
+    )
+    body += (
+        '<script id="annual-taxonomy" type="application/json">'
+        + json.dumps(taxonomy_order, ensure_ascii=False).replace("<", r"\u003c")
+        + "</script>"
+    )
     return body
 
 
@@ -122,93 +213,253 @@ def _check_section(check):
     if check.columns:
         rows = rows.reindex(columns=check.columns)
     links = []
-    for field in ('survey_id', 'duplicate_of'):
+    for field in ("survey_id", "duplicate_of"):
         if field in rows:
-            target = 'edit' if field == 'survey_id' else 'edit_kept_period'
-            native_ids = check.rows.get('source_survey_id', rows[field]) if field == 'survey_id' else rows[field]
-            rows[target] = [f'<a href="https://www.trektellen.org/count/edit/{html.escape(str(sid)[1:])}" '
-                            'target="_blank" rel="noopener">'+_t('Edit count', 'Modifier le comptage')+'</a>' if str(sid).startswith('T') else '' for sid in native_ids]
+            target = "edit" if field == "survey_id" else "edit_kept_period"
+            native_ids = (
+                check.rows.get("source_survey_id", rows[field])
+                if field == "survey_id"
+                else rows[field]
+            )
+            rows[target] = [
+                f'<a href="https://www.trektellen.org/count/edit/{html.escape(str(sid)[1:])}" '
+                'target="_blank" rel="noopener">'
+                + _t("Edit count", "Modifier le comptage")
+                + "</a>"
+                if str(sid).startswith("T")
+                else ""
+                for sid in native_ids
+            ]
             links.append(target)
-    if 'date' in rows and 'survey_id' in rows:
-        rows['view'] = [f'<a href="https://www.trektellen.org/count/view/{TREKTELLEN_SITE_ID}/{pd.Timestamp(date):%Y%m%d}" '
-                        'target="_blank" rel="noopener">'+_t('View day', 'Voir la journée')+'</a>' if str(sid).startswith('T') and pd.notna(date) else ''
-                        for date,sid in zip(rows.date,rows.survey_id)]
-        links.append('view')
-    en, fr, detail, detail_fr = CHECK_TEXT.get(check.key, (check.name, check.name, check.detail, check.detail))
-    if check.key == 'taxonomy-source':
-        en, fr = 'Taxonomy sources', 'Sources taxonomiques'
+    if "date" in rows and "survey_id" in rows:
+        rows["view"] = [
+            f'<a href="https://www.trektellen.org/count/view/{TREKTELLEN_SITE_ID}/{pd.Timestamp(date):%Y%m%d}" '
+            'target="_blank" rel="noopener">' + _t("View day", "Voir la journée") + "</a>"
+            if str(sid).startswith("T") and pd.notna(date)
+            else ""
+            for date, sid in zip(rows.date, rows.survey_id)
+        ]
+        links.append("view")
+    en, fr, detail, detail_fr = CHECK_TEXT.get(
+        check.key, (check.name, check.name, check.detail, check.detail)
+    )
+    if check.key == "taxonomy-source":
+        en, fr = "Taxonomy sources", "Sources taxonomiques"
         detail = check.detail
-        detail_fr = check.detail.replace('Taxa named from each checklist:', 'Taxons nommés selon chaque liste :')
+        detail_fr = check.detail.replace(
+            "Taxa named from each checklist:", "Taxons nommés selon chaque liste :"
+        )
     body = f'<section id="{check.key}"><h3>{_t(en,fr)} {_badge(check.status)}</h3><p>{_t(detail,detail_fr)}</p>'
     if check.action and not rows.empty:
-        if check.group == 'Historical records':
-            action = ('Check the workbook sheet/row and config/attributes/historical_attributes.csv; assign only supported values.', 'Vérifier la feuille/ligne du classeur et config/attributes/historical_attributes.csv ; attribuer seulement les valeurs étayées.')
-        elif check.key in ('taxa-in-source-taxa-csv', 'every-bird-taxon-has-an-avibase-id', 'avibase-ids-in-the-checklists'):
-            action = ('Review taxonomy/source_taxa.csv against the maintained checklists.', 'Vérifier taxonomy/source_taxa.csv à partir des listes taxonomiques utilisées.')
-        elif check.group == 'Coverage and published totals':
-            action = ('Check source records and report evidence; record supported decisions in config/audit-settings/interruption-review-notes.csv.', 'Vérifier les sources et rapports ; consigner les décisions étayées dans config/audit-settings/interruption-review-notes.csv.')
-        elif check.key.startswith('survey-status-'):
-            action = ('Check source remarks; record supported status decisions in config/survey-status/trektellen-survey-status.csv.', 'Vérifier les remarques source ; consigner les statuts étayés dans config/survey-status/trektellen-survey-status.csv.')
+        if check.group == "Historical records":
+            action = (
+                "Check the workbook sheet/row and config/attributes/historical_attributes.csv; assign only supported values.",
+                "Vérifier la feuille/ligne du classeur et config/attributes/historical_attributes.csv ; attribuer seulement les valeurs étayées.",
+            )
+        elif check.key in (
+            "taxa-in-source-taxa-csv",
+            "every-bird-taxon-has-an-avibase-id",
+            "avibase-ids-in-the-checklists",
+        ):
+            action = (
+                "Review taxonomy/source_taxa.csv against the maintained checklists.",
+                "Vérifier taxonomy/source_taxa.csv à partir des listes taxonomiques utilisées.",
+            )
+        elif check.group == "Coverage and published totals":
+            action = (
+                "Check source records and report evidence; record supported decisions in config/audit-settings/interruption-review-notes.csv.",
+                "Vérifier les sources et rapports ; consigner les décisions étayées dans config/audit-settings/interruption-review-notes.csv.",
+            )
+        elif check.key.startswith("survey-status-"):
+            action = (
+                "Check source remarks; record supported status decisions in config/survey-status/trektellen-survey-status.csv.",
+                "Vérifier les remarques source ; consigner les statuts étayés dans config/survey-status/trektellen-survey-status.csv.",
+            )
         else:
-            action = ('Check original records; correct confirmed errors and re-export. Keep legitimate records.', 'Vérifier les données originales ; corriger les erreurs confirmées puis réexporter. Conserver les données légitimes.')
-        body += '<p class="action">'+_t(*action)+'</p>'
+            action = (
+                "Check original records; correct confirmed errors and re-export. Keep legitimate records.",
+                "Vérifier les données originales ; corriger les erreurs confirmées puis réexporter. Conserver les données légitimes.",
+            )
+        body += '<p class="action">' + _t(*action) + "</p>"
     if not rows.empty:
-        controls = '<div class="table-controls"><label>'+_t('Search rows ', 'Rechercher des lignes ')+'<input class="finding-search" type="search"></label>'
+        controls = (
+            '<div class="table-controls"><label>'
+            + _t("Search rows ", "Rechercher des lignes ")
+            + '<input class="finding-search" type="search"></label>'
+        )
         if check.filter_column:
-            unit = ('Night overlap above (min)', 'Chevauchement de nuit supérieur à (min)') if check.filter_column == 'night_minutes' else ('Duration above (h)', 'Durée supérieure à (h)')
-            if check.filter_column == 'outside_minutes':
-                unit = ('Outside period by more than (min)', 'Écart hors période supérieur à (min)')
-            floor = 12 if check.key == 'long-surveys' else 0
-            controls += '<label>'+_t(*unit)+f' <input class="finding-threshold" type="number" min="{floor}" step="0.5" value="{check.filter_threshold}"></label>'
+            unit = (
+                ("Night overlap above (min)", "Chevauchement de nuit supérieur à (min)")
+                if check.filter_column == "night_minutes"
+                else ("Duration above (h)", "Durée supérieure à (h)")
+            )
+            if check.filter_column == "outside_minutes":
+                unit = (
+                    "Outside period by more than (min)",
+                    "Écart hors période supérieur à (min)",
+                )
+            floor = 12 if check.key == "long-surveys" else 0
+            controls += (
+                "<label>"
+                + _t(*unit)
+                + f' <input class="finding-threshold" type="number" min="{floor}" step="0.5" value="{check.filter_threshold}"></label>'
+            )
         controls += '<span class="visible-count muted" aria-live="polite"></span></div>'
         if check.filter_column:
-            controls += '<p class="muted">'+_t('Filters change the view only.', 'Les filtres changent seulement l’affichage.')+'</p>'
-        table = _table(rows, max_rows=len(rows) if check.filter_column else MAX_TABLE_ROWS, links=links, filter_column=check.filter_column)
-        content = controls+table
-        body += '<details><summary>'+_t(f'{len(rows):,} evidence rows', f'{len(rows):,} lignes justificatives')+'</summary>'+content+'</details>'
+            controls += (
+                '<p class="muted">'
+                + _t(
+                    "Filters change the view only.", "Les filtres changent seulement l’affichage."
+                )
+                + "</p>"
+            )
+        table = _table(
+            rows,
+            max_rows=len(rows) if check.filter_column else MAX_TABLE_ROWS,
+            links=links,
+            filter_column=check.filter_column,
+        )
+        content = controls + table
+        body += (
+            "<details><summary>"
+            + _t(f"{len(rows):,} evidence rows", f"{len(rows):,} lignes justificatives")
+            + "</summary>"
+            + content
+            + "</details>"
+        )
     if check.file:
-        body += f'<p><a href="{check.file}">'+_t('Download complete evidence', 'Télécharger les données complètes')+'</a>'
-        if check.file == 'validation_findings.csv':
-            body += ' <span class="muted">'+_t('(filter the CSV by test name)', '(filtrer le CSV par nom de contrôle)')+'</span>'
-        body += '</p>'
-    return body+'</section>'
+        body += (
+            f'<p><a href="{check.file}">'
+            + _t("Download complete evidence", "Télécharger les données complètes")
+            + "</a>"
+        )
+        if check.file == "validation_findings.csv":
+            body += (
+                ' <span class="muted">'
+                + _t("(filter the CSV by test name)", "(filtrer le CSV par nom de contrôle)")
+                + "</span>"
+            )
+        body += "</p>"
+    return body + "</section>"
 
 
 def _coverage_section(coverage, season):
-    data = _local(coverage).astype(object).where(coverage.notna(), None).to_dict('records')
-    body = '<section id="yearly-coverage"><h3>'+_t('Coverage by day and year', 'Couverture par jour et par année')+'</h3>'
-    body += '<p>'+_t('Final dataset after selection and overlap removal. Choose a metric; hover over the figure for daily values.', 'Données finales après sélection et suppression des chevauchements. Choisir une mesure ; survoler la figure pour les valeurs journalières.')+'</p>'
-    body += '<label>'+_t('Metric ', 'Mesure ')+'<select id="coverage-metric">'
+    data = _local(coverage).astype(object).where(coverage.notna(), None).to_dict("records")
+    body = (
+        '<section id="yearly-coverage"><h3>'
+        + _t("Coverage by day and year", "Couverture par jour et par année")
+        + "</h3>"
+    )
+    body += (
+        "<p>"
+        + _t(
+            "Final dataset after selection and overlap removal. Choose a metric; hover over the figure for daily values.",
+            "Données finales après sélection et suppression des chevauchements. Choisir une mesure ; survoler la figure pour les valeurs journalières.",
+        )
+        + "</p>"
+    )
+    body += "<label>" + _t("Metric ", "Mesure ") + '<select id="coverage-metric">'
     for key, (en, fr, _, _) in COVERAGE_METRICS.items():
         body += f'<option value="{key}" data-en="{en}" data-fr="{fr}">{en}</option>'
     body += '</select></label><p id="coverage-description"></p>'
     body += '<script src="coverage/plotly.min.js"></script><figure class="coverage-figure"><div id="coverage-chart"></div>'
-    body += '<figcaption>'+_t('Grey: no recorded value. Pale blue: zero. Large ranges use a logarithmic colour scale; hover values remain actual totals.', 'Gris : aucune valeur renseignée. Bleu pâle : zéro. Les grandes plages utilisent une échelle de couleur logarithmique ; le survol affiche les valeurs réelles.')+'</figcaption></figure>'
-    body += '<p><button id="coverage-download" type="button">'+_t('Download figure', 'Télécharger la figure')+'</button> · <a href="daily_coverage.csv">'+_t('Download daily metrics', 'Télécharger les mesures journalières')+'</a></p>'
-    for name, values in [('daily-coverage', data), ('coverage-season', season), ('coverage-metrics', COVERAGE_METRICS)]:
-        body += f'<script id="{name}" type="application/json">'+json.dumps(values, ensure_ascii=False).replace('<', r'\u003c')+'</script>'
-    return body+'</section>'
+    body += (
+        "<figcaption>"
+        + _t(
+            "Grey: no recorded value. Pale blue: zero. Large ranges use a logarithmic colour scale; hover values remain actual totals.",
+            "Gris : aucune valeur renseignée. Bleu pâle : zéro. Les grandes plages utilisent une échelle de couleur logarithmique ; le survol affiche les valeurs réelles.",
+        )
+        + "</figcaption></figure>"
+    )
+    body += (
+        '<p><button id="coverage-download" type="button">'
+        + _t("Download figure", "Télécharger la figure")
+        + '</button> · <a href="daily_coverage.csv">'
+        + _t("Download daily metrics", "Télécharger les mesures journalières")
+        + "</a></p>"
+    )
+    for name, values in [
+        ("daily-coverage", data),
+        ("coverage-season", season),
+        ("coverage-metrics", COVERAGE_METRICS),
+    ]:
+        body += (
+            f'<script id="{name}" type="application/json">'
+            + json.dumps(values, ensure_ascii=False).replace("<", r"\u003c")
+            + "</script>"
+        )
+    return body + "</section>"
 
 
-def render(checks, metadata, comparison=None, taxonomy_order=None, coverage=None, coverage_season=None):
+def render(
+    checks,
+    metadata,
+    comparison=None,
+    taxonomy_order=None,
+    coverage=None,
+    coverage_season=None,
+    taxonomy_tree=None,
+):
     """Present computed audit results, grouped by research question."""
-    body = '<label style="float:right">'+_t('Language ', 'Langue ')+'<select id="report-language"><option value="en">English</option><option value="fr">Français</option></select></label>'
-    body += f'<h1>{SITE_NAME} — audit</h1><p class="muted">'+_t('Built ', 'Généré le ')+html.escape(metadata.get('built_at', ''))+'. '+_t('Times: Europe/Paris. Source evidence keeps its original language.', 'Heures : Europe/Paris. Les données source gardent leur langue originale.')+'</p>'
+    body = (
+        '<label style="float:right">'
+        + _t("Language ", "Langue ")
+        + '<select id="report-language"><option value="en">English</option><option value="fr">Français</option></select></label>'
+    )
+    body += (
+        f'<h1>{SITE_NAME} — audit</h1><p class="muted">'
+        + _t("Built ", "Généré le ")
+        + html.escape(metadata.get("built_at", ""))
+        + ". "
+        + _t(
+            "Times: Europe/Paris. Source evidence keeps its original language.",
+            "Heures : Europe/Paris. Les données source gardent leur langue originale.",
+        )
+        + "</p>"
+    )
     for group, fr in GROUPS.items():
         body += f'<section class="audit-group"><h2>{_t(group,fr)}</h2>'
-        body += ''.join(_check_section(check) for check in checks if check.group == group)
-        if group == 'Coverage and published totals':
+        body += "".join(_check_section(check) for check in checks if check.group == group)
+        if group == "Coverage and published totals":
             if coverage is not None:
                 body += _coverage_section(coverage, coverage_season)
             if comparison is not None:
-                body += '<section id="published-totals"><h3>'+_t('Published totals and source counts', 'Totaux des rapports et effectifs source')+'</h3><p>'+_t('Review differences against report seasons, taxon mappings and overlap decisions.', 'Examiner les écarts selon les saisons des rapports, les correspondances taxonomiques et les chevauchements.')+'</p>'+_section_reconciliation(comparison, taxonomy_order or {})+'</section>'
-        body += '</section>'
-    body += '<footer><p class="muted">'+_t('Code tests run separately through pytest.', 'Les tests du code s’exécutent séparément avec pytest.')+' <a href="audit.json">'+_t('Audit inventory', 'Inventaire des contrôles')+'</a> · <a href="README.md">'+_t('Audit file guide', 'Guide des fichiers d’audit')+'</a></p></footer>'
+                body += (
+                    '<section id="published-totals"><h3>'
+                    + _t(
+                        "Published totals and source counts",
+                        "Totaux des rapports et effectifs source",
+                    )
+                    + "</h3><p>"
+                    + _t(
+                        "Review differences against report seasons, taxon mappings and overlap decisions.",
+                        "Examiner les écarts selon les saisons des rapports, les correspondances taxonomiques et les chevauchements.",
+                    )
+                    + "</p>"
+                    + _section_reconciliation(comparison, taxonomy_order or {})
+                    + "</section>"
+                )
+        body += "</section>"
+    if taxonomy_tree:
+        body += taxonomy_tree
+    body += (
+        '<footer><p class="muted">'
+        + _t(
+            "Code tests run separately through pytest.",
+            "Les tests du code s’exécutent séparément avec pytest.",
+        )
+        + ' <a href="audit.json">'
+        + _t("Audit inventory", "Inventaire des contrôles")
+        + '</a> · <a href="README.md">'
+        + _t("Audit file guide", "Guide des fichiers d’audit")
+        + "</a></p></footer>"
+    )
     return (
         '<!doctype html><html lang="en"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width, initial-scale=1">'
         f"<title>Défilé build audit</title><style>{CSS}</style></head>"
-        f"<body>{body}" + """
+        f"<body>{body}"
+        + """
 <script>
 const language = document.getElementById('report-language');
 function filterRows(section) {

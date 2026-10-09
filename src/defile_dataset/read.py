@@ -23,7 +23,7 @@ EFFORT_SHEET = "Pression observation"
 TREKTELLEN_DIR = "trektellen"
 # count_2021.xlsx covers up to 2021, hand-cleaned and hour by hour, so Trektellen is read from
 # 2022. The Trektellen 2021 export (`Trektellen_data_2422_2021.xlsx`, day totals only, no header
-# export) is the same season -- 378,802 birds vs. 379,934 -- and is not a build input.
+# export) is the same season -- 378,802 birds vs. 379,934 -- and is kept in raw/ but not read.
 TREKTELLEN_FIRST_YEAR = 2022
 TREKTELLEN_DATA_PATTERN = "Trektellen_data_{site}_{year}.xlsx"
 TREKTELLEN_HEADER_PATTERN = "Trektellen_headerdata_{site}_{year}.xlsx"

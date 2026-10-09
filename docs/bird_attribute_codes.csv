@@ -10,6 +10,7 @@ age,S,Subadult,display_verified,,no_direct_code,https://www.trektellen.org/count
 age,Non-Juv,Non-Juv (native display label),label_only,nonjuv,candidate,https://www.trektellen.org/count/view/2422/20260913?language=english,Precise definition unresolved; no automatic older-than-one-year conversion.,62769571
 age,Non-adult,Non-adult (provisional),unverified,,no_direct_code,native exports 2022-2026,Both spellings occur; the checked public page did not render the attribute. Preserve source spelling for now.,62816178
 age,non_adult,Non-adult (provisional),unverified,,no_direct_code,native exports 2022-2026,Both spellings occur; the checked public page did not render the attribute. Preserve source spelling for now.,59286054
+age,>1y,Older than one year; adult status unspecified,literal_source_wording,,no_direct_code,Historical descriptions > 1 an in raw/historical/count_2021.xlsx,"Dataset extension, not a native Trektellen code. A lower bound in years is not an exact calendar age or an immature/adult classification. Exclude from adult/non-adult proportions.",
 sex,M,Male,display_verified,m,equivalent,https://www.trektellen.org/count/view/2422/20261001?language=english,,63817139
 sex,F,Female,display_verified,f,equivalent,https://www.trektellen.org/count/view/2422/20261001?language=english,,63817179
 sex,FC,Female type / female-coloured,display_verified,fc,equivalent,https://www.trektellen.org/count/view/2422/20261001?language=english,FC does not establish that the bird is female.,63817151

@@ -27,10 +27,10 @@ Foreign key: `taxon_id` → `taxonomy.taxon_id`.
 | count | integer | Conditional | minimum: 0 | Numerical quantity for this count_category; required except for presence-only count_estimation=x. |
 | count_category | string | Yes | enum: ["normal", "reverse", "local"] | normal: main migration direction; reverse: opposite direction; local: local/non-migrating birds (Trektellen Present). Missing reverse/local quantities produce no row; explicit zeros are retained. Filter normal for main migration totals. |
 | count_estimation | string | No | enum: ["~", ">", "x"] | Recorded count qualifier. Blank means no recorded qualifier, not proof of exactness. Numeric totals retain the supplied number even when estimated or a lower bound. |
-| age | string | No | enum: ["A", "1", "2", "3", "4", "I", "J", "S", "Non-Juv", "Non-adult", "non_adult"] | Trektellen age code supported for the whole row; see source crosswalk. Allowed codes are the reviewed inventory; unverified meanings are labelled explicitly. Blank means no supported whole-row class. New codes require a dictionary review. |
+| age | string | No | enum: ["A", "1", "2", "3", "4", "I", "J", "S", "Non-Juv", "Non-adult", "non_adult", ">1y"] | Native Trektellen age code or the explicit historical lower-bound code >1y; see source crosswalk. Blank means no supported whole-row class. New codes require a dictionary review. |
 | sex | string | No | enum: ["M", "F", "FC"] | Trektellen sex code; FC means female type, not necessarily female. Allowed codes are the reviewed inventory; unverified meanings are labelled explicitly. Blank means no supported whole-row class. New codes require a dictionary review. |
 | plumage | string | No | enum: ["D", "L", "W", "I", "B", "E"] | Native or reviewed Trektellen plumage code; unknown codes remain native. Allowed codes are the reviewed inventory; unverified meanings are labelled explicitly. Blank means no supported whole-row class. New codes require a dictionary review. |
-| remark | string | No | — | Observer-entered count text with original field labels. |
+| remark | string | No | — | Residual source prose without field-name prefixes. Fully converted count/age/sex/plumage descriptions and explicit clocks are omitted; unresolved wording, behaviour and source-attributed daily context remain. Original fields are preserved in the internal source ledger. |
 | remark_processing | string | No | — | Processing explanations, distinct from observer text. |
 | trektellen_data_id | integer | No | minimum: 1 | Native count-entry dataid, not the survey-level countid. |
 
@@ -57,6 +57,7 @@ Foreign key: `taxon_id` → `taxonomy.taxon_id`.
 | Non-Juv | Non-Juv (native display label) | label_only; Precise definition unresolved; no automatic older-than-one-year conversion. |
 | Non-adult | Non-adult (provisional) | unverified; Both spellings occur; the checked public page did not render the attribute. Preserve source spelling for now. |
 | non_adult | Non-adult (provisional) | unverified; Both spellings occur; the checked public page did not render the attribute. Preserve source spelling for now. |
+| >1y | Older than one year; adult status unspecified | literal_source_wording; Dataset extension, not a native Trektellen code. A lower bound in years is not an exact calendar age or an immature/adult classification. Exclude from adult/non-adult proportions. |
 
 `sex` codes (empty cells remain missing):
 
@@ -86,7 +87,7 @@ Additional rules (declared in the descriptor):
 
 ### survey.csv
 
-Native survey intervals and documented non-counting periods. Coverage describes observation inside each interval, independently of protocol compliance or daily coverage.
+Survey intervals: when someone was responsible for the count, including weather stops (complete, no bird). survey_complete says whether the counts hold every bird that passed.
 
 Primary key: `survey_id`. Missing-value tokens: `[""]` (an empty string means an empty cell).
 
@@ -108,8 +109,9 @@ Primary key: `survey_id`. Missing-value tokens: `[""]` (an empty string means an
 | precipitation | string | No | enum: ["geen", "regen", "mist"] | Reviewed native weather category, retained verbatim. Fog is recorded in this field despite not being precipitation. Blank is unknown; only geen explicitly records none. Other future categories require a dictionary review. |
 | visibility | number | No | minimum: 0 | Visibility in metres, supported by the public display (e.g. 8000m). Native zero is retained and can be a default; it is not asserted to be measured zero visibility. |
 | temperature | number | No | — | Temperature in degrees Celsius. Negative values are allowed. Native zeros are retained and may be defaults; no guessed meteorological bounds are imposed. |
-| survey_coverage | string | Yes | enum: ["complete", "partial", "none", "unknown"] | complete: systematic observation throughout the interval; partial: observation during only part; none: no counting; unknown: coverage cannot be established. Complete coverage does not guarantee all birds or taxa were detected. |
-| survey_coverage_comment | string | No | — | Short explanation of interruptions, assumptions or unknown coverage. Original HP wording remains in source weather and remarks. |
+| survey_complete | boolean | Yes | — | true: every bird that passed during the interval is in count.csv. This includes intervals when weather (rain, fog, storm) made counting impossible: no bird is assumed to pass (weather_stop). false: someone was counting but birds are known to have passed uncounted (records lost or deleted, birds noted as missed); rare. Times nobody was counting (absences, days not monitored) are not survey rows. |
+| weather_stop | boolean | No | — | true: weather made counting impossible over the whole interval, so its zeros are assumed, not observed. Always with survey_complete true. Blank otherwise. Lets a user test the assumption that no bird passes when counting is impossible, by dropping these rows. |
+| survey_comment | string | Conditional | — | Short note on the decision for this interval: why it is a weather stop or incomplete, what was cut out of it, or an assumption made. Not the observers' narrative, which stays in remark and weather. |
 
 `wind_direction` codes (empty cells remain missing):
 
@@ -144,6 +146,9 @@ Primary key: `survey_id`. Missing-value tokens: `[""]` (an empty string means an
 Additional rules (declared in the descriptor):
 
 - `datetime`: Survey timing is an increasing ISO datetime interval with UTC on both endpoints.
+- `survey_complete`: A weather stop is a complete count with no bird.
+- `survey_comment`: A weather stop says why in survey_comment.
+- `survey_comment`: An incomplete survey says why in survey_comment.
 
 ### taxonomy.csv
 
@@ -159,6 +164,7 @@ Primary key: `taxon_id`. Missing-value tokens: `[""]` (an empty string means an 
 | taxon_rank | string | No | — | Checklist rank or group category; not all concepts are species. |
 | order | string | No | — | Checklist order. |
 | family | string | No | — | Checklist family. |
+| parent_taxon_id | string | No | — | taxon_id of the smallest enclosing group in this table (a 'sp.' or slash taxon, or the species of a subspecies); empty for roots. Curated in taxonomy/parent_taxa.csv. Summing a group's descendants gives all birds counted under it. |
 | taxonomy_source | string | No | — | Checklist and version used for the concept's scientific name. |
 | ebird_code | string | No | — | Corresponding eBird/Clements code when available. |
 | trektellen_species_id | string | No | pattern: "[1-9][0-9]*(,[1-9][0-9]*)*" | Distinct native species IDs, sorted numerically and comma-separated; empty for historical-only concepts. |
@@ -217,3 +223,16 @@ Additional rules (declared in the descriptor):
 - `key`: Allowed keys for results: overview, highlights, discussion.
 - `key`: Allowed keys for outreach: activities.
 - `key`: Every species account key must exist in taxonomy.taxon_id.
+
+### paper_text.csv
+
+Accepted French species accounts from all four Nos Oiseaux papers, read from raw/reports/paper_text.csv. Same category/key/text structure as report_text; source_id distinguishes the two 1996 parts and multi-year syntheses. Species keys follow existing Avibase mappings; three group keys retain shared accounts. Missing accounts do not imply absence. Extraction evidence is archived.
+
+Primary key: `['source_id', 'category', 'key']`. Missing-value tokens: `[""]` (an empty string means an empty cell).
+
+| Column | Type | Required | Constraints | Meaning |
+| --- | --- | --- | --- | --- |
+| source_id | string | Yes | enum: ["defile-paper-1996-I", "defile-paper-1996-II", "defile-paper-2019", "defile-paper-2020"] | Paper identity (the local reference library lists the documents): 1996 Parts I and II describe 1993; 2019 covers 1993–2017; 2020 covers 1993–2019. |
+| category | string | Yes | enum: ["species"] | Account category; currently species accounts only. |
+| key | string | Yes | enum: ["avibase-00DA9D91", "avibase-06D9A2C8", "avibase-082F3A63", "avibase-1078FFEA", "avibase-1327AC55", "avibase-166CD440", "avibase-22647E26", "avibase-27903EF7", "avibase-28825494", "avibase-2D52E3A5", "avibase-2DAB45B8", "avibase-2DABF98F", "avibase-3395DCF1", "avibase-39086887", "avibase-3BB5CBA6", "avibase-3C0C325D", "avibase-3DF5C587", "avibase-451D6FC8", "avibase-47E58408", "avibase-49D9148A", "avibase-4B8CC285", "avibase-4E6EF3F9", "avibase-56FB47C0", "avibase-5A3D91D3", "avibase-5D1987CE", "avibase-5EAB32D3", "avibase-5F8E7CA8", "avibase-6364E4A5", "avibase-63B6412E", "avibase-6429024D", "avibase-65BD2033", "avibase-66AA3934", "avibase-68E4C0D1", "avibase-6F2AF9D0", "avibase-742EC2F1", "avibase-760F307A", "avibase-8372FFBA", "avibase-84E1F114", "avibase-89C42590", "avibase-90B13ACF", "avibase-94A44032", "avibase-95DD1855", "avibase-97C47F3E", "avibase-9820CECA", "avibase-997A9437", "avibase-99B8841E", "avibase-9BE53D34", "avibase-A635F565", "avibase-A8A85BCF", "avibase-BC06BC0D", "avibase-CE71B4FF", "avibase-D4C32F8E", "avibase-D8D10F2C", "avibase-D9B001DF", "avibase-DB376A66", "avibase-E074D706", "avibase-E15BC0CB", "avibase-E2817DAE", "avibase-E2A19474", "avibase-E91E287A", "avibase-ED2AC04E", "avibase-ED5A7E8F", "avibase-F029489A", "avibase-F3DA111C", "avibase-F558C7F9", "avibase-FA1CAD29", "avibase-FA2F9125", "avibase-FB02DD96", "group-aigle-pomarin-criard", "group-corbeau-freux-choucas-des-tours", "group-hirondelles-rustique-fenetre-rivage"] | Accepted Avibase taxon concept or shared group key. Group keys cover freux/choucas, three swallow species, and pomarin/criard eagles. Paper taxa can be absent from the count taxonomy; historical names and mapping notes remain in the extraction archive. |
+| text | string | Yes | — | Curated French prose with paragraph breaks, including published status and summary statistics where present. Figures and tables omitted; published discrepancies retained. |

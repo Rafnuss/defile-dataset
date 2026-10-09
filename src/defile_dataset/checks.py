@@ -85,24 +85,56 @@ def run_checks(ds: Dataset, taxonomy: Taxonomy) -> list[Check]:
     )
 
     dawn, dusk = civil_twilight(s["date"])
-    not_surveyed = s.get("survey_coverage", pd.Series(index=s.index, dtype="string")).eq("none").fillna(False)
-    night = s.loc[~not_surveyed].copy()
+    # Weather stops with calendar-day bounds are not timed surveys.
+    calendar = (
+        s.get("weather_stop", pd.Series(False, index=s.index)).fillna(False).astype(bool)
+        & s["start_original"].isna()
+    )
+    night = s.loc[~calendar].copy()
     if not night.empty:
-        sunrise, sunset = civil_twilight(night['date'], threshold_deg=-0.833)
-        night['sunrise'] = night.date.map(sunrise)
-        night['sunset'] = night.date.map(sunset)
-        night['civil_dawn'] = night.date.map(dawn)
-        night['civil_dusk'] = night.date.map(dusk)
-        night['duration_hours'] = (night.end-night.start).dt.total_seconds()/3600
-        night['minutes_before_sunrise'] = ((night[['end', 'sunrise']].min(axis=1) - night.start).dt.total_seconds()/60).clip(lower=0).round(1)
-        night['minutes_after_sunset'] = ((night.end - night[['start', 'sunset']].max(axis=1)).dt.total_seconds()/60).clip(lower=0).round(1)
-        night['night_minutes'] = (((night[['end', 'civil_dawn']].min(axis=1) - night.start).dt.total_seconds()/60).clip(lower=0)
-                                  + ((night.end - night[['start', 'civil_dusk']].max(axis=1)).dt.total_seconds()/60).clip(lower=0)).round(1)
-    checks.append(_check('Surveys into the night', night.loc[night.night_minutes.gt(0)],
-                         'Minutes before civil dawn or after civil dusk (sun below −6°). Sunrise and sunset are shown for context.', 'warn'))
+        sunrise, sunset = civil_twilight(night["date"], threshold_deg=-0.833)
+        night["sunrise"] = night.date.map(sunrise)
+        night["sunset"] = night.date.map(sunset)
+        night["civil_dawn"] = night.date.map(dawn)
+        night["civil_dusk"] = night.date.map(dusk)
+        night["duration_hours"] = (night.end - night.start).dt.total_seconds() / 3600
+        night["minutes_before_sunrise"] = (
+            ((night[["end", "sunrise"]].min(axis=1) - night.start).dt.total_seconds() / 60)
+            .clip(lower=0)
+            .round(1)
+        )
+        night["minutes_after_sunset"] = (
+            ((night.end - night[["start", "sunset"]].max(axis=1)).dt.total_seconds() / 60)
+            .clip(lower=0)
+            .round(1)
+        )
+        night["night_minutes"] = (
+            (
+                (night[["end", "civil_dawn"]].min(axis=1) - night.start).dt.total_seconds() / 60
+            ).clip(lower=0)
+            + (
+                (night.end - night[["start", "civil_dusk"]].max(axis=1)).dt.total_seconds() / 60
+            ).clip(lower=0)
+        ).round(1)
+    checks.append(
+        _check(
+            "Surveys into the night",
+            night.loc[night.night_minutes.gt(0)],
+            "Minutes before civil dawn or after civil dusk (sun below −6°). Sunrise and sunset are shown for context.",
+            "warn",
+        )
+    )
     long = night.loc[dur.loc[night.index] > LONG_SURVEY_MINIMUM].copy()
-    checks.append(Check('Long surveys', 'warn' if long.duration_hours.gt(LONG_SURVEY_WARNING.total_seconds()/3600).any() else 'pass',
-                        'End minus start. All periods over 12 hours are retained; the initial review threshold is 15 hours.', long))
+    checks.append(
+        Check(
+            "Long surveys",
+            "warn"
+            if long.duration_hours.gt(LONG_SURVEY_WARNING.total_seconds() / 3600).any()
+            else "pass",
+            "End minus start. All periods over 12 hours are retained; the initial review threshold is 15 hours.",
+            long,
+        )
+    )
 
     t = o.merge(s[["survey_id", "start", "end"]], on="survey_id", how="inner")
     out = t[

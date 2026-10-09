@@ -111,10 +111,16 @@ def _flags(o, oid):
 
 
 def test_outside_period_offsets_measure_early_and_late_entries():
-    s, c = _trektellen([(1, 10, '05:55', 1, 2), (2, 11, '09:05', 1, 3), (3, 12, '09:06', 1, 4)],
-                       [(10, '06:00', '09:00', 0), (11, '06:00', '09:00', 0), (12, '06:00', '09:00', 0)])
+    s, c = _trektellen(
+        [(1, 10, "05:55", 1, 2), (2, 11, "09:05", 1, 3), (3, 12, "09:06", 1, 4)],
+        [(10, "06:00", "09:00", 0), (11, "06:00", "09:00", 0), (12, "06:00", "09:00", 0)],
+    )
     _, _, issues = B.trektellen_tables(s, c, TAXONOMY)
-    assert issues.loc[issues.issue.eq('Timestamp outside period'), 'outside_minutes'].tolist() == [5, 5, 6]
+    assert issues.loc[issues.issue.eq("Timestamp outside period"), "outside_minutes"].tolist() == [
+        5,
+        5,
+        6,
+    ]
 
 
 def test_outside_timestamps_become_daily_without_losing_source_times():
@@ -129,7 +135,9 @@ def test_outside_timestamps_become_daily_without_losing_source_times():
         [(10, "06:00", "09:00", 0)],
     )
     surveys, o, issues = B.trektellen_tables(s, c, TAXONOMY)
-    assert issues.loc[issues.issue.eq('Timestamp outside period'), 'outside_minutes'].tolist() == [60]
+    assert issues.loc[issues.issue.eq("Timestamp outside period"), "outside_minutes"].tolist() == [
+        60
+    ]
     assert len(o) == len(s)
     assert _flags(o, "T1") == ""
     assert _flags(o, "T2") == B.FLAG_TIME_OUTSIDE_SURVEY
@@ -215,13 +223,19 @@ def test_historical_surveys_are_unique_periods():
 
 
 def test_daily_metadata_does_not_create_effort_or_duplicate_counts():
-    hist = _historical([("Milan royal", "08:00", "09:00", 3), ("Milan royal", "10:00", "11:00", 1)])
-    effort = pd.DataFrame({
-        "date": [pd.Timestamp("2015-09-15")],
-        "start": pd.to_datetime([None], utc=True), "end": pd.to_datetime([None], utc=True),
-        "observers": ["A (08–09); B (10–11)"],
-        "weather": ["Couvert le matin, éclaircies ensuite"], "remark": ["Visiteurs : 2"],
-    })
+    hist = _historical(
+        [("Milan royal", "08:00", "09:00", 3), ("Milan royal", "10:00", "11:00", 1)]
+    )
+    effort = pd.DataFrame(
+        {
+            "date": [pd.Timestamp("2015-09-15")],
+            "start": pd.to_datetime([None], utc=True),
+            "end": pd.to_datetime([None], utc=True),
+            "observers": ["A (08–09); B (10–11)"],
+            "weather": ["Couvert le matin, éclaircies ensuite"],
+            "remark": ["Visiteurs : 2"],
+        }
+    )
     surveys, counts, _ = B.historical_tables(hist, effort, TAXONOMY)
     assert len(surveys) == 2 and len(counts) == 2 and counts["count"].sum() == 4
     assert surveys["observers"].tolist() == [effort.observers.iloc[0]] * 2
@@ -231,15 +245,20 @@ def test_daily_metadata_does_not_create_effort_or_duplicate_counts():
     assert "observers_active" not in surveys  # no inferred quantitative effort
 
 
-def test_reviewed_coverage_applies_to_its_interval_only():
-    hist = _historical([("Milan royal", "08:00", "09:00", 3), ("Milan royal", "10:00", "11:00", 1)])
+def test_reviewed_status_applies_to_its_interval_only():
+    hist = _historical(
+        [("Milan royal", "08:00", "09:00", 3), ("Milan royal", "10:00", "11:00", 1)]
+    )
     effort = hist[["date", "start", "end"]].copy()
-    effort["survey_coverage"] = ["complete", "partial"]
-    effort["survey_coverage_comment"] = ["Counted throughout", "Interrupted"]
+    effort["survey_complete"] = [None, False]
+    effort["weather_stop"] = [None, None]
+    effort["survey_comment"] = ["Counted throughout", "Records lost"]
     surveys, counts, _ = B.historical_tables(hist, effort, TAXONOMY)
     assert len(surveys) == 2 and counts["count"].sum() == 4
-    assert surveys["survey_coverage"].tolist() == ["complete", "partial"]
-    assert surveys["survey_coverage_comment"].tolist() == ["Counted throughout", "Interrupted"]
+    assert (
+        pd.isna(surveys["survey_complete"].iloc[0]) and surveys["survey_complete"].iloc[1] is False
+    )
+    assert surveys["survey_comment"].tolist() == ["Counted throughout", "Records lost"]
 
 
 def test_checks_pass_on_a_clean_build():
@@ -297,8 +316,12 @@ def test_trektellen_count_without_entries_is_flagged():
 
 def test_daily_fallback_conserves_counts_and_directions():
     s, c = _trektellen(
-        [(1, 10, "09:30", 1, 12), (2, 10, "10:30", 1, 8),
-         (3, 10, None, 1, 5), (4, 10, "08:59", 1, 3)],
+        [
+            (1, 10, "09:30", 1, 12),
+            (2, 10, "10:30", 1, 8),
+            (3, 10, None, 1, 5),
+            (4, 10, "08:59", 1, 3),
+        ],
         [(10, "09:00", "11:00", 0)],
     )
     s["direction2"], s["local"] = [0, 0, 2, 0], [0, 0, 0, 1]
@@ -314,11 +337,13 @@ def test_daily_fallback_conserves_counts_and_directions():
 def test_overlap_chain_keeps_disjoint_first_and_third_periods():
     s, c = _trektellen(
         [(1, 10, "08:30", 1, 1), (2, 11, "09:30", 1, 2), (3, 12, "10:30", 1, 3)],
-        [(10, "08:00", "09:00", 0), (11, "08:30", "10:30", 0),
-         (12, "10:00", "11:00", 0)],
+        [(10, "08:00", "09:00", 0), (11, "08:30", "10:30", 0), (12, "10:00", "11:00", 0)],
     )
     _, observations, _ = B.trektellen_tables(s, c, TAXONOMY)
-    assert observations.loc[observations["use_for_counts"], "observation_id"].tolist() == ["T1", "T3"]
+    assert observations.loc[observations["use_for_counts"], "observation_id"].tolist() == [
+        "T1",
+        "T3",
+    ]
 
 
 def test_report_links_filters_and_escaped_source_text():
@@ -328,49 +353,81 @@ def test_report_links_filters_and_escaped_source_text():
     s["speciesname"] = '<script>alert("source")</script>'
     surveys, observations, issues = B.trektellen_tables(s, c, TAXONOMY)
     from defile_dataset.checks import Check
-    document = render([Check('Entry without time', 'warn', 'Inspect source period', issues,
-                             key='untimed', columns=('date','survey_id','detail'))], {})
+
+    document = render(
+        [
+            Check(
+                "Entry without time",
+                "warn",
+                "Inspect source period",
+                issues,
+                key="untimed",
+                columns=("date", "survey_id", "detail"),
+            )
+        ],
+        {},
+    )
     assert '<h3><span class="en">Entry without time' in document
-    assert 'Inspect source period' in document
+    assert "Inspect source period" in document
     assert 'href="https://www.trektellen.org/count/edit/10"' in document
     assert 'href="https://www.trektellen.org/count/view/2422/20230801"' in document
-    assert 'finding-search' in document
-    assert 'All 25951 entries' not in document
+    assert "finding-search" in document
+    assert "All 25951 entries" not in document
     assert '<script>alert("source")</script>' not in document
-    assert '&lt;script&gt;' in document
+    assert "&lt;script&gt;" in document
 
 
 def test_consolidated_tables_preserve_precision_keys_and_direction_counts():
     import json
+
     from defile_dataset.consolidate import consolidate, daily_from_tables, validate_tables
     from defile_dataset.package import descriptor
 
-    hist = _historical([("Milan royal", "08:00", "09:00", 3), ("Aucune espèce", "08:00", "09:00", 0)])
+    hist = _historical(
+        [("Milan royal", "08:00", "09:00", 3), ("Aucune espèce", "08:00", "09:00", 0)]
+    )
     hist["detail"] = ["3x adultes", None]
     sightings, headers = _trektellen(
-        [(1, 10, "08:30", 1, 12), (2, 10, None, 1, 5),
-         (3, 10, "07:59", 1, 7), (4, 11, "09:30", 1, 282)],
+        [
+            (1, 10, "08:30", 1, 12),
+            (2, 10, None, 1, 5),
+            (3, 10, "07:59", 1, 7),
+            (4, 11, "09:30", 1, 282),
+        ],
         [(10, "08:00", "10:00", 0), (11, "09:00", "11:00", 0)],
     )
     sightings["direction2"], sightings["local"] = [2, 1, 0, 9], [0, 0, 4, 8]
     sightings["remark"] = "bird&#039;s note"
     ds = B.build(hist, EMPTY_EFFORT, sightings, headers, TAXONOMY)
     count, survey, taxa = consolidate(ds, TAXONOMY)
-    assert all(c.status == 'pass' for c in validate_tables(count, survey, taxa, ds))
+    assert all(c.status == "pass" for c in validate_tables(count, survey, taxa, ds))
     assert "T11" not in survey.survey_id.tolist() and "T4-normal" not in count.count_id.tolist()
     indexed = count.set_index("count_id")
     assert indexed.loc["T1-normal", "datetime"] == "2023-08-01T06:30:00Z"
     assert indexed.loc["T1-normal", "survey_id"] == "T10"
     assert indexed.loc[["T2-normal", "T3-normal"], "datetime"].tolist() == ["2023-08-01"] * 2
-    assert indexed.loc[["T1-normal", "T2-normal", "T3-normal"], "survey_id"].tolist() == ["T10"] * 3
+    assert (
+        indexed.loc[["T1-normal", "T2-normal", "T3-normal"], "survey_id"].tolist() == ["T10"] * 3
+    )
     assert "native_survey_id" not in count.columns
     changed = count.copy()
     changed.loc[changed.count_id.eq("T2-normal"), "survey_id"] = pd.NA
-    assert next(c for c in validate_tables(changed, survey, taxa, ds) if c.name == 'Survey associations preserved').status == 'fail'
+    assert (
+        next(
+            c
+            for c in validate_tables(changed, survey, taxa, ds)
+            if c.name == "Survey associations preserved"
+        ).status
+        == "fail"
+    )
     assert pd.isna(indexed.loc["H-2014-2016-r2-normal", "datetime"])
-    assert not count.loc[count.source_count_id.eq('H-2014-2016-r2'), 'count_category'].eq('local').any()
-    assert indexed.loc["H-2014-2016-r2-normal", "remark"] == "detail: 3x adultes"
-    assert indexed.loc["T1-normal", "remark"] == "remark: bird's note"
+    assert (
+        not count.loc[count.source_count_id.eq("H-2014-2016-r2"), "count_category"]
+        .eq("local")
+        .any()
+    )
+    assert indexed.loc["H-2014-2016-r2-normal", "remark"] == "3x adultes"
+    assert indexed.loc["T1-normal", "remark"] == "bird's note"
     assert "H-2014-2016-r3-normal" not in count.count_id.tolist()
     assert "kind" not in taxa.columns
     assert survey.remark.fillna("").str.contains("no species").any()
@@ -393,7 +450,7 @@ def test_presence_only_is_not_a_numerical_count():
     sightings, headers = _trektellen([(1, 10, "08:30", 1, 1)], [(10, "08:00", "09:00", 0)])
     ds = B.build(hist, EMPTY_EFFORT, sightings, headers, TAXONOMY)
     count, survey, taxa = consolidate(ds, TAXONOMY)
-    assert all(c.status == 'pass' for c in validate_tables(count, survey, taxa, ds))
+    assert all(c.status == "pass" for c in validate_tables(count, survey, taxa, ds))
     presence = count.loc[count.count_estimation.eq("x")].iloc[0]
     assert pd.isna(presence["count"])
     day = daily_from_tables(count, survey).query("date == '2015-09-15'").iloc[0]
@@ -404,140 +461,348 @@ def test_bird_selection_preserves_empty_surveys_and_unidentified_birds():
     from defile_dataset.consolidate import consolidate, validate_tables
 
     taxonomy = Taxonomy(
-        pd.concat([TAXONOMY.source_taxa, pd.DataFrame([{
-            'source': 'trektellen', 'taxon_name_original': 'Species unidentified',
-            'trektellen_species_id': 480, 'avibase_id': 'avibase-AF0D818A', 'kind': 'bird',
-        }])], ignore_index=True),
+        pd.concat(
+            [
+                TAXONOMY.source_taxa,
+                pd.DataFrame(
+                    [
+                        {
+                            "source": "trektellen",
+                            "taxon_name_original": "Species unidentified",
+                            "trektellen_species_id": 480,
+                            "avibase_id": "avibase-AF0D818A",
+                            "kind": "bird",
+                        }
+                    ]
+                ),
+            ],
+            ignore_index=True,
+        ),
         TAXONOMY.avilist,
-        pd.concat([TAXONOMY.ebird, pd.DataFrame([{
-            'scientific_name': 'Aves sp.', 'english_name': 'bird sp.', 'taxon_rank': 'spuh',
-            'order': None, 'family': None, 'ebird_code': 'bird1',
-        }], index=['avibase-AF0D818A'])]),
+        pd.concat(
+            [
+                TAXONOMY.ebird,
+                pd.DataFrame(
+                    [
+                        {
+                            "scientific_name": "Aves sp.",
+                            "english_name": "bird sp.",
+                            "taxon_rank": "spuh",
+                            "order": None,
+                            "family": None,
+                            "ebird_code": "bird1",
+                        }
+                    ],
+                    index=["avibase-AF0D818A"],
+                ),
+            ]
+        ),
     )
-    hist = _historical([('Aucune espèce', '08:00', '09:00', 0)])
+    hist = _historical([("Aucune espèce", "08:00", "09:00", 0)])
     sightings, headers = _trektellen(
-        [(1, 10, '08:30', 983, 8), (2, 11, '10:30', 480, 3)],
-        [(10, '08:00', '09:00', 0), (11, '10:00', '11:00', 0)],
+        [(1, 10, "08:30", 983, 8), (2, 11, "10:30", 480, 3)],
+        [(10, "08:00", "09:00", 0), (11, "10:00", "11:00", 0)],
     )
     ds = B.build(hist, EMPTY_EFFORT, sightings, headers, taxonomy)
     count, survey, taxa = consolidate(ds, taxonomy)
-    assert all(c.status == 'pass' for c in validate_tables(count, survey, taxa, ds))
-    assert count.loc[count.count_category.eq('normal'), 'count_id'].tolist() == ['T2-normal']
-    assert count.taxon_id.tolist() == ['avibase-AF0D818A']
-    assert count['count'].tolist() == [3]
-    assert len(survey) == 3 and 'T10' in survey.survey_id.tolist()
-    assert survey.remark.fillna('').str.contains('no species').sum() == 1
+    assert all(c.status == "pass" for c in validate_tables(count, survey, taxa, ds))
+    assert count.loc[count.count_category.eq("normal"), "count_id"].tolist() == ["T2-normal"]
+    assert count.taxon_id.tolist() == ["avibase-AF0D818A"]
+    assert count["count"].tolist() == [3]
+    assert len(survey) == 3 and "T10" in survey.survey_id.tolist()
+    assert survey.remark.fillna("").str.contains("no species").sum() == 1
     assert len(ds.observations) == 3  # full source ledger is untouched
 
 
-def test_date_only_non_survey_uses_calendar_bounds_without_recorded_effort():
+def test_date_only_weather_stop_uses_calendar_bounds_without_recorded_effort():
     hist = _historical([("Milan royal", "08:00", "09:00", 3)])
-    effort = pd.DataFrame({
-        "date": pd.to_datetime(["2015-10-25"]),
-        "start": pd.to_datetime([None], utc=True), "end": pd.to_datetime([None], utc=True),
-        "survey_coverage": ["none"], "survey_coverage_comment": ["Evidence status: inferred."],
-    })
+    effort = pd.DataFrame(
+        {
+            "date": pd.to_datetime(["2015-10-25"]),
+            "start": pd.to_datetime([None], utc=True),
+            "end": pd.to_datetime([None], utc=True),
+            "survey_complete": [None],
+            "weather_stop": [True],
+            "survey_comment": ["Date inferred from the annual report."],
+        }
+    )
     surveys, counts, _ = B.historical_tables(hist, effort, TAXONOMY)
-    day = surveys.set_index("survey_id").loc["H20151025-not-surveyed"]
+    day = surveys.set_index("survey_id").loc["H20151025-weather-day"]
     assert day.end - day.start == pd.Timedelta(hours=25)  # Local DST transition day.
     assert pd.isna(day.start_original) and pd.isna(day.end_original)
     assert pd.isna(day.day_start) and pd.isna(day.day_end)
-    assert "calendar_day_bounds" in day['flags']
-    assert "inferred" in day.survey_coverage_comment
-    assert counts['count'].sum() == 3
+    assert "calendar_day_bounds" in day["flags"]
+    assert day.weather_stop and "inferred" in day.survey_comment
+    assert counts["count"].sum() == 3
 
 
 def test_daylight_audit_measures_a_period_wholly_before_dawn():
-    sightings, headers = _trektellen([(1, 10, '00:30', 1, 5)], [(10, '00:00', '01:00', 0)])
+    sightings, headers = _trektellen([(1, 10, "00:30", 1, 5)], [(10, "00:00", "01:00", 0)])
     surveys, observations, issues = B.trektellen_tables(sightings, headers, TAXONOMY)
-    daylight = next(c for c in run_checks(B.Dataset(surveys, observations, issues), TAXONOMY) if c.name == 'Surveys into the night')
+    daylight = next(
+        c
+        for c in run_checks(B.Dataset(surveys, observations, issues), TAXONOMY)
+        if c.name == "Surveys into the night"
+    )
     row = daylight.rows.iloc[0]
     assert row.civil_dawn < row.sunrise < row.sunset < row.civil_dusk
-    assert row.night_minutes == 60 and row.minutes_before_sunrise == 60 and row.minutes_after_sunset == 0
+    assert (
+        row.night_minutes == 60
+        and row.minutes_before_sunrise == 60
+        and row.minutes_after_sunset == 0
+    )
 
 
 def test_split_historical_rows_keep_totals_dates_and_auditable_ids():
     from defile_dataset.attributes import historical_attributes, quantity_components
     from defile_dataset.consolidate import consolidate, validate_tables
-    hist = _historical([('Milan royal', '08:00', '09:00', 5)])
-    hist['details'] = '1x mâle adulte / 2x femelle adulte'
-    hist['detail'] = hist.details
-    crosswalk = pd.read_csv('config/attributes/historical_attributes.csv', dtype=str)
+
+    hist = _historical([("Milan royal", "08:00", "09:00", 5)])
+    hist["details"] = "1x mâle adulte / 2x femelle adulte"
+    hist["detail"] = hist.details
+    crosswalk = pd.read_csv("config/attributes/historical_attributes.csv", dtype=str)
     values, audit = historical_attributes(hist, crosswalk)
-    ds = B.build(hist.join(values), EMPTY_EFFORT, *_trektellen([(1, 10, '10:30', 1, 7)], [(10, '10:00', '11:00', 0)]), TAXONOMY)
+    ds = B.build(
+        hist.join(values),
+        EMPTY_EFFORT,
+        *_trektellen([(1, 10, "10:30", 1, 7)], [(10, "10:00", "11:00", 0)]),
+        TAXONOMY,
+    )
     parts = quantity_components(audit)
     count, survey, taxa = consolidate(ds, TAXONOMY, parts)
-    assert count.loc[count.count_id.str.startswith('H'), 'count'].tolist() == [1, 2, 2]
-    assert all(c.status == 'pass' for c in validate_tables(count, survey, taxa, ds, parts))
+    assert count.loc[count.count_id.str.startswith("H"), "count"].tolist() == [1, 2, 2]
+    assert all(c.status == "pass" for c in validate_tables(count, survey, taxa, ds, parts))
     changed = count.copy()
-    changed.loc[0, 'count'] += 1
-    assert next(c for c in validate_tables(changed, survey, taxa, ds, parts) if c.name == 'normal values preserved').status == 'fail'
+    changed.loc[0, "count"] += 1
+    assert (
+        next(
+            c
+            for c in validate_tables(changed, survey, taxa, ds, parts)
+            if c.name == "normal values preserved"
+        ).status
+        == "fail"
+    )
     changed = count.copy()
-    changed.loc[0, 'count_id'] += '-extra'
-    assert validate_tables(changed, survey, taxa, ds, parts)[0].status == 'fail'
+    changed.loc[0, "count_id"] += "-extra"
+    assert validate_tables(changed, survey, taxa, ds, parts)[0].status == "fail"
 
 
 def test_source_conservation_returns_auditable_failure_rows():
     from defile_dataset.consolidate import consolidate, validate_tables
-    hist = _historical([('Milan royal', '08:00', '09:00', 3)])
-    sightings, headers = _trektellen([(1, 10, '08:30', 1, 5)], [(10, '08:00', '09:00', 0)])
+
+    hist = _historical([("Milan royal", "08:00", "09:00", 3)])
+    sightings, headers = _trektellen([(1, 10, "08:30", 1, 5)], [(10, "08:00", "09:00", 0)])
     ds = B.build(hist, EMPTY_EFFORT, sightings, headers, TAXONOMY)
     count, survey, taxa = consolidate(ds, TAXONOMY)
-    count.loc[0, 'count'] = 4
+    count.loc[0, "count"] = 4
     result = validate_tables(count, survey, taxa, ds)
-    failed = next(c for c in result if c.name == 'normal values preserved')
-    assert failed.status == 'fail'
-    assert failed.rows[['released_value', 'source_value']].iloc[0].tolist() == [4, 3]
+    failed = next(c for c in result if c.name == "normal values preserved")
+    assert failed.status == "fail"
+    assert failed.rows[["released_value", "source_value"]].iloc[0].tolist() == [4, 3]
     missing = validate_tables(count.iloc[:0].reset_index(drop=True), survey, taxa, ds)
-    assert next(c for c in missing if c.name == 'Eligible count categories retained once').status == 'fail'
+    assert (
+        next(c for c in missing if c.name == "Eligible count categories retained once").status
+        == "fail"
+    )
 
 
 def test_night_audit_keeps_short_overlap_and_long_audit_keeps_below_warning():
     from defile_dataset.site import civil_twilight
-    sightings, headers = _trektellen([(1, 10, '08:30', 1, 5)], [(10, '08:00', '09:00', 0)])
+
+    sightings, headers = _trektellen([(1, 10, "08:30", 1, 5)], [(10, "08:00", "09:00", 0)])
     surveys, observations, issues = B.trektellen_tables(sightings, headers, TAXONOMY)
     dawn, _ = civil_twilight(surveys.date)
-    surveys.loc[0, 'start'] = dawn.iloc[0]-pd.Timedelta(minutes=5)
-    surveys.loc[0, 'end'] = dawn.iloc[0]+pd.Timedelta(minutes=10)
+    surveys.loc[0, "start"] = dawn.iloc[0] - pd.Timedelta(minutes=5)
+    surveys.loc[0, "end"] = dawn.iloc[0] + pd.Timedelta(minutes=10)
     checks = run_checks(B.Dataset(surveys, observations, issues), TAXONOMY)
-    night = next(c for c in checks if c.name == 'Surveys into the night')
+    night = next(c for c in checks if c.name == "Surveys into the night")
     assert night.rows.night_minutes.tolist() == [5]
-    surveys.loc[0, 'end'] = surveys.loc[0, 'start']+pd.Timedelta(hours=14)
-    long = next(c for c in run_checks(B.Dataset(surveys, observations, issues), TAXONOMY) if c.name == 'Long surveys')
+    surveys.loc[0, "end"] = surveys.loc[0, "start"] + pd.Timedelta(hours=14)
+    long = next(
+        c
+        for c in run_checks(B.Dataset(surveys, observations, issues), TAXONOMY)
+        if c.name == "Long surveys"
+    )
     assert long.rows.duration_hours.tolist() == [14]
-    assert long.status == 'pass'
+    assert long.status == "pass"
 
 
 def test_categories_preserve_zero_missing_presence_and_historical_reverse_once():
     from defile_dataset.attributes import historical_attributes, quantity_components
     from defile_dataset.consolidate import consolidate, validate_tables
-    hist = _historical([('Milan royal', '08:00', '09:00', 5)])
-    hist['detail'] = '1x mâle adulte / 2x femelle adulte'
-    values, audit = historical_attributes(hist, pd.read_csv('config/attributes/historical_attributes.csv', dtype=str))
-    sightings, headers = _trektellen([(1, 10, '10:30', 1, 2)], [(10, '10:00', '11:00', 0)])
-    sightings['direction2'], sightings['local'] = 0, 1
-    sightings['age'], sightings['sex'] = 'A', 'M'
+
+    hist = _historical([("Milan royal", "08:00", "09:00", 5)])
+    hist["detail"] = "1x mâle adulte / 2x femelle adulte"
+    values, audit = historical_attributes(
+        hist, pd.read_csv("config/attributes/historical_attributes.csv", dtype=str)
+    )
+    sightings, headers = _trektellen([(1, 10, "10:30", 1, 2)], [(10, "10:00", "11:00", 0)])
+    sightings["direction2"], sightings["local"] = 0, 1
+    sightings["age"], sightings["sex"] = "A", "M"
     ds = B.build(hist.join(values), EMPTY_EFFORT, sightings, headers, TAXONOMY)
-    historical = ds.observations.source.eq('historical')
-    ds.observations.loc[historical, 'direction2'] = 3
+    historical = ds.observations.source.eq("historical")
+    ds.observations.loc[historical, "direction2"] = 3
     parts = quantity_components(audit)
     count, survey, taxa = consolidate(ds, TAXONOMY, parts)
-    h = count.loc[count.source_count_id.str.startswith('H')]
-    assert h.loc[h.count_category.eq('normal'), 'count'].tolist() == [1, 2, 2]
-    reverse = h.loc[h.count_category.eq('reverse')]
-    assert reverse['count'].tolist() == [3]
-    assert reverse[['age', 'sex', 'plumage']].isna().all().all()
-    assert not h.count_category.eq('local').any()
-    t = count.loc[count.source_count_id.eq('T1')].set_index('count_category')
-    assert t['count'].to_dict() == {'normal': 2, 'reverse': 0, 'local': 1}
-    assert t.age.eq('A').all() and t.sex.eq('M').all()
-    assert all(check.status == 'pass' for check in validate_tables(count, survey, taxa, ds, parts))
+    h = count.loc[count.source_count_id.str.startswith("H")]
+    assert h.loc[h.count_category.eq("normal"), "count"].tolist() == [1, 2, 2]
+    reverse = h.loc[h.count_category.eq("reverse")]
+    assert reverse["count"].tolist() == [3]
+    assert reverse[["age", "sex", "plumage"]].isna().all().all()
+    assert not h.count_category.eq("local").any()
+    t = count.loc[count.source_count_id.eq("T1")].set_index("count_category")
+    assert t["count"].to_dict() == {"normal": 2, "reverse": 0, "local": 1}
+    assert t.age.eq("A").all() and t.sex.eq("M").all()
+    assert all(check.status == "pass" for check in validate_tables(count, survey, taxa, ds, parts))
     changed = count.copy()
-    changed.loc[changed.count_id.eq('T1-local'), 'count_category'] = 'reverse'
-    assert any(check.status == 'fail' for check in validate_tables(changed, survey, taxa, ds, parts))
-    ds.observations.loc[historical, 'estimation'] = 'x'
+    changed.loc[changed.count_id.eq("T1-local"), "count_category"] = "reverse"
+    assert any(
+        check.status == "fail" for check in validate_tables(changed, survey, taxa, ds, parts)
+    )
+    ds.observations.loc[historical, "estimation"] = "x"
     count, survey, taxa = consolidate(ds, TAXONOMY)
-    h = count.loc[count.source_count_id.str.startswith('H')].set_index('count_category')
-    assert pd.isna(h.loc['normal', 'count']) and h.loc['normal', 'count_estimation'] == 'x'
-    assert h.loc['reverse', 'count'] == 3 and pd.isna(h.loc['reverse', 'count_estimation'])
-    assert all(check.status == 'pass' for check in validate_tables(count, survey, taxa, ds))
+    h = count.loc[count.source_count_id.str.startswith("H")].set_index("count_category")
+    assert pd.isna(h.loc["normal", "count"]) and h.loc["normal", "count_estimation"] == "x"
+    assert h.loc["reverse", "count"] == 3 and pd.isna(h.loc["reverse", "count_estimation"])
+    assert all(check.status == "pass" for check in validate_tables(count, survey, taxa, ds))
+
+
+def test_non_passage_projection_preserves_source_and_validation_detects_lost_birds():
+    from defile_dataset.consolidate import consolidate, validate_tables
+
+    hist = _historical([("Milan royal", "08:00", "09:00", 5)])
+    sightings, headers = _trektellen([(1, 10, "10:30", 1, 10)], [(10, "10:00", "11:00", 0)])
+    sightings["remark"], sightings["direction2"], sightings["local"] = "NPP", 0, 0
+    ds = B.build(hist, EMPTY_EFFORT, sightings, headers, TAXONOMY)
+    original = ds.observations.copy(deep=True)
+    count, survey, taxa = consolidate(ds, TAXONOMY)
+    t = count.loc[count.source_count_id.eq("T1")].set_index("count_category")
+    assert t["count"].to_dict() == {"normal": 0, "reverse": 0, "local": 10}
+    assert t.remark.isna().all()
+    pd.testing.assert_frame_equal(ds.observations, original)
+    assert all(check.status == "pass" for check in validate_tables(count, survey, taxa, ds))
+    count.loc[count.count_id.eq("T1-local"), "count"] = 9
+    assert (
+        next(
+            check
+            for check in validate_tables(count, survey, taxa, ds)
+            if check.name == "local values preserved"
+        ).status
+        == "fail"
+    )
+
+
+def test_historical_recorded_clocks_and_comment_times_are_released_without_prefixes():
+    from defile_dataset.consolidate import consolidate
+
+    hist = _historical([("Milan royal", "08:00", "09:00", 2)] * 3)
+    hist["time"] = ["08:12:00", None, None]
+    hist["comment"] = [None, "à 8h35", "8h42 avec une buse"]
+    original = hist.copy(deep=True)
+    sightings, headers = _trektellen([(1, 10, "10:30", 1, 2)], [(10, "10:00", "11:00", 0)])
+    ds = B.build(hist, EMPTY_EFFORT, sightings, headers, TAXONOMY)
+    count, _, _ = consolidate(ds, TAXONOMY)
+    h = count.loc[count.source_count_id.str.startswith("H")]
+    assert h.datetime.tolist() == [
+        "2015-09-15T06:12:00Z",
+        "2015-09-15T06:35:00Z",
+        "2015-09-15T06:42:00Z",
+    ]
+    assert h.remark.iloc[:2].isna().all()
+    assert h.remark.iloc[2] == "avec une buse"
+    assert (
+        ds.observations.loc[ds.observations.source.eq("historical"), "time_resolution"]
+        .eq("point")
+        .all()
+    )
+    pd.testing.assert_frame_equal(hist, original)
+
+
+def test_comment_clock_outside_survey_is_audited_without_inheriting_wrong_hours():
+    from defile_dataset.consolidate import consolidate
+
+    hist = _historical([("Milan royal", "08:00", "09:00", 1)])
+    hist["comment"] = "à 9h25"
+    sightings, headers = _trektellen([(1, 10, "10:30", 1, 2)], [(10, "10:00", "11:00", 0)])
+    ds = B.build(hist, EMPTY_EFFORT, sightings, headers, TAXONOMY)
+    row = ds.observations.loc[ds.observations.source.eq("historical")].iloc[0]
+    assert row.datetime_original == utc("2015-09-15 09:25")
+    assert pd.isna(row.datetime) and B.FLAG_TIME_OUTSIDE_SURVEY in row["flags"]
+    assert "Historical clock" in ds.issues.detail.iloc[0]
+    count, _, _ = consolidate(ds, TAXONOMY)
+    row = count.loc[count.source_count_id.str.startswith("H")].iloc[0]
+    assert row.datetime == "2015-09-15" and row.remark == "à 9h25"
+
+
+def test_timed_flocks_split_without_duplicating_counts_or_inventing_age_associations():
+    from defile_dataset.attributes import historical_attributes, quantity_components
+    from defile_dataset.consolidate import consolidate, validate_tables
+
+    hist = _historical([("Milan royal", "08:00", "09:00", 5)] * 2)
+    hist["comment"] = ["2:8h12;3:8h48.", "2 à 8h12 - 3 à 8h48"]
+    hist["detail"] = [None, "2x mâle adulte / 3x femelle adulte"]
+    values, audit = historical_attributes(
+        hist, pd.read_csv("config/attributes/historical_attributes.csv", dtype=str)
+    )
+    sightings, headers = _trektellen([(1, 10, "10:30", 1, 2)], [(10, "10:00", "11:00", 0)])
+    ds = B.build(hist.join(values), EMPTY_EFFORT, sightings, headers, TAXONOMY)
+    parts = quantity_components(audit)
+    count, survey, taxa = consolidate(ds, TAXONOMY, parts)
+    first = count.loc[count.source_count_id.eq("H-2014-2016-r2")]
+    assert first["count"].tolist() == [2, 3]
+    assert first.datetime.tolist() == ["2015-09-15T06:12:00Z", "2015-09-15T06:48:00Z"]
+    assert first.remark.isna().all()
+    second = count.loc[count.source_count_id.eq("H-2014-2016-r3")]
+    assert second.sex.tolist() == ["M", "F"]
+    assert second.datetime.eq("2015-09-15T06:12:00Z/2015-09-15T06:48:00Z").all()
+    assert second.remark.eq("2 à 8h12 - 3 à 8h48").all()
+    assert all(check.status == "pass" for check in validate_tables(count, survey, taxa, ds, parts))
+
+
+def test_parent_taxa_are_a_tree_of_groups():
+    parents = pd.read_csv("taxonomy/parent_taxa.csv")
+    assert parents.taxon_id.is_unique
+    full = Taxonomy.load(".")
+    reviewed = pd.read_csv("config/taxonomy/historical_text_mappings.csv", encoding="utf-8-sig")
+    ids = set(full.source_taxa.avibase_id.dropna()) | set(reviewed.target_taxon_id.dropna())
+    assert set(parents.taxon_id) <= ids and set(parents.parent_taxon_id) <= ids
+    ranks = (
+        resolve(pd.Series(sorted(ids)), full.avilist, full.ebird)
+        .set_index("avibase_id")
+        .taxon_rank
+    )
+    assert set(ranks[parents.parent_taxon_id.unique()]) <= {"spuh", "slash", "species"}
+    parent = parents.set_index("taxon_id").parent_taxon_id
+    for start in parent.index:
+        node, steps = start, 0
+        while node in parent.index:
+            node, steps = parent[node], steps + 1
+            assert steps < 10, f"{start} loops"
+
+
+def test_taxonomy_tree_totals_sum_up_the_hierarchy():
+    from defile_dataset.taxonomy_tree import tree_section, tree_stats
+
+    taxa = pd.DataFrame(
+        {
+            "taxon_id": ["a", "b", "c"],
+            "english_name": ["group sp.", "one", "two"],
+            "taxon_rank": ["spuh", "species", "species"],
+            "parent_taxon_id": [None, "a", "a"],
+        }
+    )
+    count = pd.DataFrame(
+        {
+            "taxon_id": ["a", "b", "b", "c", "c"],
+            "count": [1, 2, 3, 4, 9],
+            "count_category": ["normal", "normal", "normal", "normal", "reverse"],
+        }
+    )
+    t = tree_stats(taxa, count)
+    assert t.loc["a", ["own_records", "own_birds", "total_records", "total_birds"]].tolist() == [
+        1,
+        1,
+        5,
+        10,
+    ]
+    assert "group sp." in tree_section(taxa, count)

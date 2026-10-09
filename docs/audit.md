@@ -8,14 +8,18 @@ Open `report.html`: one section for each validation or source-review question. F
 | `audit.json` | The same check inventory rendered in HTML: status, row count, explanation and evidence file. |
 | `validation_findings.csv` | Affected rows from consistency checks, including solar times and night overlap; filter by test. |
 | `datapackage_validation.json` | Full released-CSV schema, key and conditional-rule validation. |
+| `historical_taxonomy_review.csv` | Owner-reviewed taxonomic mappings, original and released concepts, subgroup quantities, residual-text treatment and unresolved conflicts. |
+| `movement_text_review.csv` | Standalone NPP/NNP, loc and H/Halte markers, native and projected main/reverse/local quantities, overrides, already-local records and unresolved conflicts. |
+| `count_text_changes.csv` | Residual remark conversions and conflicts, with released IDs, original/remaining text, age and datetime before/after, and processing notes. |
+| `count_text_review.csv` | Original clock-like comments, recovered timestamps, remaining text and released source links. |
 | `entry_issues.csv` | Source entry/period findings, not every entry within a flagged survey. |
 | `overlap_review.csv` | Kept/excluded period pairs, overlap duration and excluded source totals; unresolved retained overlaps block publication. |
 | `attribute_quantity_review.csv` | One audit row per detail component, plus an undescribed remainder where the detail total is smaller than the source count. Scientific counts remain unchanged. |
 | `attribute_review.csv` | Historical attribute mappings requiring review, separated by outcome in HTML. |
 | `survey_status_review.csv` | Classification issues with period start/end and duration, separated by issue in HTML. |
 | `interruption_review.csv` | All season coverage findings; HTML shows unresolved dates. |
-| `historical_effort_gaps.csv` | Added historical empty intervals and reviewed breaks, with released/source IDs, declared day bounds, coverage and duration. |
-| `empty_survey_review.csv` | Every released survey without bird rows, distinguishing explicit no-species markers, inferred empty intervals, minute boundaries, missing-count data and non-counting. |
+| `historical_effort_gaps.csv` | Added historical empty intervals (`added`) and reviewed absences cut out of them (`cut`), with released/source IDs, declared day bounds and duration. |
+| `empty_survey_review.csv` | Every released survey without bird rows, distinguishing explicit no-species markers, inferred empty intervals, minute boundaries, missing-count data, weather stops and incomplete surveys. |
 | `excluded_counts.csv`, `excluded_surveys.csv` | Original excluded records and reasons. |
 | `reconciliation.csv` | Source counts equal retained counts plus mutually exclusive exclusion categories. |
 | `daily_coverage.csv` | Daily metrics computed only from the final count and survey tables. |
@@ -40,7 +44,7 @@ The coverage figure uses only final `dataset/count.csv` and `dataset/survey.csv`
 
 Entries are final bird rows, including presence-only records. Counts sum recorded numerical values; a missing value is not zero. A date with survey records but no bird rows has zero entries and no numerical bird count. Unlinked bird rows retain their collection day and contribute to entries/counts, with no assumed survey hours.
 
-Surveys count complete or partial intervals intersecting each local calendar day. Coverage metrics count complete, partial, none and unknown intervals separately. Survey hours combine complete intervals and subtract supported gaps from partial intervals. Partial intervals without usable gap times and unknown coverage make observed hours unknown; they are not counted as full header spans. Calendar bounds for none records never contribute effort. Midnight and daylight-saving transitions use Europe/Paris.
+Surveys count complete intervals intersecting each local calendar day, weather stops excluded. Status metrics count counted, weather-stop and incomplete intervals separately. Survey hours are the union of counted intervals; weather stops are not hours. An incomplete interval makes the day's observed hours unknown. Calendar bounds never contribute hours. Midnight and daylight-saving transitions use Europe/Paris.
 
 The horizontal axis is the actual day of year, restricted to the core season (days 196–335, mid-July through the end of November). Change the display limits in `config/audit-settings/coverage-season.csv`; this does not filter the dataset or CSV. Grey cells have no recorded value; pale blue is an explicit zero. Metrics with a maximum above 100 use log(1 + value) colours to keep small values visible. Hover readouts show the actual date and untransformed value. Figure downloads follow the selected metric/language; `daily_coverage.csv` contains all daily metrics. Plotly supports zooming, daily hover values and exporting the current view. Its JavaScript bundle is stored locally by `defile_dataset.audit_plots` for offline use.
 
@@ -48,4 +52,4 @@ The audit computations are in `defile_dataset.audit` and `defile_dataset.checks`
 
 Complete internal tables and optional diagnostics are under `interim/`. Build provenance and input/output fingerprints are in `output/metadata.json`.
 
-Published report totals remain independent reference values. The comparison sums retained counts over the calendar year; report seasons and taxon groups may differ. Missing sources and unresolved mappings remain blank. No count is adjusted to force agreement. The original seasonal-comparison pilot is retained in the local research evidence at `docs/reviews/report-pilot-2026-10-07/README.md`.
+Published report totals remain independent reference values. The comparison sums retained counts over the calendar year; report seasons and taxon groups may differ. Missing sources and unresolved mappings remain blank. No count is adjusted to force agreement. The [dated pilot](https://github.com/Rafnuss/defile-dataset/blob/main/docs/reviews/report-pilot-2026-10-07/README.md) illustrates why matching seasonal scope matters.
