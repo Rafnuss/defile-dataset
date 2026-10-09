@@ -13,7 +13,7 @@ The build reads `raw/historical/count_2021.xlsx`, paired Trektellen exports from
 
 The schema and field definitions live in `config/schema/datapackage.json`. Clock times are stored in UTC; collection dates refer to Europe/Paris. Missing dates do not imply zero birds or no survey. A survey row says whether its counts hold every bird that passed (`survey_complete`); weather that made counting impossible is a complete count of zero (`weather_stop`). Accepted report prose was extracted and edited with AI assistance; it is not a full transcription. The full 2022 report is unavailable.
 
-GitHub Actions runs tests and builds the audit for pull requests. Successful builds on `main` can publish the audit through GitHub Pages once **Settings → Pages → Source → GitHub Actions** is enabled. Hosted audits use the annual-report URLs in `raw/reports/sources.csv`; local builds link to the local PDF library. Generated products are ignored by Git.
+GitHub Actions runs the tests and builds the audit after each push to `main`, not before: nothing waits on them, and a failure is fixed afterwards. Successful builds publish the audit through GitHub Pages. Hosted audits use the annual-report URLs in `raw/reports/sources.csv`; local builds link to the local PDF library. Generated products are ignored by Git.
 
 ## Documentation
 

@@ -1,8 +1,10 @@
 name: Tests
 
+# After the push, not before: nothing waits on it, a failure is fixed after.
 on:
   push:
-  pull_request:
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read

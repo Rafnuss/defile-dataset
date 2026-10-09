@@ -1,9 +1,9 @@
 name: Audit report
 
+# After the push, not before: nothing waits on it, a failure is fixed after.
 on:
   push:
     branches: [main]
-  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -35,16 +35,16 @@ jobs:
             output.building/audit/
           if-no-files-found: warn
       - name: Prepare site entry point
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main'
         run: cp output/audit/report.html output/audit/index.html
       - name: Upload Pages site
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v4
         with:
           path: output/audit
 
   deploy:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     permissions:

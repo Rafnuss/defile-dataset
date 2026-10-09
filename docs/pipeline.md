@@ -76,6 +76,6 @@ Historical corrections belong in `raw/historical/count_2021.xlsx`, with evidence
 
 ## Continuous integration and hosting
 
-The test workflow runs the locked environment on pushes and pull requests. The audit workflow builds the full dataset on pushes to `main`, pull requests and manual runs, saves audit evidence, and publishes successful `main` reports through GitHub Pages. It uses `--online-report-links` for original PDF URLs; local builds use the reference library. Enable GitHub Actions as the Pages source in repository settings when configuring deployment.
+The test workflow runs the locked environment after pushes to `main` and on manual runs; nothing waits on it, and a failure is fixed afterwards. The audit workflow builds the full dataset on the same events, saves audit evidence, and publishes successful `main` reports through GitHub Pages. It uses `--online-report-links` for original PDF URLs; local builds use the reference library. Enable GitHub Actions as the Pages source in repository settings when configuring deployment.
 
 The local pipeline produces current products, not annual archives or frozen releases. See [publication](publication.md) for release preparation and [the script index](../scripts/README.md) for optional commands.
