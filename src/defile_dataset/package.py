@@ -1,5 +1,6 @@
 """Load the single JSON schema, generate documentation and validate released CSVs."""
 
+import functools
 import json
 import shutil
 from datetime import date, datetime
@@ -11,8 +12,14 @@ from frictionless import Package
 SCHEMA_FILE = Path(__file__).resolve().parents[2] / "config/schema/datapackage.json"
 
 
+@functools.cache
+def _schema_text():
+    return SCHEMA_FILE.read_text()
+
+
 def descriptor():
-    return json.loads(SCHEMA_FILE.read_text())
+    """A fresh copy of the schema; the file is read once per process."""
+    return json.loads(_schema_text())
 
 
 def columns(name):

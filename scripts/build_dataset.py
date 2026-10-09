@@ -49,6 +49,7 @@ from defile_dataset.survey_review import (
     integrate_interruptions,
     interruption_review,
     validate_historical_gaps,
+    validate_survey_rows,
 )
 from defile_dataset.survey_status import classify_trektellen, read_reviewed_status, release_status
 from defile_dataset.taxonomy import (  # noqa: E402
@@ -139,17 +140,15 @@ def main(argv=None) -> int:
         os.path.join(ROOT, "raw/reports/paper_text.csv"), keep_default_na=False
     )
     survey_table, count_table, interruption_table = integrate_interruptions(
-        survey_table, count_table, ROOT, status_intervals
+        survey_table, count_table, status_intervals
     )
     historical_breaks = pd.read_csv(
         os.path.join(ROOT, "config/audit-settings/historical-gap-breaks.csv")
     )
     survey_table, historical_gaps = integrate_historical_gaps(
-        survey_table, hist, historical_breaks
+        survey_table, hist, historical_breaks, count_table
     )
-    interruption_audit = interruption_review(
-        survey_table, ds.observations, ROOT, interruption_table
-    )
+    interruption_audit = interruption_review(survey_table, ds.observations, ROOT)
     count_ids = count_table.count_id.copy()
     count_table, survey_table, interruption_table = readable_ids(
         count_table, survey_table, ds.observations, interruption_table, taxon_table
@@ -178,6 +177,7 @@ def main(argv=None) -> int:
         conservation
         + run_checks(ds, taxonomy)
         + validate_historical_gaps(survey_table, count_table, historical_gaps)
+        + validate_survey_rows(survey_table, count_table)
     )
     print(f"  {ds.issues['survey_id'].nunique()} survey intervals with audit findings.")
 
@@ -218,9 +218,17 @@ def main(argv=None) -> int:
         attribute_audit.drop(columns="components"),
         os.path.join(diagnostic_dir, "historical_attributes.csv"),
     )
-    attribute_components["released_count_id"] += "-normal"
-    attribute_components["released_count_id"] = attribute_components.released_count_id.map(
-        released_ids
+    # A record re-split by its remark clocks (pieces no longer match subgroups) links to every
+    # normal piece of the record.
+    by_record = (
+        count_table.loc[count_table.count_category.eq("normal")]
+        .groupby("source_count_id")
+        .count_id.agg("|".join)
+    )
+    attribute_components["released_count_id"] = (
+        (attribute_components.released_count_id + "-normal")
+        .map(released_ids)
+        .fillna(attribute_components.observation_id.map(by_record))
     )
     _write_csv(attribute_components, os.path.join(diagnostic_dir, "historical_components.csv"))
     _write_csv(
@@ -321,7 +329,11 @@ def main(argv=None) -> int:
         os.path.join(ROOT, "raw/reports/annual-total-pages.csv"), dtype={"pdf_page": "Int64"}
     )
     reports = pd.read_csv(os.path.join(ROOT, "raw/reports/sources.csv"))
-    reports["report_pdf"] = reports.url if args.online_report_links else "../../" + reports.path
+    # Local PDFs live in the research checkout only; elsewhere link the online copy.
+    local = reports.path.map(lambda path: os.path.exists(os.path.join(ROOT, path)))
+    reports["report_pdf"] = reports.url.where(
+        args.online_report_links | ~local, "../../" + reports.path
+    )
     comparison = comparison.merge(pages, on=["year", "species"], how="left").merge(
         reports[["year", "report_pdf"]], on="year", how="left"
     )
@@ -355,9 +367,13 @@ def main(argv=None) -> int:
     checks = build_checks(ds, checks, validation, reviews, reconciliation)
     for c in checks:
         print(f"  [{c.status:4s}] {c.name}: {c.detail}")
-    coverage = daily_coverage(count_table, survey_table, interruption_table)
+    coverage = daily_coverage(count_table, survey_table)
     coverage_assets(os.path.join(audit_dir, "coverage"))
-    coverage_season = pd.read_csv("config/audit-settings/coverage-season.csv").iloc[0].to_dict()
+    coverage_season = (
+        pd.read_csv(os.path.join(ROOT, "config/audit-settings/coverage-season.csv"))
+        .iloc[0]
+        .to_dict()
+    )
     _write_csv(
         reviews["quantity_components"], os.path.join(audit_dir, "attribute_quantity_review.csv")
     )
@@ -482,7 +498,7 @@ def main(argv=None) -> int:
         "historical_cut_hours": float(
             historical_gaps.loc[historical_gaps.status.eq("cut"), "hours"].sum()
         ),
-        "datapackage_validation": "pass",
+        "datapackage_validation": "pass" if validation["valid"] else "fail",
         "attribute_crosswalk": "historical-attributes-age-bound-v3",
         "attribute_split_policy": "historical-normal-subgroups-v3",
         "count_category_policy": "normal-reverse-local-marker-overrides-v3",

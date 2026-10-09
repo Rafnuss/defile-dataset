@@ -11,7 +11,7 @@ from defile_dataset.report_text import CHECK_TEXT
 from defile_dataset.site import TIMEZONE
 
 
-def daily_coverage(count, survey, interruptions=None):
+def daily_coverage(count, survey):
     """Summarize final records and retained survey intervals by local calendar day."""
     periods = []
     for row in survey.itertuples(index=False):
@@ -275,17 +275,6 @@ def build_checks(ds, checks, validation, reviews, reconciliation):
     for issue in sorted(status.issue.unique()):
         rows = status.loc[status.issue.eq(issue)].copy()
         columns = ("date", "survey_id", "issue", "detail", "weather", "remarks")
-        if issue == "unclassified_empty_header":
-            columns = (
-                "date",
-                "survey_id",
-                "start",
-                "end",
-                "duration_hours",
-                "detail",
-                "weather",
-                "remarks",
-            )
         result.append(
             Check(
                 "Survey status: " + issue.replace("_", " "),
@@ -296,8 +285,6 @@ def build_checks(ds, checks, validation, reviews, reconciliation):
                 file="survey_status_review.csv",
                 columns=columns,
                 key="survey-status-" + issue,
-                filter_column="duration_hours" if issue == "unclassified_empty_header" else "",
-                filter_threshold=1 if issue == "unclassified_empty_header" else 0,
             )
         )
     unresolved = reviews["coverage"].loc[reviews["coverage"].assessment.eq("unresolved")]

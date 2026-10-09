@@ -157,9 +157,9 @@ class Taxonomy:
     def add_to(self, obs: pd.DataFrame, source: str) -> pd.DataFrame:
         """Add TAXON_COLUMNS to observations of `source` (by French name, or Trektellen id)."""
         key = "taxon_name_original" if source == "historical" else "trektellen_species_id"
-        lk = self._lookup(source, key).drop_duplicates(key)
-        if source == "historical":
-            lk = lk.drop(columns="trektellen_species_id", errors="ignore")
+        lk = self._lookup(source, key).drop_duplicates([key, "avibase_id"])
+        duplicated = lk.loc[lk[key].duplicated(keep=False), [key, "avibase_id"]]
+        assert duplicated.empty, f"source_taxa.csv maps one {key} twice:\n{duplicated}"
         out = obs.merge(lk, on=key, how="left")
         assert len(out) == len(obs)
         return out

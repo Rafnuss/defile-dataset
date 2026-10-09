@@ -7,12 +7,13 @@ import pandas as pd
 
 from defile_dataset.movement_text import project_non_passage
 from defile_dataset.package import columns, descriptor
+from defile_dataset.read import EFFORT_SHEET
 from defile_dataset.remark_text import clean_text
 from defile_dataset.source_text import split_timed_counts
 
 COUNT_COLUMNS = columns("count")
 SURVEY_COLUMNS = columns("survey")
-TAXON_COLUMNS = columns("taxonomy")
+TAXONOMY_COLUMNS = columns("taxonomy")
 ERA = {"1966-2013": "notebook", "2014-2016": "spreadsheet", "2017-2021": "naturalist"}
 NOTES = {
     "calendar_day_bounds": "Calendar-day bounds: weather stopped counting all day; no hours were recorded.",
@@ -97,8 +98,8 @@ def consolidate(ds, taxonomy, components=None):
     survey["recording_era"] = s.sheet.map(ERA).fillna("trektellen")
     # Empty historical days get their era from the date, not from a missing count sheet.
     historical = s.source.eq("historical")
-    survey.loc[historical & s.sheet.eq("Pression observation"), "recording_era"] = s.loc[
-        historical & s.sheet.eq("Pression observation"), "date"
+    survey.loc[historical & s.sheet.eq(EFFORT_SHEET), "recording_era"] = s.loc[
+        historical & s.sheet.eq(EFFORT_SHEET), "date"
     ].dt.year.map(
         lambda year: "notebook" if year < 2014 else "spreadsheet" if year < 2017 else "naturalist"
     )
@@ -221,7 +222,7 @@ def consolidate(ds, taxonomy, components=None):
         )
     taxa = pd.DataFrame(taxon_rows)
     taxa["parent_taxon_id"] = taxa.taxon_id.map(taxonomy.parents)
-    taxa = taxa.reindex(columns=TAXON_COLUMNS)
+    taxa = taxa.reindex(columns=TAXONOMY_COLUMNS)
     count.attrs["taxonomy_review"] = o.attrs.get("taxonomy_review", [])
     count.attrs["movement_review"] = o.attrs.get("movement_review", [])
     return (
@@ -236,11 +237,14 @@ def local_dates(values):
     start = values.str.split("/").str[0]
     dates = start.str[:10].copy()
     timed = start.str.contains("T", na=False)
-    dates.loc[timed] = (
-        pd.to_datetime(start.loc[timed], utc=True, format="ISO8601")
+    # Many counts share a clock: convert each distinct value once.
+    unique = pd.Series(start.loc[timed].unique())
+    local = (
+        pd.to_datetime(unique, utc=True, format="ISO8601")
         .dt.tz_convert(descriptor()["x-calendarTimezone"])
         .dt.strftime("%Y-%m-%d")
     )
+    dates.loc[timed] = start.loc[timed].map(dict(zip(unique, local)))
     return dates
 
 

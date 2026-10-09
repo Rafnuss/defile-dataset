@@ -30,7 +30,7 @@ uv run pytest
 2. Resolve taxa, map historical attributes and preserve original source fields.
 3. Classify surveys from native tags and reviewed decisions; select eligible counts.
 4. Consolidate count, survey and taxonomy; read the accepted report-text CSV directly.
-5. Split surveys around timed weather stops (their own rows) and absences (cut), add historical empty intervals inside declared day windows minus reviewed absences; compute coverage review, exclusions and comparisons.
+5. Split surveys around timed weather stops (their own rows) and absences (cut), add historical empty intervals inside declared day windows minus surveys, count time ranges and reviewed absences; compute coverage review, exclusions and comparisons.
 6. Stage all generated files; validate count conservation, timing, schemas and taxon links.
 7. Replace current generated products after required checks pass; refresh dictionaries.
 

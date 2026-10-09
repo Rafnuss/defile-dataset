@@ -127,7 +127,7 @@ Excluded from the GBIF archive. Retained in the canonical dataset on GitHub and 
 ## Generated fields and exceptional cases
 
 - `basisOfRecord` is generated as `HumanObservation`.
-- `occurrenceStatus` is `present` if the category quantity is positive or the source marks presence-only (`x`); otherwise unspecified. No source zero is mapped to absence.
+- Only positive category quantities and presence-only records (`x`) become Occurrences, all with `occurrenceStatus` `present`. GBIF would read `individualCount` 0 as an absence, so zero quantities (mostly recorded zero reverse/local counts) stay in `count.csv` and are not exported.
 - Counts without a survey use `defile:2422:unlinked-day:DATE` as their Event link. Its Event date is the local collection day, with no inferred effort.
 - `countryCode` and `locality` are generated from the configured site. Coordinates are not currently exported.
 - Current `eventRemarks` says whether the Event is a complete count, a weather stop or an incomplete count; `occurrenceRemarks` explains category quantities. Source remark columns stay in Zenodo.

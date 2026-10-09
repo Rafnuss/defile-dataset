@@ -1,6 +1,5 @@
 """Readable release IDs; original identities remain available for source tracing."""
 
-import re
 import unicodedata
 
 import pandas as pd
@@ -96,7 +95,8 @@ def readable_ids(count, survey, observations, interruptions, taxa=None):
         for i in count.index[changed]:
             old = original.loc[count.at[i, "source_count_id"], "ebird_code"]
             new = lookup.loc[count.at[i, "taxon_id"]]
-            count.at[i, "count_id"] = count.at[i, "count_id"].replace("-" + old, "-" + new, 1)
+            if pd.notna(old) and pd.notna(new):
+                count.at[i, "count_id"] = count.at[i, "count_id"].replace("-" + old, "-" + new, 1)
     timed = (
         count.datetime.fillna("").str.contains("T") & ~count.datetime.fillna("").str.contains("/")
         if "datetime" in count
@@ -108,11 +108,10 @@ def readable_ids(count, survey, observations, interruptions, taxa=None):
             .dt.tz_convert(TIMEZONE)
             .dt.strftime("%H%M")
         )
-        for i, clock in clocks.items():
-            count.at[i, "count_id"] = re.sub(
-                r"^([A-Z]-\d{8})(?:-\d{4})?",
-                lambda match: match[1] + "-" + clock,
-                count.at[i, "count_id"],
-            )
+        # `X-YYYYMMDD[-HHMM]...` -> `X-YYYYMMDD-<own clock>...`
+        timed &= count.count_id.str.match(r"[A-Z]-\d{8}")
+        ids = count.loc[timed, "count_id"]
+        rest = ids.str.replace(r"^[A-Z]-\d{8}(?:-\d{4})?", "", regex=True)
+        count.loc[timed, "count_id"] = ids.str[:10] + "-" + clocks.loc[ids.index] + rest
     count["count_id"] = unique_names(count.count_id, count.source_count_id + suffix)
     return count, survey, interruptions

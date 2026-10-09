@@ -182,7 +182,7 @@ def test_compact_survey_times_keep_next_day_marker_and_full_sort_value():
     assert 'data-sort="2025-08-25 04:00:00+00:00"' in document
 
 
-def test_empty_survey_duration_filter_allows_short_periods():
+def test_duration_filter_allows_short_periods():
     from defile_dataset.report import render
 
     check = Check(
@@ -190,12 +190,11 @@ def test_empty_survey_duration_filter_allows_short_periods():
         "warn",
         "",
         pd.DataFrame({"duration_hours": [0.25, 2.0]}),
-        key="survey-status-unclassified_empty_header",
+        key="survey-status-empty-example",
         filter_column="duration_hours",
     )
     document = render([check], {})
     assert 'min="0"' in document and 'data-filter-value="0.25"' in document
-    assert "View day" in document
 
 
 def test_entry_offset_filter_uses_minutes_and_default_tolerance():

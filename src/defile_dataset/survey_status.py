@@ -99,8 +99,18 @@ def reviewed_action(row):
     without applies to the whole header: `weather_stop = true`, `survey_complete = false`, or
     `survey_complete = remove` (an empty header that was no survey).
     """
-    weather = str(row["weather_stop"]).strip().lower() == "true"
+    weather = str(row["weather_stop"]).strip().lower()
     complete = str(row["survey_complete"]).strip().lower()
+    assert weather in {"", "true"}, f'{row["decision_id"]}: weather_stop {weather!r}'
+    assert complete in {
+        "",
+        "false",
+        "remove",
+    }, f'{row["decision_id"]}: survey_complete {complete!r}'
+    assert not (
+        row["datetime"] and complete
+    ), f'{row["decision_id"]}: a timed row is a weather stop or an absence'
+    weather = weather == "true"
     if row["datetime"]:
         return "weather" if weather else "absent"
     if weather:
@@ -187,6 +197,25 @@ def classify_trektellen(surveys, observations, reviewed):
         entries = bird_groups.get(row.survey_id, birds.iloc[:0])
         for d in decisions:
             if d["datetime"]:
+                begin, end = [pd.Timestamp(t).tz_convert("UTC") for t in d["datetime"].split("/")]
+                times = pd.to_datetime(entries.datetime, utc=True)
+                if times.isna().any():
+                    problems.append(
+                        (
+                            "untimed_birds_near_interruption",
+                            "Untimed birds cannot be placed before or after the interruption.",
+                        )
+                    )
+                covers = begin <= row.start and row.end <= end
+                if ((times >= begin) & (times < end)).any() or (covers and len(entries)):
+                    # As for a whole header: birds recorded in it, so it stays counted.
+                    problems.append(
+                        (
+                            "birds_in_interruption",
+                            f'Birds recorded in the {d["action"]} interval; withheld, kept as counted.',
+                        )
+                    )
+                    continue
                 intervals.append(
                     dict(
                         interruption_id=d["id"],
@@ -198,22 +227,6 @@ def classify_trektellen(surveys, observations, reviewed):
                         scope=d["scope"],
                     )
                 )
-                begin, end = [pd.Timestamp(t).tz_convert("UTC") for t in d["datetime"].split("/")]
-                times = pd.to_datetime(entries.datetime, utc=True)
-                if times.isna().any():
-                    problems.append(
-                        (
-                            "untimed_birds_near_interruption",
-                            "Untimed birds cannot be placed before or after the interruption.",
-                        )
-                    )
-                if ((times >= begin) & (times < end)).any():
-                    problems.append(
-                        (
-                            "birds_in_interruption",
-                            f'Bird clocks fall in the {d["action"]} interval; retained.',
-                        )
-                    )
             elif d["action"] == "weather":
                 surveys.loc[i, "weather_stop"] = True
             elif d["action"] == "incomplete":

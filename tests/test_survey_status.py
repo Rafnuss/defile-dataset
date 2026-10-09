@@ -166,7 +166,7 @@ def test_timed_weather_stop_splits_the_header_into_its_own_row(tmp_path):
             count_id=["C1", "C2"], survey_id=["T1", "T1"], datetime=["2027-08-01T07:00:00Z", pd.NA]
         )
     )
-    survey, count, _ = integrate_interruptions(released(result), count, tmp_path, intervals)
+    survey, count, _ = integrate_interruptions(released(result), count, intervals)
     rows = survey.set_index("survey_id")
     assert rows.datetime.to_dict() == {
         "T1": "2027-08-01T06:00:00Z/2027-08-01T08:00:00Z",
@@ -195,9 +195,27 @@ def test_absence_is_cut_and_its_counts_follow_their_times(tmp_path):
             datetime=["2027-08-01T07:00:00Z", "2027-08-01T13:00:00Z"],
         )
     )
-    survey, count, _ = integrate_interruptions(released(result), count, tmp_path, intervals)
+    survey, count, _ = integrate_interruptions(released(result), count, intervals)
     assert survey.survey_id.tolist() == ["T1", "T1-part2"] and not survey.weather_stop.any()
     assert count.survey_id.tolist() == ["T1", "T1-part2"]
+
+
+def test_timed_stop_with_birds_inside_is_withheld():
+    s, o, r = native("[DEFILE weather from=08:30 to=09:30]")  # the bird is at 09:00 local
+    result, intervals, review = classify_trektellen(s, o, r)
+    assert intervals.empty and "birds_in_interruption" in set(review.issue)
+    assert result.survey_complete.iloc[0] and not result.weather_stop.iloc[0]
+
+
+def test_reviewed_values_are_validated():
+    s, o, _ = native()
+    for row in (dict(survey_complete="flase"), dict(weather_stop="yes")):
+        with pytest.raises(AssertionError):
+            classify_trektellen(s, o, reviewed(**row))
+    with pytest.raises(AssertionError):
+        classify_trektellen(
+            s, o, reviewed(datetime="2027-08-01T10:00Z/2027-08-01T11:00Z", survey_complete="false")
+        )
 
 
 def test_untimed_birds_near_an_interruption_are_listed():
@@ -226,7 +244,7 @@ def test_weather_after_the_header_is_a_curated_row(tmp_path):
     count = pd.DataFrame(
         dict(count_id=["C1"], survey_id=["T1"], datetime=["2027-08-01T07:00:00Z"])
     )
-    survey, count, _ = integrate_interruptions(released(result), count, tmp_path, intervals)
+    survey, count, _ = integrate_interruptions(released(result), count, intervals)
     assert survey.recording_era.tolist() == [
         "trektellen",
         "curated",
