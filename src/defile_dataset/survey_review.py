@@ -115,7 +115,7 @@ def empty_survey_review(survey, count, observations, gaps):
         - pd.to_datetime(rows.datetime.str.split("/").str[0], utc=True)
     ).dt.total_seconds() / 3600
     rows["no_species_entries"] = (
-        rows.source_survey_id.map(
+        rows.survey_id.map(
             observations.loc[observations.taxon_kind.eq("no_species")].groupby("survey_id").size()
         )
         .fillna(0)
@@ -124,14 +124,14 @@ def empty_survey_review(survey, count, observations, gaps):
     rows["review_class"] = "empty_native_header"
     rows.loc[rows.no_species_entries.gt(0), "review_class"] = "explicit_no_species"
     rows.loc[
-        rows.source_survey_id.isin(gaps.source_survey_id), "review_class"
+        rows.survey_id.isin(gaps.source_survey_id), "review_class"
     ] = "declared_empty_interval"
     rows.loc[
-        rows.source_survey_id.isin(gaps.source_survey_id) & rows.duration_hours.le(1 / 60),
+        rows.survey_id.isin(gaps.source_survey_id) & rows.duration_hours.le(1 / 60),
         "review_class",
     ] = "minute_boundary_gap"
     rows.loc[
-        rows.source_survey_id.isin(gaps.source_survey_id) & rows.duration_hours.ge(3),
+        rows.survey_id.isin(gaps.source_survey_id) & rows.duration_hours.ge(3),
         "review_class",
     ] = "long_declared_gap"
     rows.loc[rows.weather_stop.fillna(False).astype(bool), "review_class"] = "weather_stop"
@@ -150,7 +150,6 @@ def empty_survey_review(survey, count, observations, gaps):
     return rows[
         [
             "survey_id",
-            "source_survey_id",
             "date",
             "datetime",
             "duration_hours",

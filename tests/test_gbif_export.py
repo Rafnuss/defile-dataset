@@ -70,7 +70,9 @@ def export_input(tmp_path):
             "sex",
             "plumage",
         ],
-    ).assign(remark="Private source narrative", remark_processing="Detailed correction").to_csv(
+    ).drop(columns="source_count_id").assign(
+        remark="Private source narrative", remark_processing="Detailed correction"
+    ).to_csv(
         tmp_path / "dataset/count.csv", index=False
     )
     pd.DataFrame(
@@ -125,12 +127,12 @@ def test_export_preserves_survey_and_count_rows(export_input):
         == "2024-07-31T22:00:00Z/2024-08-01T23:00:00Z"
     )
     properties = json.loads(occurrences.loc["defile:2422:count:T1-normal", "dynamicProperties"])
-    assert properties["count_category"] == "normal" and properties["source_count_id"] == "T1"
+    assert properties["count_category"] == "normal"
     assert (
         properties["age"] == "I"
         and occurrences.loc["defile:2422:count:T1-normal", "sex"] == "male"
     )
-    assert set(properties) == {"source_count_id", "count_category", "age"}
+    assert set(properties) == {"count_category", "age"}
     assert (
         "Private source narrative" not in occurrences.to_csv()
         and "Detailed correction" not in occurrences.to_csv()

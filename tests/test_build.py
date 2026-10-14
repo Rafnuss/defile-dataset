@@ -110,6 +110,16 @@ def _flags(o, oid):
     return o.loc[o["observation_id"] == oid, "flags"].iloc[0]
 
 
+def test_trektellen_non_adult_age_spellings_share_one_release_code():
+    s, c = _trektellen(
+        [(1, 10, "06:30", 1, 1), (2, 10, "06:40", 1, 1)],
+        [(10, "06:00", "09:00", 0)],
+    )
+    s["age"] = ["Non-adult", "non_adult"]
+    _, observations, _ = B.trektellen_tables(s, c, TAXONOMY)
+    assert observations["age"].tolist() == ["Non-adult", "Non-adult"]
+
+
 def test_outside_period_offsets_measure_early_and_late_entries():
     s, c = _trektellen(
         [(1, 10, "05:55", 1, 2), (2, 11, "09:05", 1, 3), (3, 12, "09:06", 1, 4)],
@@ -439,7 +449,9 @@ def test_consolidated_tables_preserve_precision_keys_and_direction_counts():
         if resource["name"] not in ("count", "survey", "taxonomy"):
             continue
         table = {"count": count, "survey": survey, "taxonomy": taxa}[resource["name"]]
-        assert [field["name"] for field in resource["schema"]["fields"]] == table.columns.tolist()
+        assert [field["name"] for field in resource["schema"]["fields"]] == table.columns.drop(
+            "source_count_id", errors="ignore"
+        ).tolist()
 
 
 def test_presence_only_is_not_a_numerical_count():

@@ -199,13 +199,6 @@ def classify_trektellen(surveys, observations, reviewed):
             if d["datetime"]:
                 begin, end = [pd.Timestamp(t).tz_convert("UTC") for t in d["datetime"].split("/")]
                 times = pd.to_datetime(entries.datetime, utc=True)
-                if times.isna().any():
-                    problems.append(
-                        (
-                            "untimed_birds_near_interruption",
-                            "Untimed birds cannot be placed before or after the interruption.",
-                        )
-                    )
                 covers = begin <= row.start and row.end <= end
                 if ((times >= begin) & (times < end)).any() or (covers and len(entries)):
                     # As for a whole header: birds recorded in it, so it stays counted.

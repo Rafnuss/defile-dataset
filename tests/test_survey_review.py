@@ -284,17 +284,14 @@ def test_empty_review_distinguishes_marker_missing_data_and_boundary_gap():
         [
             dict(
                 survey_id="S1",
-                source_survey_id="H1",
                 datetime="2015-09-01T07:00:00Z/2015-09-01T08:00:00Z",
             ),
             dict(
                 survey_id="S2",
-                source_survey_id="H2",
                 datetime="2015-09-01T08:00:00Z/2015-09-01T08:01:00Z",
             ),
             dict(
                 survey_id="S3",
-                source_survey_id="H3",
                 datetime="2015-09-02T07:00:00Z/2015-09-02T08:00:00Z",
                 survey_complete=False,
                 remark_processing="No count entries; this does not establish species absences.",
@@ -302,25 +299,21 @@ def test_empty_review_distinguishes_marker_missing_data_and_boundary_gap():
             ),
             dict(
                 survey_id="S4",
-                source_survey_id="H4",
                 datetime="2015-09-01T08:01:00Z/2015-09-01T09:00:00Z",
             ),
             dict(
                 survey_id="S5",
-                source_survey_id="H5",
                 datetime="2015-09-03T07:00:00Z/2015-09-03T08:00:00Z",
                 weather_stop=True,
                 survey_comment="Rain all day.",
             ),
             dict(
                 survey_id="S6",
-                source_survey_id="H6",
                 datetime="2015-09-04T07:00:00Z/2015-09-04T08:00:00Z",
                 remark_processing="No count entries; this does not establish species absences.",
             ),
             dict(
                 survey_id="S7",
-                source_survey_id="H7",
                 datetime="2015-09-05T07:00:00Z/2015-09-05T08:00:00Z",
                 survey_complete=False,
                 survey_comment="Birds passed while the observer was busy.",
@@ -329,7 +322,6 @@ def test_empty_review_distinguishes_marker_missing_data_and_boundary_gap():
     ).reindex(
         columns=[
             "survey_id",
-            "source_survey_id",
             "datetime",
             "survey_complete",
             "weather_stop",
@@ -341,9 +333,9 @@ def test_empty_review_distinguishes_marker_missing_data_and_boundary_gap():
             "remark",
         ]
     )
-    observations = pd.DataFrame([dict(survey_id="H1", taxon_kind="no_species")])
+    observations = pd.DataFrame([dict(survey_id="S1", taxon_kind="no_species")])
     count = pd.DataFrame([dict(survey_id="S4", datetime="2015-09-01")])
-    gaps = pd.DataFrame(dict(source_survey_id=["H2"]))
+    gaps = pd.DataFrame(dict(source_survey_id=["S2"]))
     review = empty_survey_review(survey, count, observations, gaps).set_index("survey_id")
     assert review.review_class.to_dict() == {
         "S1": "explicit_no_species",

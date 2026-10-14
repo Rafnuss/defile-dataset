@@ -72,6 +72,13 @@ def dictionary():
                         for value in [
                             definition.get("evidenceStatus", ""),
                             definition.get("note", ""),
+                            (
+                                f"EURING age {definition['euringAgeCode']}"
+                                if definition.get("euringAgeCode")
+                                else ""
+                            ),
+                            definition.get("euringMatch", ""),
+                            definition.get("euringNote", ""),
                         ]
                         if value
                     )
@@ -102,6 +109,9 @@ def attribute_dictionary():
                     "evidence_status": meaning["evidenceStatus"],
                     "batumi_code": meaning["batumiCode"],
                     "batumi_match": meaning["batumiMatch"],
+                    "euring_age_code": meaning.get("euringAgeCode", ""),
+                    "euring_match": meaning.get("euringMatch", ""),
+                    "euring_note": meaning.get("euringNote", ""),
                     "source": meaning["source"],
                     "note": meaning["note"],
                     "example_data_id": meaning["exampleDataId"],
@@ -116,8 +126,13 @@ def generate_docs(dataset_dir, repository_docs=True):
     dataset_dir = Path(dataset_dir)
     dataset_dir.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(SCHEMA_FILE, dataset_dir / "datapackage.json")
-    usage = (root / "docs/dataset.md").read_text()
+    usage = (
+        (root / "docs/dataset.md")
+        .read_text()
+        .replace("(table-columns.md)", "(DATA_DICTIONARY.md)")
+    )
     for name in (
+        "dataset-details.md",
         "pipeline.md",
         "table-columns.md",
         "survey-coverage.md",
@@ -129,7 +144,10 @@ def generate_docs(dataset_dir, repository_docs=True):
         usage = usage.replace(
             f"({name})", f"(https://github.com/Rafnuss/defile-dataset/blob/main/docs/{name})"
         )
-    (dataset_dir / "README.md").write_text(usage + dictionary())
+    (dataset_dir / "README.md").write_text(usage)
+    (dataset_dir / "DATA_DICTIONARY.md").write_text(
+        "# Dataset column definitions\n\n" + dictionary()
+    )
     if repository_docs:
         attribute_dictionary().to_csv(root / "docs/bird_attribute_codes.csv", index=False)
         (root / "docs/table-columns.md").write_text(

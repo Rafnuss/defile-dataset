@@ -5,7 +5,7 @@
 
 Generated from config/schema/datapackage.json; edit that source rather than these tables.
 
-Frictionless validates standard types, constraints, primary keys and foreign keys. x-validationRules declare project rules implemented by the local validator; generic Frictionless validators do not enforce these extensions. Release build checks additionally reject counts linked to weather stops and overlapping survey intervals; these cross-table/time rules are not enforced by validate_package alone. See docs/survey-coverage.md and docs/audit.md for assumptions and interpretation.
+Frictionless validates standard types, constraints, primary keys and foreign keys. x-validationRules declare project rules implemented by the local validator; generic Frictionless validators do not enforce these extensions. Age, sex and plumage are independent recorded attributes: no cross-field combination is prohibited, and one attribute must not be inferred from another. Release build checks additionally reject counts linked to weather stops and overlapping survey intervals; these cross-table/time rules are not enforced by validate_package alone. See docs/survey-coverage.md and docs/audit.md for assumptions and interpretation.
 
 ### Survey interpretation
 
@@ -32,16 +32,15 @@ Foreign key: `taxon_id` → `taxonomy.taxon_id`.
 | Column | Type | Required | Constraints | Meaning |
 | --- | --- | --- | --- | --- |
 | count_id | string | Yes | unique: true | Readable release identity: era prefix (B notebook, S spreadsheet, N Naturalist, T Trektellen), local YYYYMMDD, optional recorded HHMM, eBird code or normalized original taxon label, optional collision/subgroup suffix, and normal/reverse/local category. Regenerated each build; corrections can change it. |
-| source_count_id | string | Yes | — | Original source observation identity, shared by categories and subgroups. Historical workbook sheet/row or Trektellen dataid/export position; links to the internal source ledger. Not a unique key and not regenerated from the readable count ID. |
 | survey_id | string | No | — | Original survey association, retained even when entry timing is missing or outside the survey interval. A link does not establish interval membership; explicit count datetime takes precedence over survey timing. Missing only when no released source survey is available. |
 | taxon_id | string | Yes | pattern: "avibase-[A-F0-9]{8}" | Bird taxonomy foreign key. |
 | datetime | string | Conditional | pattern: "([0-9]{4}-(0[1-9]&#124;1[0-2])-(0[1-9]&#124;[12][0-9]&#124;3[01])&#124;[0-9]{4}-(0[1-9]&#124;1[0-2])-(0[1-9]&#124;[12][0-9]&#124;3[01])T([01][0-9]&#124;2[0-3]):[0-5][0-9](:[0-5][0-9](\\.[0-9]+)?)?(Z&#124;\\+00:00)(/[0-9]{4}-(0[1-9]&#124;1[0-2])-(0[1-9]&#124;[12][0-9]&#124;3[01])T([01][0-9]&#124;2[0-3]):[0-5][0-9](:[0-5][0-9](\\.[0-9]+)?)?(Z&#124;\\+00:00))?)" | ISO local collection date, UTC datetime or UTC interval. Empty inherits survey timing; required when no survey is linked. Dates carry no invented midnight. String with an ISO pattern because date/datetime types cannot represent the permitted interval form. Z or +00:00 is required for clock times; the build writes Z. Calendar validity and ordering are checked by the declared ISO rule. |
 | count | integer | Conditional | minimum: 0 | Numerical quantity for this count_category; required except for presence-only count_estimation=x. |
 | count_category | string | Yes | enum: ["normal", "reverse", "local"] | normal: main migration direction; reverse: opposite direction; local: local/non-migrating birds (Trektellen Present). Missing reverse/local quantities produce no row; explicit zeros are retained. Filter normal for main migration totals. |
 | count_estimation | string | No | enum: ["~", ">", "x"] | Recorded count qualifier. Blank means no recorded qualifier, not proof of exactness. Numeric totals retain the supplied number even when estimated or a lower bound. |
-| age | string | No | enum: ["A", "1", "2", "3", "4", "I", "J", "S", "Non-Juv", "Non-adult", "non_adult", ">1y"] | Native Trektellen age code or the explicit historical lower-bound code >1y; see source crosswalk. Blank means no supported class for this released count subgroup. New codes require a dictionary review. |
+| age | string | No | enum: ["A", "1", "2", "3", "4", "I", "J", "S", "Non-Juv", "Non-adult"] | Native Trektellen age code; historical immature and > 1 an labels both map to I, with their original wording preserved in remarks. Blank means no supported class for this released count subgroup. New codes require a dictionary review. |
 | sex | string | No | enum: ["M", "F", "FC"] | Trektellen sex code; FC means female type, not necessarily female. Allowed codes are the reviewed inventory; unverified meanings are labelled explicitly. Blank means no supported class for this released count subgroup. New codes require a dictionary review. |
-| plumage | string | No | enum: ["D", "L", "W", "I", "B", "E"] | Native or reviewed Trektellen plumage code; unknown codes remain native. Allowed codes are the reviewed inventory; unverified meanings are labelled explicitly. Blank means no supported class for this released count subgroup. New codes require a dictionary review. |
+| plumage | string | No | enum: ["D", "L", "W", "I", "B", "E"] | Native Trektellen plumage code; unknown codes remain native. Reviewed meanings are documented in the enum inventory. Blank means no supported class for this released count subgroup. New codes require a dictionary review. |
 | remark | string | No | — | Residual source prose without field-name prefixes. Fully converted count/age/sex/plumage descriptions and explicit clocks are omitted; unresolved wording, behaviour and source-attributed daily context remain. Original fields are preserved in the internal source ledger. |
 | remark_processing | string | No | — | Processing explanations, distinct from observer text. |
 | trektellen_data_id | integer | No | minimum: 1 | Native count-entry dataid, not the survey-level countid. |
@@ -58,18 +57,16 @@ Foreign key: `taxon_id` → `taxonomy.taxon_id`.
 
 | Code | Meaning | Evidence / notes |
 | --- | --- | --- |
-| A | Adult | display_verified |
-| 1 | First calendar year | display_verified; Calendar age does not imply juvenile plumage; do not automatically convert to Batumi juv. |
-| 2 | Second calendar year | display_verified |
-| 3 | Third calendar year | numeric_convention; Observed native code; meaning extends the verified 1cy/2cy convention. Confirm full Trektellen dictionary. |
-| 4 | Fourth calendar year | numeric_convention; Observed native code; meaning extends the verified 1cy/2cy convention. Confirm full Trektellen dictionary. |
-| I | Older than first calendar year; immature | display_verified; The UI explicitly shows >1cy (imm); do not use for unspecified older birds or all non-adults. |
-| J | Juvenile (provisional) | unverified; No code-to-label evidence recovered; preserve native values, no historical conversion to J yet. |
-| S | Subadult | display_verified |
-| Non-Juv | Non-Juv (native display label) | label_only; Precise definition unresolved; no automatic older-than-one-year conversion. |
-| Non-adult | Non-adult (provisional) | unverified; Both spellings occur; the checked public page did not render the attribute. Preserve source spelling for now. |
-| non_adult | Non-adult (provisional) | unverified; Both spellings occur; the checked public page did not render the attribute. Preserve source spelling for now. |
-| >1y | Older than one year; adult status unspecified | literal_source_wording; Dataset extension, not a native Trektellen code. A lower bound in years is not an exact calendar age or an immature/adult classification. Exclude from adult/non-adult proportions. |
+| A | Adult | display_verified; General field usage: an individual judged to show adult plumage; age thresholds are species-specific and this is not a precise calendar-year class. EURING notes that age coding is based on plumage evidence, not known years of life.; EURING age 2; related_only; EURING 2 is full-grown with age otherwise unknown, which is broader than Trektellen Adult. EURING A means after fourth year and is not equivalent. |
+| 1 | First calendar year | display_verified; Calendar-year age changes on 1 January and does not itself identify plumage; do not automatically convert to juvenile plumage.; EURING age 3; related_only; Both indicate first calendar year, but EURING 3 additionally specifies a full-grown bird; the EURING numeric code differs. |
+| 2 | Second calendar year | display_verified; Calendar-year age changes on 1 January and does not itself identify plumage.; EURING age 5; calendar_year_equivalent; Both indicate second calendar year; the EURING numeric code differs. |
+| 3 | Third calendar year | display_verified; Trektellen display confirms 3cy; verified by maintainer. This is a Trektellen code, not EURING age code 3. Calendar-year age changes on 1 January and does not itself identify plumage.; EURING age 7; calendar_year_equivalent; Trektellen 3cy matches EURING third-year concept; the EURING numeric code differs. |
+| 4 | Fourth calendar year | display_verified; Trektellen display confirms 4cy; verified by maintainer. This is a Trektellen code, not EURING age code 4. Calendar-year age changes on 1 January and does not itself identify plumage.; EURING age 9; calendar_year_equivalent; Trektellen 4cy matches EURING fourth-year concept; the EURING numeric code differs. |
+| I | >1cy (imm) / >1 an (combined Trektellen age class) | display_verified; English UI shows >1cy (imm); French UI shows >1 an for the same observations. Historical immature and > 1 an descriptors both map to I; original wording is retained in remarks. The combined code alone does not establish adult or non-adult status.; EURING age 4; related_only; Both indicate older than first calendar year with no exact year. Trektellen labels differ by language; the combined code does not establish maturity and is not a plumage code. |
+| J | Juvenile | display_verified; General ornithological usage defines juvenile plumage as the first true-feather plumage after down, commonly the plumage in which a young bird leaves the nest. Exact appearance and duration vary by species. This Trektellen age label is distinct from EURING Plumage Code J.; no_direct_age_code; Trektellen label Juvenile is confirmed. EURING has Plumage Code J for juvenile, but that is a different field; do not convert automatically to EURING age 3. |
+| S | Subadult | display_verified; General ornithological literature uses subadult inconsistently for different age/plumage classes; treat this as an observer label without a universal year threshold.; no_direct_code; Subadult has no dedicated EURING age code; do not infer a calendar-year age. |
+| Non-Juv | Non-Juv (native display label; exact rule not documented) | label_only; Literal/general meaning is not juvenile, but the label does not specify whether this is based on plumage or calendar age. A bird can leave juvenile plumage while still in its first calendar year. Trektellen's precise rule is undocumented; do not infer age >1cy.; unresolved; Native display label is confirmed, but its precise definition is unresolved; no direct EURING age code assigned. |
+| Non-adult | Non-adult (broad general meaning; Trektellen rule not documented) | label_only; In general ornithological usage this is a broad complement of adult and may include juvenile and later immature stages; exact usage varies. Trektellen's precise inclusion rule is undocumented. Raw `non_adult` is normalized to `Non-adult` in released data.; unresolved; Display label confirmed; exact age-class criteria remain unresolved, so no direct EURING age code is assigned. |
 
 `sex` codes (empty cells remain missing):
 
@@ -85,10 +82,10 @@ Foreign key: `taxon_id` → `taxonomy.taxon_id`.
 | --- | --- | --- |
 | D | Dark morph | display_verified |
 | L | Pale morph | display_verified |
-| W | Unverified native W | unverified; Do not decode from the letter alone or infer a historical mapping. |
-| I | Unverified native I | unverified; Do not decode from the letter alone or infer a historical mapping. |
-| B | Unverified native B | unverified; Do not decode from the letter alone or infer a historical mapping. |
-| E | Unverified native E | unverified; Do not decode from the letter alone or infer a historical mapping. |
+| W | Winter plumage | display_verified; Verified Trektellen meaning; retained as the native code. |
+| I | Immature plumage | display_verified; Plumage class, distinct from age I (>1cy, immature); do not force the two fields to agree. |
+| B | Breeding plumage | display_verified; Verified Trektellen meaning; retained as the native code. |
+| E | Eclipse plumage (ducks) | display_verified; Verified Trektellen meaning; eclipse plumage applies to ducks. |
 
 Additional rules (declared in the descriptor):
 
@@ -106,7 +103,6 @@ Primary key: `survey_id`. Missing-value tokens: `[""]` (an empty string means an
 | Column | Type | Required | Constraints | Meaning |
 | --- | --- | --- | --- | --- |
 | survey_id | string | Yes | unique: true | Readable release identity: era prefix (B notebook, S spreadsheet, N Naturalist, T Trektellen, C curated), local YYYYMMDD, recorded start HHMM where available, and optional collision suffix. Calendar-day closures omit time. Regenerated each build; corrections can change it. |
-| source_survey_id | string | Yes | unique: true | Original internal survey identity, retained for joins to source audits and reviewed decisions. Trektellen native header ID remains in trektellen_count_id. |
 | datetime | string | Yes | pattern: "[0-9]{4}-(0[1-9]&#124;1[0-2])-(0[1-9]&#124;[12][0-9]&#124;3[01])T([01][0-9]&#124;2[0-3]):[0-5][0-9](:[0-5][0-9](\\.[0-9]+)?)?(Z&#124;\\+00:00)/[0-9]{4}-(0[1-9]&#124;1[0-2])-(0[1-9]&#124;[12][0-9]&#124;3[01])T([01][0-9]&#124;2[0-3]):[0-5][0-9](:[0-5][0-9](\\.[0-9]+)?)?(Z&#124;\\+00:00)" | Increasing UTC ISO interval after reviewed weather stops and absences have been applied. Known absences are cut out and weather stops are separate rows. For whole-day weather stops without recorded hours, Europe/Paris calendar boundaries identify the day; their duration is not observed effort. |
 | recording_era | string | Yes | enum: ["notebook", "spreadsheet", "naturalist", "trektellen", "curated"] | Source recording era: notebook, spreadsheet, naturalist or trektellen; historical 2021 is transitional. Inferred historical empty intervals retain their historical era. Curated identifies an added weather-stop interval outside native surveys, not observed counting effort. |
 | remark | string | No | — | Source survey prose and explicit no-species-entry annotation, including historical visitor/person-hour notes. |
@@ -177,6 +173,7 @@ Primary key: `taxon_id`. Missing-value tokens: `[""]` (an empty string means an 
 | order | string | No | — | Checklist order. |
 | family | string | No | — | Checklist family. |
 | parent_taxon_id | string | No | — | taxon_id of the smallest enclosing group in this table (a 'sp.' or slash taxon, or the species of a subspecies); empty for roots. Curated in taxonomy/parent_taxa.csv. Summing a group's descendants gives all birds counted under it. |
+| systematic_count_start_year | integer | No | minimum: 1966 | Owner-adopted first year of systematic recording for this taxon. Blank means no start assigned. Missing counts may be interpreted as zero detections only within complete observed surveys from this year; it does not establish complete days or seasons. Rook 1996 remains uncertain; see docs/taxonomy.md. |
 | taxonomy_source | string | No | — | Checklist and version used for the concept's scientific name. |
 | ebird_code | string | No | — | Corresponding eBird/Clements code when available. |
 | trektellen_species_id | string | No | pattern: "[1-9][0-9]*(,[1-9][0-9]*)*" | Distinct native species IDs, sorted numerically and comma-separated; empty for historical-only concepts. |

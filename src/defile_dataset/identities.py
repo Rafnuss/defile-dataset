@@ -1,4 +1,4 @@
-"""Readable release IDs; original identities remain available for source tracing."""
+"""Assign one readable ID per released survey or count row."""
 
 import unicodedata
 
@@ -27,21 +27,21 @@ def unique_names(names, order):
 def readable_ids(count, survey, observations, interruptions, taxa=None):
     """Name final records from local dates, recorded clocks and existing eBird codes."""
     count, survey, interruptions = count.copy(), survey.copy(), interruptions.copy()
-    survey["source_survey_id"] = survey.survey_id
+    survey_ids = survey.survey_id.copy()
     start = pd.to_datetime(survey.datetime.str.split("/").str[0], utc=True).dt.tz_convert(TIMEZONE)
-    calendar = survey.source_survey_id.str.endswith(
-        "-weather-day"
-    ) | survey.remark_processing.fillna("").str.contains("Calendar-day bounds")
+    calendar = survey_ids.str.endswith("-weather-day") | survey.remark_processing.fillna(
+        ""
+    ).str.contains("Calendar-day bounds")
     day_interruptions = interruptions.loc[
         interruptions.time_precision.eq("day"), "interruption_id"
     ]
-    calendar |= survey.recording_era.eq("curated") & survey.source_survey_id.str.replace(
+    calendar |= survey.recording_era.eq("curated") & survey_ids.str.replace(
         r"-weather\d*$", "", regex=True
     ).isin(day_interruptions)
     names = survey.recording_era.map(PREFIX) + "-" + start.dt.strftime("%Y%m%d")
     names += ("-" + start.dt.strftime("%H%M")).where(~calendar, "")
-    survey["survey_id"] = unique_names(names, survey.source_survey_id)
-    survey_map = survey.set_index("source_survey_id").survey_id
+    survey["survey_id"] = unique_names(names, survey_ids)
+    survey_map = pd.Series(survey.survey_id.values, index=survey_ids)
     count["survey_id"] = count.survey_id.map(survey_map)
     interruptions["native_survey_id"] = interruptions.native_survey_id.map(survey_map)
 
@@ -70,7 +70,7 @@ def readable_ids(count, survey, observations, interruptions, taxa=None):
     clock = clock.fillna(
         pd.to_datetime(own_start, utc=True).dt.tz_convert(TIMEZONE).dt.strftime("%H%M")
     )
-    interval_start = pd.Series(start.dt.strftime("%H%M").values, index=survey.source_survey_id)
+    interval_start = pd.Series(start.dt.strftime("%H%M").values, index=survey_ids)
     clock = clock.fillna(
         source.survey_id.map(interval_start).where(source.time_resolution.eq("interval"))
     )
@@ -114,4 +114,4 @@ def readable_ids(count, survey, observations, interruptions, taxa=None):
         rest = ids.str.replace(r"^[A-Z]-\d{8}(?:-\d{4})?", "", regex=True)
         count.loc[timed, "count_id"] = ids.str[:10] + "-" + clocks.loc[ids.index] + rest
     count["count_id"] = unique_names(count.count_id, count.source_count_id + suffix)
-    return count, survey, interruptions
+    return count.drop(columns="source_count_id"), survey, interruptions

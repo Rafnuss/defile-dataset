@@ -7,7 +7,7 @@ def test_status_report_keeps_native_edit_link_with_readable_survey_id():
     from defile_dataset.report import _check_section
 
     rows = pd.DataFrame(
-        [dict(survey_id="T-20251020-0800", source_survey_id="T3221751", date="2025-10-20")]
+        [dict(survey_id="T-20251020-0800", trektellen_count_id="3221751", date="2025-10-20")]
     )
     section = _check_section(
         Check("Status", "warn", "Review", rows, columns=("date", "survey_id"))

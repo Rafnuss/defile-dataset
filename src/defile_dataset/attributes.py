@@ -57,11 +57,7 @@ def historical_attributes(hist, crosswalk):
                 mapped = lookup.loc[(row["sheet"], label)]
                 parts.append([mapped[a] for a in ("age", "sex", "plumage")])
                 converted = not label or (
-                    any(parts[-1])
-                    and (
-                        not mapped["note"]
-                        or mapped["note"].startswith("Assumed local convention:")
-                    )
+                    any(parts[-1]) and mapped["age"] != "I" and not mapped["note"]
                 )
                 if mapped["sex"] and mapped["note"].startswith("Age unresolved:"):
                     residual = re.sub(r"^(?:mâles?|femelles?)\s+", "", label)

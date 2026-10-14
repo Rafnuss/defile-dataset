@@ -40,7 +40,7 @@ def test_attributes_keep_only_classes_supported_for_the_whole_count():
     assert values.loc[0, ["age", "sex"]].tolist() == ["A", "M"]
     assert values.loc[1, "age"] == "A" and pd.isna(values.loc[1, "sex"])
     assert values.loc[[2, 3], ["age", "sex", "plumage"]].isna().all().all()
-    assert values.loc[4, "sex"] == "M" and values.loc[4, "age"] == ">1y"
+    assert values.loc[4, "sex"] == "M" and values.loc[4, "age"] == "I"
     assert values.loc[5, "sex"] == "FC"
     assert values.loc[6, "age"] == "1"
     assert values.loc[[7, 8], ["age", "sex", "plumage"]].isna().all().all()
@@ -50,7 +50,7 @@ def test_attributes_keep_only_classes_supported_for_the_whole_count():
     assert audit["count"].sum() == hist["count"].sum()
 
 
-def test_historical_immature_uses_documented_local_age_assumption():
+def test_historical_immature_uses_combined_trektellen_class():
     hist = pd.DataFrame(
         {
             "sheet": ["2014-2016", "2017-2021", "1966-2013"],
@@ -63,7 +63,8 @@ def test_historical_immature_uses_documented_local_age_assumption():
     )
     values, audit = historical_attributes(hist, CROSSWALK)
     assert values.loc[:1, "age"].tolist() == ["I", "I"]
-    assert values.loc[:1, "remark_processing"].str.contains("Assumed local convention").all()
+    assert values.loc[:1, "remark_processing"].isna().all()
+    assert audit.status.eq("mapped").all()
     assert values.loc[0, "sex"] == "M"
     assert len(audit) == 2
     assert values.loc[2].isna().all()
@@ -185,7 +186,8 @@ def test_immature_and_first_year_subgroups_keep_distinct_ages():
     assert released.age.tolist() == ["I", "1", "A"]
     assert released["count"].tolist() == [5, 1, 5]
     assert released["count"].sum() == hist["count"].sum()
-    assert released.remark_processing.str.contains("Assumed local convention").all()
+    assert released.details.iloc[0] == "immatures"
+    assert released.details.iloc[1:].isna().all()
 
 
 def test_published_daily_context_preserves_recorded_attributes_and_subgroups():
@@ -233,8 +235,7 @@ def test_released_details_keep_only_unconverted_information_and_published_contex
     source = hist.join(values).assign(observation_id=audit.observation_id)
     released = split_historical_counts(source, quantity_components(audit))
     assert released.details.iloc[:2].eq(context).all()
-    assert pd.isna(released.details.iloc[2]) and released.age.iloc[2] == ">1y"
-    assert pd.isna(released.details.iloc[3])
-    assert released.remark_processing.iloc[3].startswith("Assumed local convention:")
+    assert released.details.iloc[2] == "mâle > 1 an" and released.age.iloc[2] == "I"
+    assert released.details.iloc[3] == "mâle immature" and released.age.iloc[3] == "I"
     assert not released.remark_processing.fillna("").str.contains("Component|Source H-").any()
     assert source.details.iloc[0].startswith("1x mâle adulte")

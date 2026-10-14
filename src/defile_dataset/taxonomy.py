@@ -35,6 +35,7 @@ EBIRD_FILE = os.path.join(
 )
 EBIRD_VERSION = "eBird/Clements v2025"
 PARENT_FILE = os.path.join(TAXONOMY_DIR, "parent_taxa.csv")
+SYSTEMATIC_COUNTS_FILE = os.path.join(TAXONOMY_DIR, "systematic_counts.csv")
 
 KIND_BIRD = "bird"
 
@@ -128,9 +129,13 @@ class Taxonomy:
         ebird: pd.DataFrame,
         reviewed=None,
         parents=None,
+        systematic_starts=None,
     ):
         self.source_taxa, self.avilist, self.ebird = source_taxa, avilist, ebird
         self.parents = pd.Series(dtype=object) if parents is None else parents
+        self.systematic_starts = (
+            pd.Series(dtype="Int64") if systematic_starts is None else systematic_starts
+        )
         self.reviewed = reviewed
         ids = (
             source_taxa["avibase_id"]
@@ -147,6 +152,10 @@ class Taxonomy:
             read_ebird(root),
             reviewed,
             read_parents(root),
+            pd.read_csv(
+                os.path.join(root, SYSTEMATIC_COUNTS_FILE),
+                dtype={"systematic_count_start_year": "Int64"},
+            ).set_index("taxon_id")["systematic_count_start_year"],
         )
 
     def _lookup(self, source: str, key: str) -> pd.DataFrame:

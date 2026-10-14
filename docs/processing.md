@@ -6,6 +6,14 @@ Processing retains original labels, source fields and excluded rows in the inter
 
 Historical `detail`/`details` fields also contain source-attributed remarks from the accepted papers and annual reports (local evidence: `docs/imports/report-events-2026-10-08/README.md`). These preserve the quoted source wording and identify the species/date. Day-level context attached to an hourly row is labelled explicitly and does not assign the published quantity to that hour; shared totals remain collective. Original observer text and counts are retained.
 
+## Clock convention and UTC output
+
+All source clocks, including manually entered historical count and effort sheets, are interpreted as local civil time in Europe/Paris. The conversion uses the date-specific timezone offset, including historical daylight-saving rules, before serialising released points and interval bounds in UTC with a `Z` suffix. This policy applies to historical session bounds, NaturaList entries, supported clocks recovered from observer text and native Trektellen records. Collection dates and readable record IDs remain local; date-only observations remain dates, not midnight timestamps.
+
+The historical convention was adopted on 12 October 2026 after reviewing daily session envelopes across 1966–2021. Repeated shifts in session endings around autumn clock changes and comparisons with daylight support civil time. This is an inferred convention, not an independently verified property of every source row. The fixed GMT+1 convention stated in the 1996 publication concerns the paper and is not imposed on the digitised worksheets. Isolated unusually early sessions do not justify a different timezone or an automatic one-hour correction. Ambiguous repeated-hour point clocks remain missing under the existing conversion policy and are not guessed.
+
+Build metadata records `source_clock_timezone`, `output_datetime_timezone` and `historical_clock_policy`. Original source clocks and text are retained for provenance.
+
 ## Tables
 
 ### `surveys.csv`: one row per survey period
@@ -58,7 +66,7 @@ Accepted record-level timing decisions are maintained in `config/timing/reviewed
 
 ### Count text and structured values
 
-Released `count.remark` contains residual prose without `detail:`, `comment:` or `remark:` prefixes. Mapped descriptions are removed once the released subgroup carries their count, age, sex and plumage. Unresolved descriptions stay as text: for example `mâle > 1 an` gives sex=M and age=>1y, preserving an explicit lower bound without assigning adult or immature status. Source-attributed daily annotations remain separate from recorded subgroup descriptions and never establish an entry clock. The raw source columns remain unchanged in `interim/processed/observations.csv`.
+Released `count.remark` contains residual prose without `detail:`, `comment:` or `remark:` prefixes. Mapped descriptions are removed once the released subgroup carries their count, age, sex and plumage, except descriptions mapped to age I. Historical `immature` and `> 1 an` both map to Trektellen I; their original subgroup wording remains in remarks. For example `mâle > 1 an` gives sex=M and age=I, with `mâle > 1 an` retained as text. Unresolved descriptions also stay as text. Source-attributed daily annotations remain separate from recorded subgroup descriptions and never establish an entry clock. The raw source columns remain unchanged in `interim/processed/observations.csv`.
 
 Historical NaturaList `time_local` values are converted to UTC. Clear whole-count comments such as `à 13h55` also supply a point time, and only the converted clock is removed from released prose. Leading clocks can retain following behaviour or notes about other birds. Approximate times, durations and survey-wide narratives do not supply an exact entry time. Conflicting clocks and clocks outside their native survey are retained for review; outside clocks follow the existing day-fallback policy.
 
@@ -120,4 +128,4 @@ Daily narrative transfers are documented in the import evidence (local evidence:
 
 After subgroup projection, `remark_text.py` trims Unicode whitespace and converts explicit residual age prefixes and whole-record times for both historical and native Trektellen records. Bare four-digit clock notation such as `1200` is interpreted as 12:00 only when it forms the entire phrase, and must fit the linked native survey. Hour-only `12h` and complete ranges such as `9–10h` or `de 11h15 à 11h45` become UTC points or intervals in `datetime`; no midpoint is invented. More precise existing timestamps within the expressed minute/range are retained. Conflicting ages, conflicting clocks and out-of-period clocks keep their wording with a `remark_processing` note. Published day-level context remains outside this parser.
 
-`audit/count_text_changes.csv` records the before/after remark, age, datetime and review note for residual conversions or conflicts, using final released IDs. Source fields remain in the internal ledger. `>1y` represents the literal older-than-one-year wording and is excluded from adult/non-adult comparisons.
+`audit/count_text_changes.csv` records the before/after remark, age, datetime and review note for residual conversions or conflicts, using final released IDs. Source fields remain in the internal ledger. Both explicit immature and > 1 an prefixes map to I while retaining their original wording in remarks. The combined code alone does not establish adult or non-adult status.

@@ -9,4 +9,6 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--out", type=Path, default=Path("output/dataset"))
 args = parser.parse_args()
 generate_docs(args.out)
-print(f"Generated {args.out}/README.md, datapackage.json and the repository dictionaries.")
+print(
+    f"Generated {args.out}/README.md, DATA_DICTIONARY.md, datapackage.json and the repository dictionaries."
+)

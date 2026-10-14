@@ -32,11 +32,11 @@ It reads `output/dataset/count.csv`, `survey.csv` and `taxonomy.csv` and writes 
 
 The column mapping below lists the selected fields. `dynamicProperties` is restricted to information needed to interpret coverage and counts. Detailed weather, source narratives, processing notes, raw observer text, native IDs and taxonomy crosswalks remain in the research CSVs. Standard fields are preferred where meanings are confirmed; life-stage mapping remains pending.
 
-`report_text.csv` and `paper_text.csv` are excluded from the GBIF archive. They remain part of the canonical dataset distributed through GitHub and Zenodo; selected methods and citations may inform EML metadata.
+`report_text.csv` and `paper_text.csv` are excluded from the GBIF archive. Their curated excerpts remain outside the planned CC BY 4.0 grant unless rights-holder permission is obtained. Selected methods and citations may inform EML metadata.
 
 The initial publication proposal in the organiser email is to use [the Swiss IPT](https://ipt-swissrd.gbif.ch/) with the Swiss Ornithological Institute (Vogelwarte) as publisher, subject to agreement from the organisers and Vogelwarte.
 
-Publication remains pending: confirm publisher, licence, credit and public attribution; review alternate locations and geographical metadata; document known effort without equating survey span with observed hours; prepare EML with a link to the corresponding Zenodo release; validate GBIF interpretation of timing, zero/presence and reverse/local quantities. Keep the canonical CSVs available through GitHub and Zenodo so all source-resolution information remains available. Versioning belongs to GitHub, Zenodo and GBIF.
+Planned licence for the Event/Occurrence export: CC BY 4.0 for the first-party structured observation data. Before publication, confirm that the data rights-holders authorize this licence, then set the machine-readable licence and approved attribution in IPT/EML. Publication remains pending: confirm publisher and public attribution; review alternate locations and geographical metadata; document known effort without equating survey span with observed hours; prepare EML with a link to the corresponding Zenodo release; validate GBIF interpretation of timing, zero/presence and reverse/local quantities. Keep the canonical CSVs available through GitHub and Zenodo so all source-resolution information remains available. Versioning belongs to GitHub, Zenodo and GBIF.
 
 ## Column mapping
 
@@ -49,7 +49,7 @@ There is one `dynamicProperties` column in each GBIF table, containing a JSON ob
 | GBIF table | Allowed custom keys | Why keep them? |
 | --- | --- | --- |
 | Event | `survey_complete`, `weather_stop`, `survey_comment` | Distinguish complete counts, weather stops (no bird assumed) and incomplete counts; explain the decision. |
-| Occurrence | `source_count_id`, `count_category`, `count_estimation`, `age` | Explain the category quantity, its qualification and the counted subgroup. |
+| Occurrence | `count_category`, `count_estimation`, `age` | Explain the category quantity, its qualification and the counted subgroup. |
 
 Fallback Events also get the generated key `event_origin=unlinked_count_date`, so they cannot be mistaken for recorded surveys. Missing values omit keys, so a particular export may contain fewer keys. Weather, source remarks, processing remarks, raw observer text, native IDs, plumage and crosswalks are not copied into these objects.
 
@@ -59,7 +59,6 @@ Fallback Events also get the generated key `event_origin=unlinked_count_date`, s
 | Source column | Current destination | Transformation / limitation | Proposed refinement |
 | --- | --- | --- | --- |
 | `count_id` | Occurrence.occurrenceID | Prefix defile:2422:count:; one occurrence per released category/subgroup. | Keep. |
-| `source_count_id` | Occurrence.dynamicProperties.source_count_id | Shared original observation ID for categories and historical subgroups. | Keep. |
 | `count_category` | Occurrence.dynamicProperties.count_category | normal, reverse or local; each has its own individualCount. | Keep categories distinct in analyses. |
 | `survey_id` | Occurrence.eventID | Namespaced survey link; missing links get an unlinked-day Event. Original link remains in Zenodo. | Keep. |
 | `taxon_id` | Occurrence.taxonID | Joined to taxonomy.taxon_id. | Keep. |
@@ -78,7 +77,6 @@ Fallback Events also get the generated key `event_origin=unlinked_count_date`, s
 | Source column | Current destination | Transformation / limitation | Proposed refinement |
 | --- | --- | --- | --- |
 | `survey_id` | Event.eventID | Prefix defile:2422:survey:; one Event per survey. | Keep. |
-| `source_survey_id` | Not exported; retained in GitHub/Zenodo survey.csv | Original internal survey identity for source audits and reviewed decisions. | Keep outside GBIF; settle persistent exported IDs before publication. |
 | `datetime` | Event.eventDate | Recorded interval unchanged, including overnight intervals and weather stops. | Keep; interval span is not observed effort. |
 | `recording_era` | Not exported; retained in GitHub/Zenodo survey.csv | Detailed source information stays in the canonical research dataset. | Keep outside GBIF; describe relevant methods in metadata. |
 | `remark` | Not exported; retained in GitHub/Zenodo survey.csv | Detailed source information stays in the canonical research dataset. | Keep outside GBIF. |

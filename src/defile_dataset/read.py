@@ -31,9 +31,12 @@ TREKTELLEN_HEADER_PATTERN = "Trektellen_headerdata_{site}_{year}.xlsx"
 
 
 def local_to_utc(local: pd.Series) -> pd.Series:
-    """Naive local (Europe/Paris) datetimes -> UTC.
+    """Source civil clocks (Europe/Paris, including historical worksheets) -> UTC.
 
-    The hour repeated when clocks go back (last Sunday of October, 02:00-03:00) is ambiguous
+    Use the timezone's date-specific offsets, including historical daylight-saving rules.
+    Publication clocks do not override worksheet clocks; no fixed GMT+1 era is applied.
+
+    The hour repeated when clocks go back is ambiguous
     and becomes NaT; it is at night, so in practice only mis-entered times hit it.
     """
     return local.dt.tz_localize(TIMEZONE, ambiguous="NaT").dt.tz_convert("UTC")

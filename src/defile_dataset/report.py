@@ -218,8 +218,8 @@ def _check_section(check):
         if field in rows:
             target = "edit" if field == "survey_id" else "edit_kept_period"
             native_ids = (
-                check.rows.get("source_survey_id", rows[field])
-                if field == "survey_id"
+                ("T" + check.rows.trektellen_count_id.astype(str))
+                if field == "survey_id" and "trektellen_count_id" in check.rows
                 else rows[field]
             )
             rows[target] = [

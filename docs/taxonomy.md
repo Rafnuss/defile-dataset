@@ -1,5 +1,13 @@
 # Taxonomy and source mappings
 
+## First year of systematic recording
+
+`systematic_count_start_year` in `taxonomy.csv` is the adopted first year of systematic recording, maintained by taxon ID in `taxonomy/systematic_counts.csv`. Blank means no year assigned. From that year, missing counts can be interpreted as zero detections within complete observed surveys; missing survey days and unmonitored portions of a season remain unknown.
+
+The decisions adopted on 12 October 2026 are: 1993 for the individually treated raptor taxa and named core migrants (White and Black Stork, Great Cormorant, Common Wood Pigeon, Rook, Western Jackdaw, Common Crane and Grey Heron); 1993 for Great Egret; 1994 for Stock Dove; and 2008 for all other Passeriformes concepts. Rook and Western Jackdaw retain their earlier 1993 start. The 2008 passerine start and Great Egret 1993 start are owner-adopted analytical conventions based on the reviewed papers and reports, rather than claims that every source explicitly establishes these exact transitions.
+
+**Rook 1996 remains uncertain:** the 2020 paper says raw data were unavailable for an historical average despite reporting a positive minimum that year. Its start year remains 1993; treat 1996 missing records cautiously pending reconciliation. A start-year column cannot encode this isolated exception.
+
 The released tables contain birds only. `taxon_id` is the Avibase concept ID; `trektellen_species_id` is an optional comma-separated list of distinct native IDs. `source_taxa` preserves the source-label crosswalk as JSON. Internal `kind` remains in the audit/source mapping for filtering, but is absent from released taxonomy.csv.
 
 The pinned AviList **v2025 extended checklist** supplies released names, ranks and higher taxonomy first; eBird/Clements **2025 integrated checklist** fills missing concepts or fields and supplies eBird codes. It does not supply French common names. Historical French names below are actual source names, not translated eBird names. Trektellen English names come from the mapping and are checked against observed export labels in `interim/diagnostics/taxonomy/taxonomy-review.csv` (written by a local review script). No French equivalents or alternative taxon IDs have been invented. The CSV includes all source rows for these cases, even source labels with no observations in the current export.
@@ -11,6 +19,7 @@ The pinned AviList **v2025 extended checklist** supplies released names, ranks a
 | Species unidentified | 480 | bird sp.; Aves sp.; bird1; avibase-AF0D818A | An unidentified bird is not a no-species entry. Four entries include 7 main-direction birds and 4 local birds. |
 | Whitethroat | 348 | Greater Whitethroat (AviList display: Common Whitethroat); Curruca communis; grewhi1; avibase-14AFBA82 | Previously merged incorrectly with Lesser Whitethroat (347, Curruca curruca). Separate source names support separate species. |
 | Laridae sp. | 690 | gull/tern sp.; Laridae sp.; y00728; avibase-1B8C48CC | Previously mapped to Larus sp., a narrower genus. The checklist scientific name now matches the source family label. |
+| sterna sp. | 705 | Sterna sp.; Sterna sp.; sterna; avibase-7701002A | Missing source mapping exposed by the 2026 export. Retains the unidentified genus concept; Common Tern is nested beneath it in the hierarchy. |
 
 ## Species limits confirmed by the dataset owner
 
@@ -42,7 +51,7 @@ These are comparisons against the complete pinned checklist, not assumptions abo
 
 Exact available slash mappings (e.g. Common/Lesser Kestrel, Lesser/Greater Spotted Eagle, Tree/Olive-backed Pipit and Common/Pallid Swift) remain exact. Ordinary French and English synonyms for one species are not treated as lost distinctions.
 
-The `source_taxa` array documents the variants of a concept, but cannot identify which variant belongs to an individual count once variants share a taxon_id. Recover that distinction by joining count.source_count_id to interim/processed/observations.csv.observation_id, which retains each original label and native species ID. We keep the requested simple count schema; re-export to eBird does not recover more precise identities from a broad group automatically. Annual PDF totals remain independent evidence.
+The `source_taxa` array documents the variants of a concept, but cannot identify which variant belongs to an individual count once variants share a taxon_id. Original labels and native species IDs remain in interim/processed/observations.csv; the released count table has only its current count_id. We keep the requested simple count schema; re-export to eBird does not recover more precise identities from a broad group automatically. Annual PDF totals remain independent evidence.
 
 ## No-species entries and exclusions
 

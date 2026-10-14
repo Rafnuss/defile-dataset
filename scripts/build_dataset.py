@@ -42,6 +42,7 @@ from defile_dataset.package import descriptor, generate_docs, validate_package  
 from defile_dataset.reconcile import compare_report_totals  # noqa: E402
 from defile_dataset.remark_text import convert_remark_text
 from defile_dataset.report import render  # noqa: E402
+from defile_dataset.site import TIMEZONE
 from defile_dataset.source_text import CLOCK_TEXT
 from defile_dataset.survey_review import (
     empty_survey_review,
@@ -56,6 +57,7 @@ from defile_dataset.taxonomy import (  # noqa: E402
     AVILIST_FILE,
     EBIRD_FILE,
     SOURCE_TAXA_FILE,
+    SYSTEMATIC_COUNTS_FILE,
     Taxonomy,
 )
 from defile_dataset.taxonomy_tree import tree_section  # noqa: E402
@@ -149,6 +151,11 @@ def main(argv=None) -> int:
         survey_table, hist, historical_breaks, count_table
     )
     interruption_audit = interruption_review(survey_table, ds.observations, ROOT)
+    empty_surveys = empty_survey_review(
+        survey_table, count_table, ds.observations, historical_gaps
+    )
+    survey_ids = survey_table.survey_id.copy()
+    count_sources = count_table.source_count_id.copy()
     count_ids = count_table.count_id.copy()
     count_table, survey_table, interruption_table = readable_ids(
         count_table, survey_table, ds.observations, interruption_table, taxon_table
@@ -162,16 +169,13 @@ def main(argv=None) -> int:
     text_changes["count_id"] = text_changes.count_id.map(
         dict(zip(count_ids, count_table.count_id))
     )
-    historical_gaps["survey_id"] = historical_gaps.source_survey_id.map(
-        survey_table.set_index("source_survey_id").survey_id
+    survey_map = pd.Series(survey_table.survey_id.values, index=survey_ids)
+    historical_gaps["survey_id"] = historical_gaps.source_survey_id.map(survey_map)
+    empty_surveys["survey_id"] = empty_surveys.survey_id.map(survey_map)
+    status_review["trektellen_count_id"] = status_review.survey_id.str.removeprefix("T")
+    status_review["survey_id"] = status_review.survey_id.map(survey_map).fillna(
+        status_review.survey_id
     )
-    empty_surveys = empty_survey_review(
-        survey_table, count_table, ds.observations, historical_gaps
-    )
-    status_review["source_survey_id"] = status_review.survey_id
-    status_review["survey_id"] = status_review.source_survey_id.map(
-        survey_table.set_index("source_survey_id").survey_id
-    ).fillna(status_review.source_survey_id)
     released_ids = pd.Series(count_table.count_id.values, index=count_ids)
     checks = (
         conservation
@@ -222,7 +226,7 @@ def main(argv=None) -> int:
     # normal piece of the record.
     by_record = (
         count_table.loc[count_table.count_category.eq("normal")]
-        .groupby("source_count_id")
+        .groupby(count_sources)
         .count_id.agg("|".join)
     )
     attribute_components["released_count_id"] = (
@@ -273,9 +277,9 @@ def main(argv=None) -> int:
             "remark",
         ],
     ].copy()
-    reviewed_counts = count_table.loc[
-        count_table.source_count_id.isin(text_review.observation_id)
-    ].groupby("source_count_id")
+    reviewed_counts = count_table.loc[count_sources.isin(text_review.observation_id)].groupby(
+        count_sources
+    )
     text_review["released_datetime"] = text_review.observation_id.map(
         reviewed_counts.datetime.agg(lambda values: " | ".join(dict.fromkeys(values.dropna())))
     )
@@ -425,6 +429,7 @@ def main(argv=None) -> int:
         "dataset/paper_text.csv",
         "dataset/datapackage.json",
         "dataset/README.md",
+        "dataset/DATA_DICTIONARY.md",
         "gbif/README.md",
         "audit/README.md",
         "audit/interruption_review.csv",
@@ -482,6 +487,9 @@ def main(argv=None) -> int:
             ds.observations.loc[~ds.observations["use_for_counts"], "count"].sum()
         ),
         "processing_policy": "daily-fallback-first-overlap-v1",
+        "source_clock_timezone": TIMEZONE,
+        "output_datetime_timezone": "UTC",
+        "historical_clock_policy": "Worksheet clocks interpreted as local civil time with date-specific daylight-saving offsets; publication clock conventions do not override source clocks.",
         "consolidated_schema": descriptor()["x-schemaVersion"],
         "consolidated_counts": len(count_table),
         "consolidated_surveys": len(survey_table),
@@ -499,7 +507,7 @@ def main(argv=None) -> int:
             historical_gaps.loc[historical_gaps.status.eq("cut"), "hours"].sum()
         ),
         "datapackage_validation": "pass" if validation["valid"] else "fail",
-        "attribute_crosswalk": "historical-attributes-age-bound-v3",
+        "attribute_crosswalk": "historical-attributes-combined-age-v4",
         "attribute_split_policy": "historical-normal-subgroups-v3",
         "count_category_policy": "normal-reverse-local-marker-overrides-v3",
         "non_passage_reclassified_birds": int(
@@ -529,6 +537,7 @@ def main(argv=None) -> int:
             for f in raw_files
             + [
                 SOURCE_TAXA_FILE,
+                SYSTEMATIC_COUNTS_FILE,
                 AVILIST_FILE,
                 EBIRD_FILE,
                 "taxonomy/report_taxa.csv",

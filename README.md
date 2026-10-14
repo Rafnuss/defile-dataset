@@ -2,6 +2,8 @@
 
 Source files and a reproducible build for visible migration counts at Défilé de l’Écluse, France, from 1966 onward.
 
+The planned licence for first-party structured observation data and accompanying documentation is [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), subject to confirmation by the data rights-holders. Curated extracts in `report_text.csv` and `paper_text.csv` are excluded unless source permissions are obtained. This data licence does not cover software code or source publications.
+
 ```bash
 uv sync --locked
 uv run python scripts/build_dataset.py
@@ -17,7 +19,7 @@ GitHub Actions runs the tests and builds the audit after each push to `main`, no
 
 ## Documentation
 
-- [Dataset usage](docs/dataset.md) and [generated columns](docs/table-columns.md).
+- [Dataset usage](docs/dataset.md), [detailed interpretation](docs/dataset-details.md) and [generated columns](docs/table-columns.md).
 - [Build and annual updates](docs/pipeline.md).
 - [Source processing](docs/processing.md) and [survey coverage](docs/survey-coverage.md).
 - [Sampling history](docs/sampling-history.md).

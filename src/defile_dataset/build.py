@@ -438,6 +438,8 @@ def trektellen_tables(sightings: pd.DataFrame, counts: pd.DataFrame, taxonomy: T
             **TREKTELLEN_OBSERVATION_COLUMNS,
         }
     )
+    # The Trektellen exports use two spellings for the same non-adult age class.
+    o["age"] = o["age"].replace({"non_adult": "Non-adult"})
     o["datetime_original"] = o["datetime"]
 
     period = o[["survey_id"]].merge(

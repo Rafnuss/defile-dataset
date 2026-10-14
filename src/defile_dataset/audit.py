@@ -352,7 +352,9 @@ def build_checks(ds, checks, validation, reviews, reconciliation):
             "timestamps-inside-their-survey",
         ):
             check.group = "Counts and data integrity"
-    return sorted(result, key=lambda check: {"fail": 0, "warn": 1, "pass": 2, "info": 3}[check.status])
+    return sorted(
+        result, key=lambda check: {"fail": 0, "warn": 1, "pass": 2, "info": 3}[check.status]
+    )
 
 
 def summarize(checks):

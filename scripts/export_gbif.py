@@ -87,7 +87,7 @@ occurrences["sex"] = occurrences.sex.map({"M": "male", "F": "female"})
 occurrences[
     "occurrenceRemarks"
 ] = "individualCount is the recorded quantity for count_category in dynamicProperties. Zero quantities are not exported. Full source information is retained in the companion research dataset."
-properties = ["source_count_id", "count_category", "count_estimation", "age"]
+properties = ["count_category", "count_estimation", "age"]
 occurrences["dynamicProperties"] = [
     json.dumps({key: value for key, value in row.items() if pd.notna(value)}, ensure_ascii=False)
     for row in occurrences[properties].to_dict("records")

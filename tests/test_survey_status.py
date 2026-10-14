@@ -218,11 +218,11 @@ def test_reviewed_values_are_validated():
         )
 
 
-def test_untimed_birds_near_an_interruption_are_listed():
+def test_untimed_birds_do_not_warn_or_withhold_a_partial_interruption():
     s, o, r = native("[DEFILE weather from=10:00 to=12:30]")
     o.datetime = pd.NaT
     result, intervals, review = classify_trektellen(s, o, r)
-    assert "untimed_birds_near_interruption" in set(review.issue) and o["count"].sum() == 5
+    assert review.empty and intervals.effect.tolist() == ["weather"] and o["count"].sum() == 5
 
 
 def test_weather_after_the_header_is_a_curated_row(tmp_path):

@@ -139,12 +139,6 @@ CHECK_TEXT = {
         "A survey marked for removal has bird records; it is kept.",
         "Un suivi à supprimer contient des données d’oiseaux ; il est conservé.",
     ),
-    "survey-status-untimed_birds_near_interruption": (
-        "Untimed records near interruptions",
-        "Données sans heure près d’une interruption",
-        "Untimed bird records cannot be placed reliably before or after an interruption.",
-        "Les données sans heure ne peuvent pas être placées avant ou après une interruption avec certitude.",
-    ),
     "season-coverage": (
         "Coverage context within reported seasons",
         "Contexte de couverture dans les saisons des rapports",

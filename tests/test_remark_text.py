@@ -39,15 +39,19 @@ def test_whitespace_and_empty_remarks():
 @pytest.mark.parametrize(
     "remark,code,remaining",
     [
-        ("imm", "I", None),
-        ("imm.", "I", None),
-        ("Im.", "I", None),
-        ("Immatures. NPP", "I", "NPP"),
-        ("> 1 an", ">1y", None),
-        ("immature\npossiblement un oiseau relâché", "I", "possiblement un oiseau relâché"),
+        ("imm", "I", "imm"),
+        ("imm.", "I", "imm."),
+        ("Im.", "I", "Im."),
+        ("Immatures. NPP", "I", "Immatures. NPP"),
+        ("> 1 an", "I", "> 1 an"),
+        (
+            "immature\npossiblement un oiseau relâché",
+            "I",
+            "immature\npossiblement un oiseau relâché",
+        ),
     ],
 )
-def test_attribute_text_is_consumed_only_when_converted(remark, code, remaining):
+def test_combined_age_preserves_original_wording(remark, code, remaining):
     count, survey = records(remark)
     result, audit = convert_remark_text(count, survey)
     assert result.age.iloc[0] == code
@@ -84,11 +88,11 @@ def test_subgroup_quantity_does_not_establish_which_flock_was_aged():
     assert result.remark.eq("4 à 12h35 - 17 à 12h50").all() and audit.empty
 
 
-def test_repeated_native_age_text_is_removed_for_other_categories_without_inferring_new_ages():
+def test_native_age_wording_is_preserved_without_inferring_other_category_ages():
     count, survey = records("imm.", age="I")
     count["count_category"] = "local"
     result, _ = convert_remark_text(count, survey)
-    assert pd.isna(result.remark.iloc[0]) and result.age.iloc[0] == "I"
+    assert result.remark.iloc[0] == "imm." and result.age.iloc[0] == "I"
     count["age"] = None
     result, _ = convert_remark_text(count, survey)
     assert result.remark.iloc[0] == "imm." and pd.isna(result.age.iloc[0])
@@ -144,3 +148,12 @@ def test_published_context_and_uncertainty_stay_but_explicit_outside_clock_is_re
         and "outside linked survey" in result.remark_processing.iloc[0]
     )
     assert survey.datetime.iloc[0] == "2024-11-04T06:00:00Z/2024-11-04T17:00:00Z"
+
+
+def test_combined_age_preserves_label_while_extracting_event_clock():
+    count, survey = records("> 1 an à 12h")
+    result, audit = convert_remark_text(count, survey)
+    assert result.age.iloc[0] == "I"
+    assert result.remark.iloc[0] == "> 1 an"
+    assert result.datetime.iloc[0] == "2024-11-04T11:00:00Z"
+    assert audit.converted.iloc[0] == "age, datetime"

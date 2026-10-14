@@ -72,7 +72,7 @@ def records():
     return count, survey, source, interruptions
 
 
-def test_readable_ids_keep_local_dates_collisions_categories_and_provenance():
+def test_readable_ids_keep_local_dates_collisions_categories_and_single_ids():
     count, survey, source, interruptions = records()
     result, events, gaps = readable_ids(count, survey, source, interruptions)
     assert events.survey_id.tolist() == ["T-20260914-0030", "B-19660911"]
@@ -84,9 +84,10 @@ def test_readable_ids_keep_local_dates_collisions_categories_and_provenance():
     ]
     pd.testing.assert_frame_equal(
         result.drop(columns=["count_id", "survey_id"]),
-        count.drop(columns=["count_id", "survey_id"]),
+        count.drop(columns=["count_id", "survey_id", "source_count_id"]),
     )
-    assert events.source_survey_id.tolist() == survey.survey_id.tolist()
+    assert "source_survey_id" not in events
+    assert "source_count_id" not in result
     assert result.survey_id.iloc[0] == gaps.native_survey_id.iloc[0] == events.survey_id.iloc[0]
     assert pd.isna(result.survey_id.iloc[-1])
     shuffled, _, _ = readable_ids(
@@ -95,25 +96,25 @@ def test_readable_ids_keep_local_dates_collisions_categories_and_provenance():
     pd.testing.assert_series_equal(result.count_id, shuffled.count_id.sort_index())
 
 
-def test_corrected_record_changes_readable_id_without_changing_source_id():
+def test_corrected_record_changes_readable_id_with_single_id():
     count, survey, source, interruptions = records()
     original, _, _ = readable_ids(count, survey, source, interruptions)
     source.loc[0, "ebird_code"] = "osprey"
     updated, _, _ = readable_ids(count, survey, source, interruptions)
     assert updated.count_id.iloc[0] != original.count_id.iloc[0]
-    assert updated.source_count_id.tolist() == original.source_count_id.tolist()
+    assert "source_count_id" not in updated
 
 
-def test_timed_flock_id_uses_its_released_clock_and_keeps_source_lineage():
+def test_timed_flock_id_uses_its_released_clock():
     count, survey, source, interruptions = records()
     count.loc[0, "count_id"] = "T20-time1-normal"
     count.loc[0, "datetime"] = "2026-09-13T23:15:00Z"
     result, _, _ = readable_ids(count, survey, source, interruptions)
     assert result.count_id.iloc[0] == "T-20260914-0115-euhbuz1-time1-normal"
-    assert result.source_count_id.iloc[0] == "T20"
+    assert "source_count_id" not in result
 
 
-def test_reviewed_taxonomy_id_uses_target_code_and_retains_source_identity():
+def test_reviewed_taxonomy_id_uses_target_code():
     count, survey, source, interruptions = records()
     source["avibase_id"] = ["old", "old", "unidentified"]
     count["taxon_id"] = ["new", "old", "old", "unidentified"]
@@ -123,7 +124,7 @@ def test_reviewed_taxonomy_id_uses_target_code_and_retains_source_identity():
     )
     result, _, _ = readable_ids(count, survey, source, interruptions, taxa)
     assert result.count_id.iloc[0] == "T-20260914-0045-turdus1-tax1-normal"
-    assert result.source_count_id.tolist() == count.source_count_id.tolist()
+    assert "source_count_id" not in result
 
 
 def test_recorded_historical_clock_interval_start_and_curated_day():

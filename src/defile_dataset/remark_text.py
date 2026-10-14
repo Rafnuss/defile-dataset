@@ -56,6 +56,8 @@ def convert_remark_text(count, survey):
         for n, part in enumerate(parts):
             head, context = split_daily_context(part)
             head = head.strip()
+            age_wording = ""
+            timing_converted = False
             if not head:
                 continue
             # Prefixes with their own quantity, uncertainty or prose subject are not whole-row ages.
@@ -64,16 +66,13 @@ def convert_remark_text(count, survey):
                 r"\s*(?:(?:probable|possible|peut-être)\b|\?)", head[age.end() :], re.I
             )
             if age and not uncertain and (row.count_category == "normal" or pd.notna(row.age)):
-                code = ">1y" if age["label"].startswith(">") else "I"
+                code = "I"
                 existing = count.at[i, "age"]
                 if pd.isna(existing) or existing == code:
                     count.at[i, "age"] = code
+                    age_wording = head[: age.end()]
                     head = head[age.end() :].lstrip(" .;,\n")
                     converted.append("age")
-                    if code == "I" and pd.isna(existing):
-                        notes.append(
-                            "Assumed local convention: immature means >1cy non-adult; inferred from explicit remark."
-                        )
                 else:
                     notes.append(
                         f'Age text conflict: remark {age["label"]!r} suggests {code}; existing age {existing} retained; wording preserved.'
@@ -130,6 +129,10 @@ def convert_remark_text(count, survey):
                         )
                     head = remaining
                     converted.append("datetime")
+                    timing_converted = True
+            # Keep the source age label after extracting any clock from the remaining prose.
+            if age_wording:
+                head = age_wording if timing_converted else split_daily_context(part)[0].strip()
             parts[n] = "\n\n".join(text for text in (head, context) if text)
         count.at[i, "remark"] = " | ".join(part.strip() for part in parts if part.strip()) or pd.NA
         if notes or "datetime" in converted:

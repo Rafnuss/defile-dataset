@@ -5,7 +5,13 @@ import shutil
 import pandas as pd
 import pytest
 
-from defile_dataset.package import SCHEMA_FILE, columns, dictionary, validate_package
+from defile_dataset.package import (
+    SCHEMA_FILE,
+    attribute_dictionary,
+    columns,
+    dictionary,
+    validate_package,
+)
 
 
 @pytest.fixture
@@ -14,7 +20,6 @@ def package(tmp_path):
     rows = {
         "count": {
             "count_id": "C1-normal",
-            "source_count_id": "C1",
             "count_category": "normal",
             "survey_id": "S1",
             "taxon_id": "avibase-451D6FC8",
@@ -22,7 +27,6 @@ def package(tmp_path):
         },
         "survey": {
             "survey_id": "S1",
-            "source_survey_id": "S1",
             "datetime": "2026-10-01T06:00:00Z/2026-10-01T07:00:00Z",
             "recording_era": "trektellen",
             "survey_complete": "true",
@@ -43,7 +47,6 @@ def package(tmp_path):
     "table,field,value",
     [
         ("count", "count_category", "invalid"),
-        ("count", "source_count_id", ""),
         ("count", "count", "1.5"),
         ("count", "count", "-1"),
         ("count", "count", ""),
@@ -92,6 +95,15 @@ def test_duplicate_primary_key_rejected(package):
     data = pd.read_csv(path, dtype=str, keep_default_na=False)
     pd.concat([data, data], ignore_index=True).to_csv(path, index=False)
     assert not validate_package(package / "datapackage.json")["valid"]
+
+
+def test_age_dictionary_records_euring_matches():
+    age = attribute_dictionary().query("attribute == 'age'").set_index("trektellen_code")
+    assert age.loc["2", "euring_age_code"] == "5"
+    assert age.loc["3", "euring_age_code"] == "7"
+    assert age.loc["4", "euring_age_code"] == "9"
+    assert age.loc["J", "euring_match"] == "no_direct_age_code"
+    assert age.loc["Non-adult", "euring_match"] == "unresolved"
 
 
 def test_nullable_link_and_presence_rules(package):
@@ -237,7 +249,7 @@ def test_enums_weather_ranges_and_utc_are_enforced(package, table, field, value)
     assert not validate_package(package / "datapackage.json")["valid"]
 
 
-def test_valid_weather_bounds_and_provisional_codes_are_preserved(package):
+def test_valid_weather_bounds_and_independent_age_plumage_codes_are_preserved(package):
     path = package / "survey.csv"
     data = pd.read_csv(path, dtype=str, keep_default_na=False)
     data.loc[0, ["wind_speed_bft", "cloud_cover", "temperature", "precipitation"]] = [
@@ -249,7 +261,7 @@ def test_valid_weather_bounds_and_provisional_codes_are_preserved(package):
     data.to_csv(path, index=False)
     path = package / "count.csv"
     data = pd.read_csv(path, dtype=str, keep_default_na=False)
-    data.loc[0, ["age", "sex", "plumage"]] = ["non_adult", "FC", "W"]
+    data.loc[0, ["age", "sex", "plumage"]] = ["1", "FC", "I"]
     data.to_csv(path, index=False)
     assert validate_package(package / "datapackage.json")["valid"]
 
