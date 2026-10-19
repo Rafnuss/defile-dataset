@@ -1,6 +1,17 @@
 """English/French interface copy; source evidence stays in its original language."""
+
 # Each check explains its computation, independently of the number of findings.
 CHECK_TEXT = {
+    "daily-count-outliers": (
+        "Unusual daily counts", "Effectifs journaliers atypiques",
+        "Score = daily count / largest other seasonal value. Compare other positive days for the same taxon and movement category within ±15 calendar days across years, excluding the candidate (at least 20 reference days). Scores above 3 are shown, most unusual first. This measures excess over every other comparable value, including normal flocking peaks; zero and missing values are not scored. Review warnings, not confirmed errors.",
+        "Score = effectif journalier / plus grande autre valeur saisonnière. Comparaison aux autres jours positifs du même taxon et catégorie de mouvement à ±15 jours calendaires, toutes années confondues, hors candidat (au moins 20 jours de référence). Scores supérieurs à 3 affichés, les plus atypiques d’abord. L’excès est relatif à toutes les autres valeurs comparables, incluant ses pics grégaires habituels ; zéros et valeurs manquantes ne sont pas évalués. Alertes à examiner, sans erreur présumée.",
+    ),
+    "count-rate-outliers": (
+        "Unusual daily count rates", "Taux de comptage journaliers atypiques",
+        "Score = birds per survey hour / largest other seasonal value. Compare other positive rates for the same taxon and movement category within ±15 calendar days across years, excluding the candidate (at least 20 reference days). Scores above 3 are shown, most unusual first. Large rates are only unusual relative to that species’ largest other seasonal rate. Rates require known positive effort and linked numerical counts. Zero and missing values are not scored; genuine exceptional migration can remain valid.",
+        "Score = oiseaux par heure de suivi / plus grande autre valeur saisonnière. Comparaison aux autres taux positifs du même taxon et catégorie de mouvement à ±15 jours calendaires, toutes années confondues, hors candidat (au moins 20 jours de référence). Scores supérieurs à 3 affichés, les plus atypiques d’abord. Un taux élevé n’est atypique que relativement à plus grand autre taux saisonnier propre à l’espèce. Les taux exigent un effort positif connu et des effectifs numériques liés. Zéros et valeurs manquantes ne sont pas évalués ; une migration exceptionnelle peut être valide.",
+    ),
     "survey-associations-preserved": (
         "Survey associations preserved",
         "Liens aux suivis conservés",
@@ -274,6 +285,24 @@ COLUMNS_FR = dict(
     )
 )
 COLUMNS_FR["outside_minutes"] = "Écart hors période (min)"
+COLUMNS_FR.update(
+    outlier_score="Score d’atypicité",
+    english_name="Nom anglais",
+    taxon_id="ID du taxon",
+    count_category="Catégorie de mouvement",
+    daily_count="Effectif journalier",
+    count_rate="Oiseaux par heure",
+    survey_hours="Heures de suivi",
+    reference_median="Médiane de référence",
+    reference_p95="95e percentile de référence",
+    reference_max="Maximum de référence",
+    reference_days="Jours de référence",
+    survey_ids="IDs des suivis",
+    count_ids="IDs des comptages",
+    count_remarks="Remarques des comptages",
+    survey_comments="Commentaires des suivis",
+    survey_remarks="Remarques des suivis",
+)
 COLUMNS_FR.update(
     {
         "observation_id": "ID de l’observation",

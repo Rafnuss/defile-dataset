@@ -10,7 +10,7 @@ The annual-report inputs were reviewed and accepted on 7 October 2026; the four 
 | `annual-total-pages.csv` | PDF page numbers for totals matched unambiguously by year, species and count to the archived extraction ledger. Missing page references open the report at its beginning. |
 | `observation-interruptions.csv` | Report statements about closures, partial coverage and weather impacts, with evidence and source pages. |
 
-The text was extracted and edited with AI assistance. Tables, charts and some other material are omitted, so it is not a complete transcription. Shared passages are not independent evidence. Missing species accounts do not establish absence. The full 2022 report is unavailable; annual-report prose covers available reports from 2004 through 2025.
+The text was extracted and edited with AI assistance. Tables, charts and some other material are omitted, so it is not a complete transcription. Shared passages are not independent evidence. Missing species accounts do not establish absence. The 2022 annual report was never finalised (Xavier Birot-Colomb, reply received 16 October 2026); annual-report prose covers available reports from 2004 through 2025.
 
 Misplaced species passages were corrected on 9 October 2026 after screening both accepted prose files (local evidence: `docs/imports/species-account-corrections-2026-10-09/README.md`, with the moves, exact before/after values and preservation checks).
 
@@ -29,3 +29,9 @@ Original documents and their inventory remain in references/ (local evidence: `r
 Species keys follow the existing Avibase mappings. Three shared passages retain `group-corbeau-freux-choucas-des-tours`, `group-hirondelles-rustique-fenetre-rivage` and `group-aigle-pomarin-criard`; shared totals are not allocated to individual species. Paper taxa need not occur in the recorded count taxonomy. The schema enumerates the accepted paper keys and validates source IDs and unique accounts.
 
 Counts by paper are 24, 34, 25 and 17 respectively. The French text retains paragraph breaks, published summary statistics, citations and discrepancies. Figures and tables are omitted. Notes in 1996 Part II concern species not systematically counted; 2020 forest-species recording was irregular before 2008 and observer-dependent. Historical taxon labels, page references, OCR corrections and readable extracts are retained in the paper extraction archive (local evidence: `archive/report-processing/papers/README.md`). The accepted CSV is maintained directly; extraction code is not part of the build.
+
+## Organiser evidence and corrections, 16 October 2026
+
+Xavier Birot-Colomb’s seasonal-only totals and daily maxima for Corbeau freux 1996 and Pigeon colombin 1993 are retained as correspondence evidence in the [dated review](../../docs/organiser-feedback-2026-10-16.md), outside the dataset tables. No extra CSV resource is ingested or released. These totals must not be added to the daily counts or allocated across days.
+
+The AI/OCR error in the 2012 chaffinch maximum is corrected to 123,795 in `report_text.csv` and the report-derived historical workbook detail. Visual inspection of PDF p. 37 shows « 1 ?23 795 »; Benjamin Bruno identifies the stray question mark, and the raw 10 October count corroborates 123,795. The separate 3 October count is already correctly stored as 68,064. The printed PDF and raw numeric counts remain unchanged.

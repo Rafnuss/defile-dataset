@@ -316,7 +316,12 @@ def _check_section(check):
             )
         table = _table(
             rows,
-            max_rows=len(rows) if check.filter_column else MAX_TABLE_ROWS,
+            max_rows=(
+                len(rows)
+                if check.filter_column
+                or check.key in ("daily-count-outliers", "count-rate-outliers")
+                else MAX_TABLE_ROWS
+            ),
             links=links,
             filter_column=check.filter_column,
         )

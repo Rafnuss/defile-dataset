@@ -2,6 +2,7 @@
 
 import re
 
+import numpy as np
 import pandas as pd
 
 from defile_dataset.attributes import quantity_components
@@ -9,6 +10,10 @@ from defile_dataset.checks import Check
 from defile_dataset.consolidate import local_dates
 from defile_dataset.report_text import CHECK_TEXT
 from defile_dataset.site import TIMEZONE
+
+OUTLIER_THRESHOLD = 3
+OUTLIER_MIN_DAYS = 20
+OUTLIER_WINDOW_DAYS = 15
 
 
 def daily_coverage(count, survey):
@@ -74,6 +79,96 @@ def daily_coverage(count, survey):
     result["year"] = result.date.dt.year
     result["day_of_year"] = result.date.dt.dayofyear
     return result.sort_values("date").reset_index(drop=True)
+
+
+def outlier_comments(count, survey):
+    """Keep count remarks and linked survey context separate, labelled with released IDs."""
+    rows = count.reindex(columns=["count_id", "survey_id", "remark"]).merge(
+        survey.reindex(columns=["survey_id", "survey_comment", "remark"]),
+        on="survey_id", how="left", suffixes=("", "_survey"),
+    )
+    for field, source, identifier in (
+        ("count_remarks", "remark", "count_id"),
+        ("survey_comments", "survey_comment", "survey_id"),
+        ("survey_remarks", "remark_survey", "survey_id"),
+    ):
+        text = rows[source].fillna("")
+        rows[field] = (rows[identifier].fillna("") + ": " + text).where(text.ne(""), "")
+    return rows[["count_id", "count_remarks", "survey_comments", "survey_remarks"]]
+
+
+def count_outliers(count, survey, taxonomy, coverage):
+    """Rank positive totals/rates relative to the seasonal upper tail of each taxon."""
+    rows = count.merge(
+        survey[["survey_id", "datetime"]], on="survey_id", how="left", suffixes=("", "_survey")
+    )
+    rows["date"] = pd.to_datetime(local_dates(rows.datetime.fillna(rows.datetime_survey)))
+    # Presence-only rows contribute neither a numerical zero nor rate eligibility.
+    rows = rows.loc[rows["count"].notna()].copy()
+    rows["linked"] = rows.datetime_survey.notna()
+    rows = rows.merge(outlier_comments(count, survey), on="count_id", how="left")
+    daily = (
+        rows.groupby(["date", "taxon_id", "count_category"])
+        .agg(
+            daily_count=("count", "sum"),
+            linked=("linked", "all"),
+            survey_ids=("survey_id", lambda values: "|".join(sorted(values.dropna().unique()))),
+            count_ids=("count_id", lambda values: "|".join(sorted(values))),
+            count_remarks=("count_remarks", lambda values: "\n".join(values.loc[values.ne("")].unique())),
+            survey_comments=("survey_comments", lambda values: "\n".join(values.loc[values.ne("")].unique())),
+            survey_remarks=("survey_remarks", lambda values: "\n".join(values.loc[values.ne("")].unique())),
+        )
+        .reset_index()
+    )
+    daily = daily.merge(coverage[["date", "survey_hours"]], on="date", how="left")
+    daily["count_rate"] = daily.daily_count.astype(float).div(
+        daily.survey_hours.where(daily.linked & daily.survey_hours.gt(0))
+    )
+    daily = daily.merge(taxonomy[["taxon_id", "english_name"]], on="taxon_id", how="left")
+    # A fixed leap year aligns month/day across years, including February 29.
+    daily["season_day"] = pd.to_datetime("2000-" + daily.date.dt.strftime("%m-%d")).dt.dayofyear
+    result = []
+    for metric in ("daily_count", "count_rate"):
+        scored = daily.copy()
+        scored["metric"] = metric
+        scored["value"] = scored[metric].astype(float)
+        scored["reference_days"] = 0
+        for field in ("reference_median", "reference_p95", "reference_max", "outlier_score"):
+            scored[field] = np.nan
+        for _, group in scored.groupby(["taxon_id", "count_category"]):
+            positive = group.loc[group.value.gt(0)]
+            values = positive.value.to_numpy()
+            days = positive.season_day.to_numpy()
+            indices = positive.index.to_numpy()
+            for row in positive.itertuples():
+                distance = np.abs(days - row.season_day)
+                nearby = np.minimum(distance, 366 - distance) <= OUTLIER_WINDOW_DAYS
+                reference = values[nearby & (indices != row.Index)]
+                scored.loc[row.Index, "reference_days"] = len(reference)
+                if len(reference) < OUTLIER_MIN_DAYS:
+                    continue
+                median, p95 = np.quantile(reference, [0.5, 0.95])
+                scored.loc[
+                    row.Index,
+                    ["reference_median", "reference_p95", "reference_max", "outlier_score"],
+                ] = [
+                    median,
+                    p95,
+                    reference.max(),
+                    row.value / reference.max(),
+                ]
+        scored["flagged"] = scored.outlier_score.gt(OUTLIER_THRESHOLD)
+        result.append(scored)
+    return (
+        pd.concat(result, ignore_index=True)
+        .sort_values(
+            ["outlier_score", "date", "taxon_id", "count_category", "metric"],
+            ascending=[False, True, True, True, True],
+            na_position="last",
+        )
+        .drop(columns="linked")
+        .reset_index(drop=True)
+    )
 
 
 def build_checks(ds, checks, validation, reviews, reconciliation):
@@ -310,6 +405,42 @@ def build_checks(ds, checks, validation, reviews, reconciliation):
             key="season-coverage",
         )
     )
+    for metric, key in (
+        ("daily_count", "daily-count-outliers"),
+        ("count_rate", "count-rate-outliers"),
+    ):
+        rows = reviews["count_outliers"]
+        rows = rows.loc[rows.metric.eq(metric) & rows.flagged]
+        result.append(
+            Check(
+                CHECK_TEXT[key][0],
+                "warn" if len(rows) else "pass",
+                CHECK_TEXT[key][2],
+                rows,
+                action="Review the original counts and survey effort. Keep genuine migration peaks; correct only confirmed source errors.",
+                file="count_outliers.csv",
+                key=key,
+                columns=(
+                    "outlier_score",
+                    "date",
+                    "english_name",
+                    "taxon_id",
+                    "count_category",
+                    "daily_count",
+                    "survey_hours",
+                    "count_rate",
+                    "reference_median",
+                    "reference_p95",
+                    "reference_max",
+                    "reference_days",
+                    "count_remarks",
+                    "survey_comments",
+                    "survey_remarks",
+                    "survey_ids",
+                    "count_ids",
+                ),
+            )
+        )
     balanced = reconciliation.source_count.eq(
         reconciliation[
             [

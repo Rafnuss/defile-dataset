@@ -32,3 +32,6 @@ raw/trektellen/Trektellen_data_2422_2021.xlsx
 # Issue and PR templates of the research workflow.
 .github/ISSUE_TEMPLATE/
 .github/pull_request_template.md
+
+# Private organiser correspondence; curated data decisions are documented separately.
+raw/communications/

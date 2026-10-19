@@ -79,3 +79,7 @@ Historical corrections belong in `raw/historical/count_2021.xlsx`, with evidence
 The test workflow runs the locked environment after pushes to `main` and on manual runs; nothing waits on it, and a failure is fixed afterwards. The audit workflow builds the full dataset on the same events, saves audit evidence, and publishes successful `main` reports through GitHub Pages. It uses `--online-report-links` for original PDF URLs; local builds use the reference library. Enable GitHub Actions as the Pages source in repository settings when configuring deployment.
 
 The local pipeline produces current products, not annual archives or frozen releases. See [publication](publication.md) for release preparation and [the script index](../scripts/README.md) for optional commands.
+
+## Observer inventory
+
+The build also writes `output/observers/names.csv`, its source evidence and a name/extraction review list. Historical publication names live in `raw/reports/observers.csv`; duplicate spellings are managed in `config/observers/name_aliases.csv`. New Trektellen observer names enter automatically. See the [observer inventory guide](../config/observers/README.md) for identity uncertainty and annual review.

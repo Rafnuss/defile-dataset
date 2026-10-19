@@ -1,4 +1,5 @@
 """Audit outcomes, component accounting and coverage must retain scientific meaning."""
+
 import pandas as pd
 
 
@@ -17,8 +18,275 @@ def test_status_report_keeps_native_edit_link_with_readable_survey_id():
     assert "T-20251020-0800" in section
 
 
-from defile_dataset.audit import daily_coverage, quantity_components, summarize
+from defile_dataset.audit import count_outliers, daily_coverage, quantity_components, summarize
 from defile_dataset.checks import Check
+
+
+def test_count_outliers_rank_peaks_and_separate_taxa_seasons_and_categories():
+    dates = pd.to_datetime(
+        [f"{year}-09-{day:02}" for year in (2020, 2021) for day in range(1, 13)]
+    )
+    survey = pd.DataFrame(
+        dict(
+            survey_id=[f"S{i}" for i in range(24)],
+            datetime=[f"{date:%Y-%m-%d}T06:00:00Z/{date:%Y-%m-%d}T07:00:00Z" for date in dates],
+            survey_complete=True,
+            weather_stop=False,
+        )
+    )
+    count = pd.DataFrame(
+        dict(
+            count_id=[f"C{i}" for i in range(24)],
+            survey_id=survey.survey_id,
+            datetime=None,
+            taxon_id="A",
+            count_category="normal",
+            count=[10] * 22 + [1000, 10000],
+        )
+    )
+    extra = pd.DataFrame(
+        [
+            dict(
+                count_id="split",
+                survey_id="S0",
+                datetime=None,
+                taxon_id="A",
+                count_category="normal",
+                count=5,
+            ),
+            dict(
+                count_id="presence",
+                survey_id="S1",
+                datetime=None,
+                taxon_id="A",
+                count_category="normal",
+                count=pd.NA,
+            ),
+            dict(
+                count_id="reverse",
+                survey_id="S1",
+                datetime=None,
+                taxon_id="A",
+                count_category="reverse",
+                count=10000,
+            ),
+            dict(
+                count_id="other",
+                survey_id="S1",
+                datetime=None,
+                taxon_id="B",
+                count_category="normal",
+                count=10000,
+            ),
+            dict(
+                count_id="month",
+                survey_id=None,
+                datetime="2020-10-01",
+                taxon_id="A",
+                count_category="normal",
+                count=10000,
+            ),
+        ]
+    )
+    count = pd.concat([count, extra], ignore_index=True)
+    count["remark"] = ""
+    count.loc[count.count_id.eq("C0"), "remark"] = "énorme groupe !!!"
+    survey["survey_comment"] = ""
+    survey.loc[survey.survey_id.eq("S0"), "survey_comment"] = "Passage exceptionnel."
+    survey["remark"] = ""
+    survey.loc[survey.survey_id.eq("S0"), "remark"] = "Effort confirmé."
+    original = count.copy(deep=True)
+    taxonomy = pd.DataFrame(dict(taxon_id=["A", "B"], english_name=["Taxon A", "Taxon B"]))
+    result = count_outliers(count, survey, taxonomy, daily_coverage(count, survey))
+    peaks = result.loc[result.metric.eq("daily_count") & result.flagged]
+    assert peaks.daily_count.tolist() == [10000]
+    assert peaks.outlier_score.is_monotonic_decreasing
+    assert peaks.reference_days.eq(23).all()
+    assert peaks.reference_median.round(5).eq(10).all()
+    assert peaks.outlier_score.tolist() == [10]
+    smaller_peak = result.loc[result.metric.eq("daily_count") & result.daily_count.eq(1000)]
+    assert smaller_peak.outlier_score.tolist() == [0.1]
+    assert not smaller_peak.flagged.any()
+    assert result.loc[result.reference_days.lt(20), "outlier_score"].isna().all()
+    first = result.loc[result.metric.eq("daily_count") & result.date.eq(dates[0])].iloc[0]
+    assert first.daily_count == 15 and first.count_ids == "C0|split"
+    assert first.count_remarks == "C0: énorme groupe !!!"
+    assert first.survey_comments == "S0: Passage exceptionnel."
+    assert first.survey_remarks == "S0: Effort confirmé."
+    assert "presence" not in "|".join(result.count_ids)
+    pd.testing.assert_frame_equal(count, original)
+
+
+def test_count_rates_use_union_effort_and_exclude_unknown_zero_and_unlinked_effort():
+    dates = pd.to_datetime(
+        [f"{year}-09-{day:02}" for year in (2020, 2021) for day in range(1, 16)]
+    )
+    survey = pd.DataFrame(
+        dict(
+            survey_id=[f"S{i}" for i in range(30)],
+            datetime=[f"{date:%Y-%m-%d}T06:00:00Z/{date:%Y-%m-%d}T08:00:00Z" for date in dates],
+            survey_complete=True,
+            weather_stop=False,
+        )
+    )
+    survey.loc[10, "datetime"] = "2020-09-11T06:00:00Z/2020-09-11T06:01:00Z"
+    survey.loc[11, "survey_complete"] = False
+    survey.loc[12, "weather_stop"] = True
+    count = pd.DataFrame(
+        dict(
+            count_id=[f"C{i}" for i in range(30)],
+            survey_id=survey.survey_id,
+            datetime=None,
+            taxon_id="A",
+            count_category="normal",
+            count=100,
+        )
+    )
+    count.loc[13, ["survey_id", "datetime"]] = [None, "2020-09-14"]
+    count.loc[14, "count"] = 0
+    count = pd.concat(
+        [
+            count,
+            pd.DataFrame(
+                [
+                    dict(
+                        count_id="partial",
+                        survey_id="S13",
+                        datetime=None,
+                        taxon_id="A",
+                        count_category="normal",
+                        count=1,
+                    ),
+                    dict(
+                        count_id="presence",
+                        survey_id=None,
+                        datetime="2020-09-01",
+                        taxon_id="A",
+                        count_category="normal",
+                        count=pd.NA,
+                    ),
+                ]
+            ),
+        ],
+        ignore_index=True,
+    )
+    survey = pd.concat([survey, survey.iloc[[0]].assign(survey_id="overlap")], ignore_index=True)
+    taxonomy = pd.DataFrame(dict(taxon_id=["A"], english_name=["Taxon A"]))
+    result = count_outliers(count, survey, taxonomy, daily_coverage(count, survey))
+    rates = result.loc[result.metric.eq("count_rate")].set_index("date")
+    assert rates.loc[dates[0], "count_rate"] == 50  # Overlap is not double effort.
+    assert rates.loc[dates[10], "count_rate"] == 6000
+    assert rates.loc[dates[10], "flagged"]
+    assert rates.loc[dates[11:14], "count_rate"].isna().all()
+    assert rates.loc[dates[14], "count_rate"] == 0
+    assert pd.isna(rates.loc[dates[14], "outlier_score"])
+    assert rates.loc[rates.count_rate.gt(0), "reference_days"].eq(25).all()
+    totals = result.loc[result.metric.eq("daily_count")]
+    assert not totals.flagged.any()
+    assert totals.loc[totals.daily_count.gt(0), "outlier_score"].notna().all()
+
+
+def test_outlier_scores_are_relative_to_flocking_variability_and_ignore_zeros():
+    dates = pd.date_range("2020-09-01", periods=26)
+    survey = pd.DataFrame(
+        dict(
+            survey_id=[f"S{i}" for i in range(26)],
+            datetime=[f"{day:%Y-%m-%d}T06:00:00Z/{day:%Y-%m-%d}T07:00:00Z" for day in dates],
+            survey_complete=True,
+            weather_stop=False,
+        )
+    )
+    # Both species have the same relative variability, despite 1000-fold abundance.
+    count = pd.concat(
+        [
+            pd.DataFrame(
+                dict(
+                    count_id=[f"{taxon}{i}" for i in range(26)],
+                    survey_id=survey.survey_id,
+                    datetime=None,
+                    taxon_id=taxon,
+                    count_category="normal",
+                    count=[
+                        value * scale
+                        for value in [1, 2, 5, 10, 20, 50] * 2
+                        + [100, 1000]
+                        + [1, 2, 5, 10, 20, 50] * 2
+                    ],
+                )
+            )
+            for taxon, scale in (("A", 1), ("B", 1000))
+        ],
+        ignore_index=True,
+    )
+    # Zeros must not make ordinary flock sizes look extreme.
+    zeros = count.iloc[:24].copy()
+    zeros["count_id"] = "zero-" + zeros.count_id
+    zeros["count"] = 0
+    zeros["datetime"] = zeros.survey_id.str[1:].astype(int).map(lambda i: f"{1990+i}-09-14")
+    zeros["survey_id"] = None
+    count = pd.concat([count, zeros], ignore_index=True)
+    taxonomy = pd.DataFrame(dict(taxon_id=["A", "B"], english_name=["Small", "Flocking"]))
+    result = count_outliers(count, survey, taxonomy, daily_coverage(count, survey))
+    totals = result.loc[result.metric.eq("daily_count")]
+    ordinary = totals.loc[totals.date.eq(dates[12])].set_index("taxon_id")
+    assert not ordinary.flagged.any()
+    assert ordinary.loc["A", "outlier_score"] == ordinary.loc["B", "outlier_score"]
+    extreme = totals.loc[totals.date.eq(dates[13])].set_index("taxon_id")
+    assert extreme.flagged.all()
+    assert extreme.loc["A", "outlier_score"] == extreme.loc["B", "outlier_score"]
+    assert totals.loc[totals.date.eq(dates[0]), "outlier_score"].isna().all()
+    assert totals.loc[totals.daily_count.eq(0), "outlier_score"].isna().all()
+
+
+def test_seasonal_reference_crosses_new_year_and_excludes_candidate_and_summer():
+    dates = pd.to_datetime(
+        [f"{year}-12-31" for year in range(2000, 2021)] + ["2021-01-01", "2020-07-01"]
+    )
+    survey = pd.DataFrame(
+        dict(
+            survey_id=[f"S{i}" for i in range(len(dates))],
+            datetime=[f"{day:%Y-%m-%d}T06:00:00Z/{day:%Y-%m-%d}T07:00:00Z" for day in dates],
+            survey_complete=True,
+            weather_stop=False,
+        )
+    )
+    count = pd.DataFrame(
+        dict(
+            count_id=[f"C{i}" for i in range(len(dates))],
+            survey_id=survey.survey_id,
+            datetime=None,
+            taxon_id="A",
+            count_category="normal",
+            count=[10] * 21 + [1000, 1000000000],
+        )
+    )
+    taxonomy = pd.DataFrame(dict(taxon_id=["A"], english_name=["Taxon A"]))
+    result = count_outliers(count, survey, taxonomy, daily_coverage(count, survey))
+    candidate = result.loc[result.date.eq("2021-01-01") & result.metric.eq("daily_count")].iloc[0]
+    assert candidate.reference_days == 21
+    assert candidate.reference_p95 == candidate.reference_max == 10
+    assert candidate.outlier_score == 100 and candidate.flagged
+    assert result.loc[result.date.eq("2020-07-01"), "outlier_score"].isna().all()
+
+
+def test_outlier_report_keeps_all_flagged_rows_in_score_order():
+    from defile_dataset.report import render
+
+    rows = pd.DataFrame(dict(outlier_score=[10.0, 5.0] + [4.0] * 210))
+    check = Check(
+        "Unusual daily counts",
+        "warn",
+        "",
+        rows,
+        key="daily-count-outliers",
+        file="count_outliers.csv",
+    )
+    document = render([check], summarize([check]))
+    assert document.count("<tr data-filter-value=") == 212
+    assert document.index('data-sort="10.0"') < document.index('data-sort="5.0"')
+    assert 'href="count_outliers.csv"' in document
+    assert "Effectifs journaliers atypiques" in document
+    assert summarize([check])["build_status"] == "passed"
 
 
 def test_warning_is_independent_of_build_validity():

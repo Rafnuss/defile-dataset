@@ -36,15 +36,6 @@
             }
           },
           {
-            "name": "taxon_id",
-            "type": "string",
-            "description": "Bird taxonomy foreign key.",
-            "constraints": {
-              "required": true,
-              "pattern": "avibase-[A-F0-9]{8}"
-            }
-          },
-          {
             "name": "datetime",
             "type": "string",
             "description": "ISO local collection date, UTC datetime or UTC interval. Empty inherits survey timing; required when no survey is linked. Dates carry no invented midnight. String with an ISO pattern because date/datetime types cannot represent the permitted interval form. Z or +00:00 is required for clock times; the build writes Z. Calendar validity and ordering are checked by the declared ISO rule.",
@@ -59,25 +50,21 @@
             ]
           },
           {
+            "name": "taxon_id",
+            "type": "string",
+            "description": "Bird taxonomy foreign key.",
+            "constraints": {
+              "required": true,
+              "pattern": "avibase-[A-F0-9]{8}"
+            }
+          },
+          {
             "name": "count",
             "type": "integer",
             "description": "Numerical quantity for this count_category; required except for presence-only count_estimation=x.",
             "constraints": {
               "required": false,
               "minimum": 0
-            }
-          },
-          {
-            "name": "count_category",
-            "type": "string",
-            "description": "normal: main migration direction; reverse: opposite direction; local: local/non-migrating birds (Trektellen Present). Missing reverse/local quantities produce no row; explicit zeros are retained. Filter normal for main migration totals.",
-            "constraints": {
-              "required": true,
-              "enum": [
-                "normal",
-                "reverse",
-                "local"
-              ]
             }
           },
           {
@@ -102,6 +89,19 @@
               "x": {
                 "description": "Presence without a numerical count; count must be empty."
               }
+            }
+          },
+          {
+            "name": "count_category",
+            "type": "string",
+            "description": "normal: main migration direction; reverse: opposite direction; local: local/non-migrating birds (Trektellen Present). Missing reverse/local quantities produce no row; explicit zeros are retained. Filter normal for main migration totals.",
+            "constraints": {
+              "required": true,
+              "enum": [
+                "normal",
+                "reverse",
+                "local"
+              ]
             }
           },
           {
@@ -496,29 +496,25 @@
             }
           },
           {
-            "name": "remark",
-            "type": "string",
-            "description": "Source survey prose and explicit no-species-entry annotation, including historical visitor/person-hour notes.",
+            "name": "survey_complete",
+            "type": "boolean",
+            "description": "true: all birds passing during this recorded interval are accounted for, including the explicit no-passage assumption for weather_stop=true. Completeness applies to the interval, not the entire day or season; a short survey can be complete. false: birds are known to have passed uncounted (records lost or deleted, birds noted as missed). Times nobody was counting are excluded rather than marked incomplete. Required on release; blank source values default to true.",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "weather_stop",
+            "type": "boolean",
+            "description": "true: weather made counting impossible throughout the interval. No passage is assumed, so zero detections are assumed rather than observed. Requires survey_complete=true and an explanation in survey_comment; no count row may link to it. Blank otherwise. Exclude these intervals from observed hours; retain or drop them explicitly when testing the no-passage assumption.",
             "constraints": {
               "required": false
             }
           },
           {
-            "name": "remark_processing",
+            "name": "survey_comment",
             "type": "string",
-            "description": "Processing notes; historical narratives have day-level scope.",
-            "constraints": {
-              "required": false
-            }
-          },
-          {
-            "name": "trektellen_count_id",
-            "type": "integer",
-            "description": "Native header ID for the Trektellen correction link.",
-            "constraints": {
-              "required": false,
-              "minimum": 1
-            }
+            "description": "Short explanation of a status decision, removed absence or inferred effort assumption. Required for a weather stop or incomplete survey. Original observer narratives remain in remark and weather; a comment does not itself change status."
           },
           {
             "name": "observers",
@@ -535,6 +531,15 @@
             "constraints": {
               "required": false
             }
+          },
+          {
+            "name": "temperature",
+            "type": "number",
+            "description": "Temperature in degrees Celsius. Negative values are allowed. Native zeros are retained and may be defaults; no guessed meteorological bounds are imposed.",
+            "constraints": {
+              "required": false
+            },
+            "x-unit": "degree Celsius"
           },
           {
             "name": "wind_speed_bft",
@@ -699,34 +704,29 @@
             "x-unit": "m"
           },
           {
-            "name": "temperature",
-            "type": "number",
-            "description": "Temperature in degrees Celsius. Negative values are allowed. Native zeros are retained and may be defaults; no guessed meteorological bounds are imposed.",
-            "constraints": {
-              "required": false
-            },
-            "x-unit": "degree Celsius"
-          },
-          {
-            "name": "survey_complete",
-            "type": "boolean",
-            "description": "true: all birds passing during this recorded interval are accounted for, including the explicit no-passage assumption for weather_stop=true. Completeness applies to the interval, not the entire day or season; a short survey can be complete. false: birds are known to have passed uncounted (records lost or deleted, birds noted as missed). Times nobody was counting are excluded rather than marked incomplete. Required on release; blank source values default to true.",
-            "constraints": {
-              "required": true
-            }
-          },
-          {
-            "name": "weather_stop",
-            "type": "boolean",
-            "description": "true: weather made counting impossible throughout the interval. No passage is assumed, so zero detections are assumed rather than observed. Requires survey_complete=true and an explanation in survey_comment; no count row may link to it. Blank otherwise. Exclude these intervals from observed hours; retain or drop them explicitly when testing the no-passage assumption.",
-            "constraints": {
-              "required": false
-            }
-          },
-          {
-            "name": "survey_comment",
+            "name": "remark",
             "type": "string",
-            "description": "Short explanation of a status decision, removed absence or inferred effort assumption. Required for a weather stop or incomplete survey. Original observer narratives remain in remark and weather; a comment does not itself change status."
+            "description": "Source survey prose and explicit no-species-entry annotation, including historical visitor/person-hour notes.",
+            "constraints": {
+              "required": false
+            }
+          },
+          {
+            "name": "remark_processing",
+            "type": "string",
+            "description": "Processing notes; historical narratives have day-level scope.",
+            "constraints": {
+              "required": false
+            }
+          },
+          {
+            "name": "trektellen_count_id",
+            "type": "integer",
+            "description": "Native header ID for the Trektellen correction link.",
+            "constraints": {
+              "required": false,
+              "minimum": 1
+            }
           }
         ],
         "primaryKey": "survey_id",
@@ -822,6 +822,14 @@
             }
           },
           {
+            "name": "parent_taxon_id",
+            "type": "string",
+            "description": "taxon_id of the smallest enclosing group in this table (a 'sp.' or slash taxon, or the species of a subspecies); empty for roots. Curated in taxonomy/parent_taxa.csv. Summing a group's descendants gives all birds counted under it.",
+            "constraints": {
+              "required": false
+            }
+          },
+          {
             "name": "order",
             "type": "string",
             "description": "Checklist order.",
@@ -833,14 +841,6 @@
             "name": "family",
             "type": "string",
             "description": "Checklist family.",
-            "constraints": {
-              "required": false
-            }
-          },
-          {
-            "name": "parent_taxon_id",
-            "type": "string",
-            "description": "taxon_id of the smallest enclosing group in this table (a 'sp.' or slash taxon, or the species of a subspecies); empty for roots. Curated in taxonomy/parent_taxa.csv. Summing a group's descendants gives all birds counted under it.",
             "constraints": {
               "required": false
             }

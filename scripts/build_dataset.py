@@ -25,6 +25,7 @@ from defile_dataset import read  # noqa: E402
 from defile_dataset.attributes import historical_attributes  # noqa: E402
 from defile_dataset.audit import (  # noqa: E402
     build_checks,
+    count_outliers,
     daily_coverage,
     quantity_components,
     summarize,
@@ -38,6 +39,7 @@ from defile_dataset.consolidate import (  # noqa: E402
     validate_tables,
 )
 from defile_dataset.identities import readable_ids
+from defile_dataset.observers import acknowledgement_names, compile_observers
 from defile_dataset.package import descriptor, generate_docs, validate_package  # noqa: E402
 from defile_dataset.reconcile import compare_report_totals  # noqa: E402
 from defile_dataset.remark_text import convert_remark_text
@@ -104,6 +106,29 @@ def main(argv=None) -> int:
     hist = read.read_historical(RAW_DIR)
     effort = read.read_effort(RAW_DIR)
     sightings, counts = read.read_trektellen(RAW_DIR)
+    observer_names, observer_evidence, observer_review = compile_observers(
+        effort,
+        counts,
+        pd.concat(
+            [
+                pd.read_csv(
+                    os.path.join(ROOT, "raw/reports/observers.csv"), keep_default_na=False
+                ),
+                pd.read_csv(
+                    os.path.join(ROOT, "raw/reports/historical_observers.csv"),
+                    keep_default_na=False,
+                ),
+            ],
+            ignore_index=True,
+        ),
+        pd.read_csv(
+            os.path.join(ROOT, "config/observers/name_aliases.csv"), keep_default_na=False
+        ),
+        pd.read_csv(
+            os.path.join(ROOT, "config/observers/name_decisions.csv"), keep_default_na=False
+        ),
+    )
+    print(f"  Observer names: {len(observer_names)}; review entries: {len(observer_review)}.")
     taxonomy_rules = pd.read_csv(
         os.path.join(ROOT, "config/taxonomy/historical_text_mappings.csv"), keep_default_na=False
     )
@@ -205,6 +230,44 @@ def main(argv=None) -> int:
         ("paper_text", paper_text_table),
     ):
         _write_csv(data, os.path.join(dataset_dir, name + ".csv"))
+    observer_dir = os.path.join(stage, "observers")
+    os.makedirs(observer_dir)
+    for name, data in (
+        ("names", observer_names),
+        ("evidence", observer_evidence),
+        ("review", observer_review),
+    ):
+        _write_csv(data, os.path.join(observer_dir, name + ".csv"))
+    shutil.copyfile(
+        os.path.join(ROOT, "config/observers/README.md"), os.path.join(observer_dir, "README.md")
+    )
+    shutil.copyfile(
+        os.path.join(ROOT, "raw/reports/observer_source_coverage.csv"),
+        os.path.join(observer_dir, "historical_source_coverage.csv"),
+    )
+    shutil.copyfile(
+        os.path.join(ROOT, "config/observers/historical_extraction_review.csv"),
+        os.path.join(observer_dir, "historical_extraction_review.csv"),
+    )
+    thanks, incomplete_names, possible_duplicates = acknowledgement_names(observer_names)
+    for name, data in (
+        ("acknowledgements", thanks),
+        ("incomplete_names", incomplete_names),
+        ("possible_duplicates", possible_duplicates),
+    ):
+        _write_csv(data, os.path.join(observer_dir, name + ".csv"))
+    _write_csv(
+        thanks.loc[thanks.abbreviated_name.duplicated(keep=False)],
+        os.path.join(observer_dir, "abbreviation_collisions.csv"),
+    )
+    with open(os.path.join(observer_dir, "acknowledgements.txt"), "w") as f:
+        f.write(", ".join(thanks.abbreviated_name.drop_duplicates()) + ".\n")
+    with open(os.path.join(observer_dir, "acknowledgements.md"), "w") as f:
+        f.write(
+            "Nous remercions les observatrices et observateurs ayant contribué au suivi : "
+            + ", ".join(thanks.abbreviated_name.drop_duplicates())
+            + ".\n"
+        )
     generate_docs(dataset_dir, repository_docs=False)
     shutil.copyfile(
         os.path.join(ROOT, "docs/templates/gbif-readme.md"), os.path.join(gbif_dir, "README.md")
@@ -357,7 +420,11 @@ def main(argv=None) -> int:
         report_taxa.groupby("species").taxonomy_order.min().dropna().astype(int).to_dict()
     )
 
+    coverage = daily_coverage(count_table, survey_table)
+    outliers = count_outliers(count_table, survey_table, taxon_table, coverage)
+    _write_csv(outliers, os.path.join(audit_dir, "count_outliers.csv"))
     reviews = {
+        "count_outliers": outliers,
         "entries": ds.issues,
         "status": status_review,
         "attributes": attribute_audit.loc[attribute_audit.status.ne("mapped")].drop(
@@ -371,7 +438,6 @@ def main(argv=None) -> int:
     checks = build_checks(ds, checks, validation, reviews, reconciliation)
     for c in checks:
         print(f"  [{c.status:4s}] {c.name}: {c.detail}")
-    coverage = daily_coverage(count_table, survey_table)
     coverage_assets(os.path.join(audit_dir, "coverage"))
     coverage_season = (
         pd.read_csv(os.path.join(ROOT, "config/audit-settings/coverage-season.csv"))
@@ -422,6 +488,18 @@ def main(argv=None) -> int:
         for pattern in (read.TREKTELLEN_DATA_PATTERN, read.TREKTELLEN_HEADER_PATTERN)
     ]
     table_files = [
+        "observers/names.csv",
+        "observers/evidence.csv",
+        "observers/review.csv",
+        "observers/README.md",
+        "observers/acknowledgements.csv",
+        "observers/abbreviation_collisions.csv",
+        "observers/acknowledgements.txt",
+        "observers/acknowledgements.md",
+        "observers/incomplete_names.csv",
+        "observers/possible_duplicates.csv",
+        "observers/historical_source_coverage.csv",
+        "observers/historical_extraction_review.csv",
         "dataset/count.csv",
         "dataset/survey.csv",
         "dataset/taxonomy.csv",
@@ -445,6 +523,7 @@ def main(argv=None) -> int:
         "audit/attribute_quantity_review.csv",
         "audit/overlap_review.csv",
         "audit/daily_coverage.csv",
+        "audit/count_outliers.csv",
         "audit/validation_findings.csv",
         "audit/historical_effort_gaps.csv",
         "audit/entry_time_corrections.csv",
@@ -494,6 +573,9 @@ def main(argv=None) -> int:
         "consolidated_counts": len(count_table),
         "consolidated_surveys": len(survey_table),
         "consolidated_taxa": len(taxon_table),
+        "observer_names": len(observer_names),
+        "observer_review_rows": len(observer_review),
+        "observer_identity_policy": "explicit-aliases-with-unresolved-supplied-names-v1",
         "report_text_accounts": len(text_table),
         "paper_text_accounts": len(paper_text_table),
         "incomplete_surveys": int((~survey_table.survey_complete).sum()),
@@ -550,6 +632,13 @@ def main(argv=None) -> int:
                 "config/audit-settings/coverage-season.csv",
                 "config/audit-settings/interruption-review-notes.csv",
                 "config/audit-settings/historical-gap-breaks.csv",
+                "raw/reports/observers.csv",
+                "raw/reports/historical_observers.csv",
+                "raw/reports/observer_source_coverage.csv",
+                "config/observers/historical_extraction_review.csv",
+                "config/observers/name_aliases.csv",
+                "config/observers/name_decisions.csv",
+                "config/observers/README.md",
                 "raw/reports/report_text.csv",
                 "raw/reports/paper_text.csv",
                 "raw/reports/annual-totals.csv",
@@ -585,7 +674,7 @@ def main(argv=None) -> int:
     # Publish the validated build and refresh generated documentation -------------
     generate_docs(dataset_dir)
     os.makedirs(args.out, exist_ok=True)
-    for name in ("dataset", "audit", "gbif"):
+    for name in ("dataset", "audit", "gbif", "observers"):
         destination = os.path.join(args.out, name)
         if os.path.isdir(destination):
             shutil.rmtree(destination)

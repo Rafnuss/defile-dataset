@@ -23,12 +23,21 @@ Open `report.html`: one section for each validation or source-review question. F
 | `excluded_counts.csv`, `excluded_surveys.csv` | Original excluded records and reasons. |
 | `reconciliation.csv` | Source counts equal retained counts plus mutually exclusive exclusion categories. |
 | `daily_coverage.csv` | Daily metrics computed only from the final count and survey tables. |
+| `count_outliers.csv` | Daily taxon/category totals and birds per observed hour, ranked by outlier score, including reference statistics and released count/survey IDs. |
 | `coverage/plotly.min.js` | Local Plotly bundle for the interactive coverage heatmap. |
 | `report_reconciliation.csv` | Published annual totals alongside current source-derived totals. |
 
 ## Interpretation
 
 Validation failures block publication; review warnings may describe legitimate records or unresolved evidence. Information sections describe coverage and documented statuses without requesting corrections. Tests verify the code separately through pytest.
+
+The daily-count and count-rate checks compare each positive value with other positive days of the same taxon and movement category within ±15 calendar days across all years. The candidate day is excluded. Month/day is aligned using a fixed leap-year calendar, with circular distances across New Year. This avoids month boundaries and treats the usual seasonal flocking variability of each species as part of its reference distribution. At least 20 other eligible positive days are required; sparse references remain unscored. Explicit zeros remain in the evidence but neither lower the baseline nor trigger warnings. Presence-only records and absent taxon/day combinations are not inferred zeros.
+
+For each metric, `outlier_score = value / reference_max`, where `reference_max` is the largest other positive value within the seasonal window. A score of 3 means three times every other comparable value for that species, irrespective of its absolute abundance. The candidate cannot influence its own reference. The empirical 95th percentile (linear interpolation) and median provide additional context but do not determine the score. Scores above 3 are shown, largest first. The reference median, 95th percentile, maximum and sample size are displayed so each comparison is inspectable. This is an upper-tail review heuristic, not a probability, significance test or proof of error. Low counts are not flagged: flocking and variable passage make them poor evidence of a count error. Changes in populations or sampling can still affect comparisons across years.
+
+Each numerical day contributes one total per taxon/category; attribute subgroups are summed before scoring. Rates divide by the day's union of observed survey hours from `daily_coverage.csv`; they remain blank if hours are unknown/nonpositive or any numerical count in that taxon/day/category is unlinked. This is a daily rate, not an instantaneous entry rate. All flagged rows are searchable and sortable in HTML. `count_outliers.csv` includes both metrics for every numerical taxon/day/category, including unscored candidates, so alternative thresholds can be reviewed without changing scientific counts. These warnings never block publication. Review the listed source IDs before correcting counts or effort; exceptional biological events can be valid.
+
+Outlier evidence includes `count_remarks`, `survey_comments` and `survey_remarks`, preserving released text verbatim with the contributing count or survey ID. Repeated survey text is shown once per daily finding. These fields distinguish species-specific evidence from survey-wide context, including reviewed effort assumptions and report-derived historical notes. Comments provide context without changing scores or automatically clearing warnings.
 
 Sunrise/sunset use solar altitude −0.833° and are calculated to the minute. The night check uses civil twilight (−6°) and retains every positive overlap. The report filter starts at 30 minutes and can be lowered to zero; its threshold is applied to actual overlap duration, replacing the old 45-minute boundary tolerance for this audit. The processing rules for entry timestamps remain unchanged. `night_minutes` is the actual period overlap outside civil twilight. The sunrise/sunset overlap columns include twilight.
 
