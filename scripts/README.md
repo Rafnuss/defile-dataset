@@ -6,6 +6,7 @@ Run from the repository root with `uv run python scripts/<name>.py`.
 | --- | --- |
 | `build_dataset.py` | Build and validate scientific tables, audit and provenance. |
 | `validate_dataset.py` | Validate existing tables; `--report PATH` optionally saves results. |
+| `release_dataset.py` | Publish the current build as a tagged release (`dataset.zip`) for Zenodo, GBIF and defile-passage. |
 | `export_gbif.py` | Convert the current tables to Event and Occurrence CSVs for IPT. |
 | `generate_dataset_docs.py` | Refresh schema-derived guides and Zenodo webform notes. |
 

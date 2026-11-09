@@ -67,7 +67,7 @@ Use `--out PATH --interim PATH` to build products in alternate locations. Metada
 
 The local research checkout preserves source snapshots, completed migrations and scientific reviews under `archive/`, `scripts/archive/`, `docs/imports/` and `docs/reviews/`. These are excluded from the public core and are not build inputs. Temporary work belongs in ignored `tmp/`.
 
-When adding or re-exporting a season, use the procedure below. Publication versioning is planned through GitHub, Zenodo and GBIF; the local build does not create a frozen release. `.github/workflows/tests.yml` runs the locked test environment.
+When adding or re-exporting a season, use the procedure below. A build becomes a release only through `scripts/release_dataset.py vYYYY.N` (see [publication](publication.md)). `.github/workflows/tests.yml` runs the locked test environment.
 
 The audit report presents one section per validation or source-review check, using the shared result inventory (`audit.json`). Yearly coverage and published-total comparisons are separate sections. See [audit terminology and outputs](audit.md).
 
