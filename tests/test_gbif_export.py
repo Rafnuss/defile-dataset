@@ -8,6 +8,8 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
+from defile_dataset.taxonomy import EBIRD_VERSION
+
 
 @pytest.fixture
 def export_input(tmp_path):
@@ -214,7 +216,7 @@ def test_export_preserves_survey_and_count_rows(export_input):
     assert occurrences.taxonConceptID.eq("https://avibase.ca/TEST0001").all()
     assert occurrences.scientificName.eq("Milvus milvus").all()
     assert occurrences.vernacularName.eq("Red Kite").all()
-    assert occurrences.nameAccordingTo.eq("eBird/Clements v2025").all()
+    assert occurrences.nameAccordingTo.eq(EBIRD_VERSION).all()
     assert occurrences["family"].eq("Accipitridae").all()
     assert occurrences["order"].eq("Accipitriformes").all()
     assert occurrences["class"].eq("Aves").all()

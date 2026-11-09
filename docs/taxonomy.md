@@ -10,7 +10,7 @@ The decisions adopted on 12 October 2026 are: 1993 for the individually treated 
 
 The released tables contain birds only. `taxon_id` is the Avibase concept ID; `trektellen_species_id` is an optional comma-separated list of distinct native IDs. `source_taxa` preserves the source-label crosswalk as JSON. Internal `kind` remains in the audit/source mapping for filtering, but is absent from released taxonomy.csv.
 
-The pinned AviList **v2025 extended checklist** supplies released names, ranks and higher taxonomy first; eBird/Clements **2025 integrated checklist** fills missing concepts or fields and supplies eBird codes. It does not supply French common names. Historical French names below are actual source names, not translated eBird names. Trektellen English names come from the mapping and are checked against observed export labels in `interim/diagnostics/taxonomy/taxonomy-review.csv` (written by a local review script). No French equivalents or alternative taxon IDs have been invented. The CSV includes all source rows for these cases, even source labels with no observations in the current export.
+The pinned AviList **v2026 extended checklist** (20 October 2026) supplies released names, ranks and higher taxonomy first; eBird/Clements **v2026 integrated checklist** (October 2026) fills missing concepts or fields and supplies eBird codes. It does not supply French common names. Historical French names below are actual source names, not translated eBird names. Trektellen English names come from the mapping and are checked against observed export labels in `interim/diagnostics/taxonomy/taxonomy-review.csv` (written by a local review script). No French equivalents or alternative taxon IDs have been invented. The CSV includes all source rows for these cases, even source labels with no observations in the current export.
 
 ## Corrections implemented
 
@@ -23,7 +23,7 @@ The pinned AviList **v2025 extended checklist** supplies released names, ranks a
 
 ## Species limits confirmed by the dataset owner
 
-The following source scopes were explicitly confirmed on 7 October 2026. These corrections replace legacy combined concepts with the corresponding AviList species; they do not infer identifications solely from the site's geographic location.
+The following source scopes were explicitly confirmed on 7 October 2026 (Robin and Spotted Flycatcher on 9 November 2026, after the v2026 splits). These corrections replace legacy combined concepts with the corresponding AviList species; they do not infer identifications solely from the site's geographic location.
 
 | Source labels | Previous combined concept | Corrected species and Avibase ID |
 | --- | --- | --- |
@@ -32,6 +32,8 @@ The following source scopes were explicitly confirmed on 7 October 2026. These c
 | Redpoll &#124; redpoll sp. (410) | Common/Lesser Redpoll group; avibase-3D1C0668 | Redpoll; Acanthis flammea; avibase-B6C8DDB2 |
 | Courlis corlieu; Whimbrel (173) | Hudsonian/Eurasian Whimbrel; avibase-F9305BAA | Eurasian Whimbrel; Numenius phaeopus; avibase-082F3A63 |
 | Cassenoix moucheté | Northern/Southern Nutcracker; avibase-76C74B10 | Northern Nutcracker; Nucifraga caryocatactes; avibase-D9B001DF |
+| Robin (296) | European/Canary Islands Robin; avibase-C809B2B9 (split in v2026) | European Robin; Erithacus rubecula; avibase-E68C3C70 |
+| Gobemouche gris; Spotted Flycatcher (365) | Spotted/Mediterranean Flycatcher; avibase-EE8206E7 (split in v2026) | Spotted Flycatcher; Muscicapa striata; avibase-B142856F |
 
 The generic Trektellen yellow-wagtail label excludes Eastern Yellow Wagtail and maps to Western Yellow Wagtail at species level. Blue-headed Wagtail (Trektellen ID 282) is specifically the nominate subspecies Motacilla flava flava (avibase-876F7E82). Historical Bergeronnette printanière remains at Western Yellow Wagtail species level because that source label does not specify a subspecies. Lesser Redpoll labels remain mapped to the AviList cabaret subspecies; the generic Redpoll entry maps to the complete species. Counts and source labels are unchanged. The historical reference already spells Cassenoix moucheté correctly; the garbled accent in the pasted text does not require changing the workbook.
 

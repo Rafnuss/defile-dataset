@@ -28,12 +28,21 @@ import pandas as pd
 
 TAXONOMY_DIR = "taxonomy"
 SOURCE_TAXA_FILE = os.path.join(TAXONOMY_DIR, "source_taxa.csv")
-AVILIST_FILE = os.path.join(TAXONOMY_DIR, "reference", "avilist_2025_11jun_extended.xlsx")
-AVILIST_VERSION = "AviList v2025 (11 Jun 2025)"
+AVILIST_FILE = os.path.join(TAXONOMY_DIR, "reference", "avilist_2026_20oct_extended.xlsx")
+AVILIST_VERSION = "AviList v2026"
+# AviList's column names (v2026: upper case, with spaces) -> ours
+AVILIST_COLUMNS = {
+    "AVIBASE ID": "avibase_id",
+    "SCIENTIFIC NAME": "scientific_name",
+    "ENGLISH NAME: AVILIST": "english_name_avilist",
+    "RANK": "taxon_rank",
+    "ORDER": "order",
+    "FAMILY": "family",
+}
 EBIRD_FILE = os.path.join(
-    TAXONOMY_DIR, "reference", "ebird_clements_2025_integrated_checklist.csv"
+    TAXONOMY_DIR, "reference", "ebird_clements_2026_integrated_checklist.csv"
 )
-EBIRD_VERSION = "eBird/Clements v2025"
+EBIRD_VERSION = "eBird/Clements v2026"
 PARENT_FILE = os.path.join(TAXONOMY_DIR, "parent_taxa.csv")
 SYSTEMATIC_COUNTS_FILE = os.path.join(TAXONOMY_DIR, "systematic_counts.csv")
 
@@ -67,24 +76,20 @@ def read_parents(root: str) -> pd.Series:
 def read_avilist(root: str) -> pd.DataFrame:
     """AviList species and subspecies, indexed by Avibase id."""
     a = pd.read_excel(os.path.join(root, AVILIST_FILE), sheet_name=0)
-    species_name = a[a["Taxon_rank"] == "species"].set_index("Scientific_name")[
-        "English_name_AviList"
+    a = a.rename(columns=AVILIST_COLUMNS)[list(AVILIST_COLUMNS.values())]
+    species_name = a[a["taxon_rank"] == "species"].set_index("scientific_name")[
+        "english_name_avilist"
     ]
-    a = a[a["AvibaseID"].notna()].copy()
+    a = a[a["avibase_id"].notna()].copy()
     # Subspecies have no English name in AviList: "<species name> (<epithet>)".
-    binomial = a["Scientific_name"].str.split().str[:2].str.join(" ")
-    ssp_name = binomial.map(species_name) + " (" + a["Scientific_name"].str.split().str[2] + ")"
-    a["english_name"] = a["English_name_AviList"].fillna(
-        ssp_name.where(a["Taxon_rank"] != "species")
+    binomial = a["scientific_name"].str.split().str[:2].str.join(" ")
+    ssp_name = binomial.map(species_name) + " (" + a["scientific_name"].str.split().str[2] + ")"
+    a["english_name"] = a["english_name_avilist"].fillna(
+        ssp_name.where(a["taxon_rank"] != "species")
     )
-    return a.rename(
-        columns={
-            "Scientific_name": "scientific_name",
-            "Taxon_rank": "taxon_rank",
-            "Order": "order",
-            "Family": "family",
-        }
-    ).set_index("AvibaseID")[["scientific_name", "english_name", "taxon_rank", "order", "family"]]
+    return a.set_index("avibase_id")[
+        ["scientific_name", "english_name", "taxon_rank", "order", "family"]
+    ]
 
 
 def read_ebird(root: str) -> pd.DataFrame:

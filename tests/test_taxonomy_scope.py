@@ -3,6 +3,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from defile_dataset.taxonomy import read_avilist
+
 
 def test_owner_confirmed_species_limits():
     root = Path(__file__).resolve().parents[1]
@@ -23,8 +25,6 @@ def test_owner_confirmed_species_limits():
         "Cassenoix moucheté": "avibase-D9B001DF",
     }.items():
         assert historical.loc[name, "avibase_id"] == avibase_id
-    checklist = pd.read_excel(
-        root / "taxonomy/reference/avilist_2025_11jun_extended.xlsx"
-    ).set_index("AvibaseID")
+    checklist = read_avilist(str(root))
     for avibase_id in set(expected.values()) | {"avibase-D9B001DF"}:
-        assert checklist.loc[avibase_id, "Taxon_rank"] == "species"
+        assert checklist.loc[avibase_id, "taxon_rank"] == "species"
