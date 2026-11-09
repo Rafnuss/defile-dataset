@@ -18,7 +18,6 @@ docs/*
 !docs/templates/
 docs/templates/*
 !docs/templates/gbif-readme.md
-paper/
 references/
 # Research scripts that read the local archive and reference library.
 scripts/archive/

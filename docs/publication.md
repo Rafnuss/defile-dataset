@@ -15,7 +15,7 @@ Detailed weather, narratives, native IDs, processing notes and crosswalks remain
 
 ## Paper and coordination
 
-The manuscript belongs in paper/ (local evidence: `paper/manuscript.qmd`), with figures and summaries generated from the cited release. The recorded proposal is Biodiversity Data Journal; journal fit, fees, funding and authorship remain decisions for the team. Journal and precedent research (local evidence: `paper/research/publication.md`) is separate from maintained dataset methods. The organiser email draft (local evidence: `paper/coordination/email-organisateurs.md`) gathers permissions, credit and scientific clarifications; it is not a sent message or a decision record.
+The paper's working materials (figures, supplement, acknowledgements, references) live outside this repository, in the shared OneDrive folder `0-Paper/defile-paper`; its scripts read this repository's build, and the paper's figures and numbers name the release they come from. The recorded proposal is Biodiversity Data Journal; journal fit, fees, funding and authorship remain decisions for the team. Journal and precedent research (local evidence: `paper/research/publication.md`) is separate from maintained dataset methods. The organiser email draft (local evidence: `paper/coordination/email-organisateurs.md`) gathers permissions, credit and scientific clarifications; it is not a sent message or a decision record.
 
 ## Outstanding work
 
