@@ -1,132 +1,97 @@
 # GBIF export from the canonical CSVs
 
-GBIF receives a focused representation for discovery and interpretation; GitHub and Zenodo retain the complete canonical research CSVs. One survey row becomes one Event and one count row becomes one Occurrence, with namespaced identifiers derived from the current readable research IDs. Corrections to dates, clocks, taxa or collision groups can change these IDs; persistent exported identities must be settled before first publication. The Batumi comparison is background research; alignment with that dataset is no longer a design objective.
+GBIF provides discovery and an independently interpretable representation of the observations; Zenodo retains the complete canonical research tables, evidence and processing details. The current associated release is [Zenodo 10.5281/zenodo.23598005](https://doi.org/10.5281/zenodo.23598005), configured in `config/gbif.json`. Update this configuration for each research release so the GBIF files refer to the exact tables used to generate them.
 
-```text
-survey.csv → Event core
-  survey_id → eventID
-  datetime → eventDate (recorded interval)
-  survey_complete, weather_stop and their comment retained
-  samplingProtocol → visual counts of migrating birds
+## Run the converter
 
-count.csv → Occurrence extension
-  count_id → occurrenceID
-  survey_id → eventID
-  own datetime, or inherited survey interval
-  count → individualCount (quantity for this category)
-  count category, shared source ID, qualifications and age retained as properties
-  confirmed male/female codes → sex
-
- taxonomy.csv → taxon fields on Occurrences
-```
-
-Counts with no linked survey get a clearly identified date-level fallback Event with no inferred effort. Empty surveys and weather stops remain Events; they do not generate species absences. Native intervals are not aggregated into days or split into artificial hourly events. Main, reverse and local quantities stay distinct; each count row is exported once.
-
-Run the single converter after the dataset build:
+Run after a successful dataset build:
 
 ```bash
 uv run python scripts/export_gbif.py
 ```
 
-It reads `output/dataset/count.csv`, `survey.csv` and `taxonomy.csv` and writes the complete `output/gbif/event.csv` and `output/gbif/occurrence.csv`. Upload the first as the IPT Event core and the second as its Occurrence extension, linked through `eventID`. Both are comma-separated UTF-8 with one header row; map headers to the matching Darwin Core terms. IPT handles publication metadata and archive generation. Optional `--input` and `--out` arguments select different dataset/output directories. The build replaces `output/gbif/` with its README; rerun the converter after every successful build. These GBIF CSVs are plain UTF-8, unlike the BOM-prefixed scientific CSVs.
+The converter reads `output/zenodo/count.csv`, `survey.csv`, `taxonomy.csv` and the pinned eBird/Clements checklist. It writes `output/gbif/event.csv`, `occurrence.csv` and a refreshed README. The README supplies concise IPT metadata entries, including a reference to the data paper in preparation and GitHub methods; import only the two CSVs as archive data. Maintain its text in `docs/templates/gbif-readme.md`. CSVs are comma-separated plain UTF-8, with one header row and double-quote text delimiters. Import Events as the IPT Event core and Occurrences as its extension, linked through `eventID`. Map all headers to Darwin Core terms except `references`, which maps to `http://purl.org/dc/terms/references`.
 
-The column mapping below lists the selected fields. `dynamicProperties` is restricted to information needed to interpret coverage and counts. Detailed weather, source narratives, processing notes, raw observer text, native IDs and taxonomy crosswalks remain in the research CSVs. Standard fields are preferred where meanings are confirmed; life-stage mapping remains pending.
+Options:
 
-`report_text.csv` and `paper_text.csv` are excluded from the GBIF archive. Their curated excerpts remain outside the planned CC BY 4.0 grant unless rights-holder permission is obtained. Selected methods and citations may inform EML metadata.
+| Argument | Meaning |
+| --- | --- |
+| `--input PATH` | Canonical dataset directory; default `output/zenodo`. |
+| `--out PATH` | Export directory; default `output/gbif`. |
+| `--ebird-checklist PATH` | Checklist with the same source columns as the pinned reference; taxa match by exact Avibase concept ID. Update the checklist version label in `src/defile_dataset/taxonomy.py` when upgrading. |
+| `--zenodo-doi DOI` | Override the configured release DOI with a bare DOI or `https://doi.org/` URL. `--zenodo-doi ''` omits references for an unpublished preview. |
+| `--coordinate-uncertainty-m METRES` | Reviewed radius of the represented observation area. Default blank: uncertainty has not been established. |
 
-The initial publication proposal in the organiser email is to use [the Swiss IPT](https://ipt-swissrd.gbif.ch/) with the Swiss Ornithological Institute (Vogelwarte) as publisher, subject to agreement from the organisers and Vogelwarte.
+The dataset build replaces `output/gbif/` with its README, so rerun the converter after each build. See the [column comparison](gbif-column-comparison.md) for the Batumi/HawkCount review and the reasons for this field selection.
 
-Planned licence for the Event/Occurrence export: CC BY 4.0 for the first-party structured observation data. Before publication, confirm that the data rights-holders authorize this licence, then set the machine-readable licence and approved attribution in IPT/EML. Publication remains pending: confirm publisher and public attribution; review alternate locations and geographical metadata; document known effort without equating survey span with observed hours; prepare EML with a link to the corresponding Zenodo release; validate GBIF interpretation of timing, zero/presence and reverse/local quantities. Keep the canonical CSVs available through GitHub and Zenodo so all source-resolution information remains available. Versioning belongs to GitHub, Zenodo and GBIF.
+## Record model and identity
 
-## Column mapping
+One survey row becomes one Event, including empty intervals, weather stops and incomplete counts. Native intervals are retained, not aggregated into days or split into artificial hours. Counts inherit survey timing only when their own timing is missing. Each positive category quantity or presence-only (`x`) row becomes one Occurrence. Explicit zero quantities remain in Zenodo because zero reverse/local quantities do not assert a species absence. Empty Events and weather stops do not create taxon absences.
 
-`dynamicProperties.field` means a named key inside a JSON object in the standard Darwin Core `dynamicProperties` column. It is preserved information, not a separately mapped Darwin Core field; dedicated filtering/indexing by GBIF is not promised. Missing values omit the JSON key; numerical zeros remain zero.
+Main, reverse and local counts remain separate. Only `count_category=normal` belongs in main-direction migration totals. The three quantities must not be summed as a migration total, netted, or treated as a census of unique individual birds. Approximate and lower-bound numbers retain the supplied numerical quantity and its qualification.
 
-## What actually goes into dynamicProperties
+Event IDs are `defile:2422:survey:SURVEY_ID`; Occurrence IDs are `defile:2422:count:COUNT_ID`. Remove the corresponding prefix to recover the canonical `survey_id` or `count_id` in the linked Zenodo release. Counts without a survey use `defile:2422:unlinked-day:DATE`, a date-level association with no inferred survey effort. Corrected dates, clocks, taxa or collision groups can change readable canonical IDs; a strategy for persistent exported identities still needs agreement before first GBIF publication.
 
-There is one `dynamicProperties` column in each GBIF table, containing a JSON object. Only seven source fields are eligible for custom keys; the exhaustive mapping below repeats their names to show their origin.
+## Taxonomy: Avibase identity and eBird names
 
-| GBIF table | Allowed custom keys | Why keep them? |
-| --- | --- | --- |
-| Event | `survey_complete`, `weather_stop`, `survey_comment` | Distinguish complete counts, weather stops (no bird assumed) and incomplete counts; explain the decision. |
-| Occurrence | `count_category`, `count_estimation`, `age` | Explain the category quantity, its qualification and the counted subgroup. |
+`taxonID` retains the exact canonical Avibase concept ID, such as `avibase-06D9A2C8`. `taxonConceptID` supplies its Avibase link, such as `https://avibase.ca/06D9A2C8`. These are source concept identifiers, not GBIF taxon keys. The exporter joins the pinned eBird/Clements checklist on `taxon concept ID`, never on a similar scientific or English name.
 
-Fallback Events also get the generated key `event_origin=unlinked_count_date`, so they cannot be mistaken for recorded surveys. Missing values omit keys, so a particular export may contain fewer keys. Weather, source remarks, processing remarks, raw observer text, native IDs, plumage and crosswalks are not copied into these objects.
+For the identical Avibase concept, eBird supplies `scientificName`, `vernacularName`, source category, order and family. A subspecies without an English label uses the eBird parent species name with the subspecies epithet, for example Hooded Crow (cornix), rather than retaining an outdated English synonym. Other missing checklist fields fall back to the canonical taxonomy fields, retaining the canonical taxonomy-source label when eBird has no scientific name for that concept. `nameAccordingTo` identifies the checklist supplying the scientific name. This is an export mapping; canonical research taxonomy is not rewritten. All 273 taxa in the October 19 build have exact matches in the pinned eBird/Clements v2025 checklist.
 
+Only standard ranks species, subspecies, genus, family, order and class populate `taxonRank`. eBird spuh, slash, hybrid, domestic and group categories remain explained in `taxonRemarks`, with their exact source concept and name retained. No species identification or artificial rank is inferred. Check the interpreted GBIF matching of these groups before publication; the supplied concept remains available even when GBIF assigns a different interpreted classification.
 
-## count.csv
+## Exported columns
 
-| Source column | Current destination | Transformation / limitation | Proposed refinement |
-| --- | --- | --- | --- |
-| `count_id` | Occurrence.occurrenceID | Prefix defile:2422:count:; one occurrence per released category/subgroup. | Keep. |
-| `count_category` | Occurrence.dynamicProperties.count_category | normal, reverse or local; each has its own individualCount. | Keep categories distinct in analyses. |
-| `survey_id` | Occurrence.eventID | Namespaced survey link; missing links get an unlinked-day Event. Original link remains in Zenodo. | Keep. |
-| `taxon_id` | Occurrence.taxonID | Joined to taxonomy.taxon_id. | Keep. |
-| `datetime` | Occurrence.eventDate | Own timing when supplied; otherwise inherit survey.datetime. Original override remains in Zenodo. | Keep; validate GBIF interpretation of points/intervals/date-only values. |
-| `count` | Occurrence.individualCount | Quantity for this count category; zero and missing stay distinct. | Keep; document count_estimation and direction semantics. |
-| `count_estimation` | Occurrence.dynamicProperties.count_estimation | Native qualifier; x also sets occurrenceStatus=present without inventing a number. | Keep original code and its documented meaning. |
-| `age` | Occurrence.dynamicProperties.age | Native calendar-year/maturity code, not translated to lifeStage. | Add lifeStage only for verified equivalent meanings; retain original age. |
-| `sex` | Occurrence.sex, conditionally | M → male; F → female. FC (female type) remains unspecified in GBIF and preserved in Zenodo. | Keep; do not equate female type with female. |
-| `plumage` | Not exported; retained in GitHub/Zenodo count.csv | Detailed source information stays in the canonical research dataset. | Keep outside GBIF. |
-| `remark` | Not exported; retained in GitHub/Zenodo count.csv | Detailed source information stays in the canonical research dataset. | Keep outside GBIF. |
-| `remark_processing` | Not exported; retained in GitHub/Zenodo count.csv | Detailed source information stays in the canonical research dataset. | Keep outside GBIF. |
-| `trektellen_data_id` | Not exported; retained in GitHub/Zenodo count.csv | Detailed source information stays in the canonical research dataset. | Keep outside GBIF. |
+### Event core
 
-## survey.csv
+| Field | Source and meaning |
+| --- | --- |
+| `eventID` | Namespaced canonical survey ID, or generated unlinked-day association. |
+| `eventDate` | Native survey date/time interval; fallback Events use the local collection day. UTC timing and interval precision are retained. |
+| `samplingProtocol` | Visual counts of migrating birds; blank for unlinked-day fallback Events. No effort amount is inferred. |
+| `eventRemarks` | Short public summary: complete, incomplete, weather stop, inferred empty interval or unlinked date. A weather stop means passage was not measured. |
+| `dynamicProperties` | JSON `survey_complete`, true `weather_stop`, and `coverage_basis=inferred_empty_interval` where identified from the maintained empty-interval comments. Fallbacks have `event_origin=unlinked_count_date`. |
+| `countryCode`, `locality` | Configured site country and name. |
+| `locationID` | Stable site label `defile:2422:site`. |
+| `decimalLatitude`, `decimalLongitude` | Configured count-point coordinates, 46.117215 and 5.914877. |
+| `geodeticDatum` | WGS84. |
+| `coordinateUncertaintyInMeters` | Reviewed radius supplied by the optional argument; otherwise blank. |
+| `locationRemarks` | Explains that coordinates locate the monitoring site, not each bird; historical/alternate count locations remain to be reviewed. |
+| `references` | DOI URL of the corresponding research release from `config/gbif.json` or the command-line override. Omitted for a preview with an empty DOI. |
 
-| Source column | Current destination | Transformation / limitation | Proposed refinement |
-| --- | --- | --- | --- |
-| `survey_id` | Event.eventID | Prefix defile:2422:survey:; one Event per survey. | Keep. |
-| `datetime` | Event.eventDate | Recorded interval unchanged, including overnight intervals and weather stops. | Keep; interval span is not observed effort. |
-| `recording_era` | Not exported; retained in GitHub/Zenodo survey.csv | Detailed source information stays in the canonical research dataset. | Keep outside GBIF; describe relevant methods in metadata. |
-| `remark` | Not exported; retained in GitHub/Zenodo survey.csv | Detailed source information stays in the canonical research dataset. | Keep outside GBIF. |
-| `remark_processing` | Not exported; retained in GitHub/Zenodo survey.csv | Detailed source information stays in the canonical research dataset. | Keep outside GBIF. |
-| `trektellen_count_id` | Not exported; retained in GitHub/Zenodo survey.csv | Detailed source information stays in the canonical research dataset. | Keep outside GBIF. |
-| `observers` | Not exported; retained in GitHub/Zenodo survey.csv | Detailed source information stays in the canonical research dataset. | Add agreed attribution through metadata/recordedBy after organiser review; retain raw attendance text only in the research dataset. |
-| `weather` | Not exported; retained in GitHub/Zenodo survey.csv | Detailed source information stays in the canonical research dataset. | Keep outside GBIF. |
-| `wind_speed_bft` | Not exported; retained in GitHub/Zenodo survey.csv | Detailed source information stays in the canonical research dataset. | Keep outside GBIF. |
-| `wind_direction` | Not exported; retained in GitHub/Zenodo survey.csv | Detailed source information stays in the canonical research dataset. | Keep outside GBIF. |
-| `cloud_cover` | Not exported; retained in GitHub/Zenodo survey.csv | Detailed source information stays in the canonical research dataset. | Keep outside GBIF. |
-| `cloud_height` | Not exported; retained in GitHub/Zenodo survey.csv | Detailed source information stays in the canonical research dataset. | Keep outside GBIF. |
-| `precipitation` | Not exported; retained in GitHub/Zenodo survey.csv | Detailed source information stays in the canonical research dataset. | Keep outside GBIF. |
-| `visibility` | Not exported; retained in GitHub/Zenodo survey.csv | Detailed source information stays in the canonical research dataset. | Keep outside GBIF. |
-| `temperature` | Not exported; retained in GitHub/Zenodo survey.csv | Detailed source information stays in the canonical research dataset. | Keep outside GBIF. |
-| `survey_complete` | Event.dynamicProperties.survey_complete + eventRemarks | true/false; not a species absence indicator. | Keep visible; it is not occurrenceStatus or taxonomic completeness. |
-| `weather_stop` | Event.dynamicProperties.weather_stop + eventRemarks | true when weather made counting impossible (no bird assumed); omitted otherwise. | Keep visible so assumed zeros can be told from observed ones. |
-| `survey_comment` | Event.dynamicProperties.survey_comment | Short explanation of the decision. | Keep; no blanket source-narrative export. |
+Complete means the research dataset treats counting as complete within that recorded interval; it does not assert exhaustive taxonomic coverage or justify absences. Inferred historical empty intervals remain marked separately from directly recorded surveys. Detailed `survey_comment` narratives, archive row numbers, observer attendance and correspondence stay in the research tables.
 
-## taxonomy.csv
+### Occurrence extension
 
-| Source column | Current destination | Transformation / limitation | Proposed refinement |
-| --- | --- | --- | --- |
-| `taxon_id` | Occurrence.taxonID | Joined from count.taxon_id; no separate Taxon core in this archive. | Keep. |
-| `scientific_name` | Occurrence.scientificName | Source checklist scientific name. | Keep. |
-| `english_name` | Not exported; remains in taxonomy.csv | The converter does not map vernacularName. | Add vernacularName for the English checklist name. |
-| `taxon_rank` | Occurrence.taxonRank, conditionally | Only species/subspecies/genus/family/order/class exported; other source categories remain in CSV. | Retain original group category in properties/taxonRemarks as well. |
-| `order` | Not exported; remains in taxonomy.csv | The converter does not map the higher taxonomy. | Add Occurrence.order. |
-| `family` | Not exported; remains in taxonomy.csv | The converter does not map the higher taxonomy. | Add Occurrence.family. |
-| `taxonomy_source` | Occurrence.nameAccordingTo | Checklist/version supplying the scientific name. | Keep. |
-| `ebird_code` | Not exported; remains in taxonomy.csv | No mapped field currently. | Keep in the canonical research dataset outside GBIF. |
-| `trektellen_species_id` | Not exported; remains in taxonomy.csv | Concept-level list of native IDs; not the ID for a particular occurrence. | Keep in the canonical research dataset outside GBIF. |
-| `source_taxa` | Not exported; remains in taxonomy.csv | Concept-level source-label crosswalk, not per-record original identification. | Keep in the canonical research dataset outside GBIF. |
+| Field | Source and meaning |
+| --- | --- |
+| `eventID` | Link to the Event core. |
+| `occurrenceID` | Namespaced canonical count ID; one eligible category/subgroup row per Occurrence. |
+| `eventDate` | Own count timing, otherwise the survey interval. |
+| `basisOfRecord` | HumanObservation. |
+| `occurrenceStatus` | Present; zero category quantities are not exported. |
+| `individualCount` | Recorded positive quantity for this category; blank for presence-only `x`. |
+| `taxonID`, `taxonConceptID` | Exact source Avibase identifier and its concept URL. |
+| `scientificName`, `vernacularName` | Scientific and English names from eBird for the same Avibase ID, with canonical fallback. |
+| `taxonRank` | Standard source rank only; no invented species rank for unresolved groups. |
+| `nameAccordingTo` | Checklist/version supplying the scientific name. |
+| `kingdom`, `phylum`, `class` | Animalia, Chordata, Aves. |
+| `order`, `family` | Checklist classification; parenthetical English family descriptions are removed. |
+| `taxonRemarks` | Explains nonstandard eBird categories such as slash and spuh. |
+| `sex` | Confirmed M → male and F → female. Female-type FC is not translated to female. |
+| `lifeStage` | A → adult, J → juvenile. Other codes are not translated. Calendar-year classes and historical I, which includes “> 1 an”, are not assumed equivalent to life stages. |
+| `behavior` | Main migration direction, reverse migration direction or local/non-migrating. No compass bearing is inferred. |
+| `occurrenceRemarks` | Category interpretation and supplied approximation (`~`), lower-bound (`>`) or presence-only (`x`) qualification. |
+| `dynamicProperties` | Exact native `count_category`, supplied `count_estimation` and supplied `age`. Missing values omit keys. |
+| Geographic fields | Repeated from the linked Event so independent Occurrence imports retain site context. |
+| `references` | Same version-specific research-release DOI as on Events. |
 
-## report_text.csv and paper_text.csv
+`dynamicProperties` preserves essential source distinctions but does not create searchable GBIF category/age/qualification filters. Standard fields improve interpretation without guaranteeing portal filtering. Check the interpreted records and archive downloads after IPT ingestion, including propagation of geography, unresolved taxa, intervals and category quantities.
 
-Excluded from the GBIF archive. Retained in the canonical dataset on GitHub and Zenodo; selected methods and citations may inform EML metadata.
+## Metadata, Zenodo and publication
 
-| Source column | Current destination | Transformation / limitation | Proposed refinement |
-| --- | --- | --- | --- |
-| `source_id` (paper_text.csv) | Not exported; remains in paper_text.csv | Paper identity, including multi-year syntheses. | Keep as companion prose; not an Event or Occurrence. |
-| `year` | Not exported; remains in report_text.csv | Report year, not necessarily the year of every observation described. | Keep companion table; use selected methods/citations in EML rather than duplicate report prose across Events. |
-| `category` | Not exported; remains in report_text.csv | Account subject/category. | Keep companion table; use selected methods/citations in EML rather than duplicate report prose across Events. |
-| `key` | Not exported; remains in report_text.csv | Taxon or narrative key; not an Event or Occurrence identifier. | Keep companion table; use selected methods/citations in EML rather than duplicate report prose across Events. |
-| `text` | Not exported; remains in report_text.csv | Curated French report prose, not an individual survey/count record. | Keep companion table; use selected methods/citations in EML rather than duplicate report prose across Events. |
+Keep full weather, source narratives, processing notes, native IDs, crosswalks, attribute codes, explicit zero rows and coverage evidence in Zenodo. Keep methods, geographical and temporal scope, contributor attribution, licence and citation instructions in IPT/EML and the Zenodo metadata. Include reciprocal links and describe which exact release generated the GBIF representation. The DOI in the CSVs connects the records to the research release; publication metadata must also carry that relationship.
 
-## Generated fields and exceptional cases
+No `sampleSizeValue`, observer-hours, synthetic Event hierarchy, separate Taxon core or report-text extension is generated. A recorded interval's span is not necessarily active observation time or observer-hours. Report measured effort only where supported.
 
-- `basisOfRecord` is generated as `HumanObservation`.
-- Only positive category quantities and presence-only records (`x`) become Occurrences, all with `occurrenceStatus` `present`. GBIF would read `individualCount` 0 as an absence, so zero quantities (mostly recorded zero reverse/local counts) stay in `count.csv` and are not exported.
-- Counts without a survey use `defile:2422:unlinked-day:DATE` as their Event link. Its Event date is the local collection day, with no inferred effort.
-- `countryCode` and `locality` are generated from the configured site. Coordinates are not currently exported.
-- Current `eventRemarks` says whether the Event is a complete count, a weather stop or an incomplete count; `occurrenceRemarks` explains category quantities. Source remark columns stay in Zenodo.
-- No `sampleSizeValue`, observer-hours, synthetic daily/hourly hierarchy, separate Taxon core or report-text extension is generated.
+`report_text.csv` and `paper_text.csv` remain outside the GBIF archive and outside the planned CC BY 4.0 grant unless rights-holder permission is obtained. The planned licence for first-party structured Event/Occurrence data is CC BY 4.0, subject to rights-holder authorization. Confirm publisher, public attribution, persistent IDs and geography; set the machine-readable licence and attribution in IPT/EML. The initial proposal remains the Swiss IPT with Vogelwarte as publisher, subject to agreement. Local generation does not publish or update either GBIF or Zenodo.
