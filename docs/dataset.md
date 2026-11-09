@@ -1,6 +1,6 @@
 # Défilé de l’Écluse migration dataset
 
-This package contains harmonised bird counts, survey information and curated historical accounts. Start with the tables below; consult [the complete column dictionary](table-columns.md) for complete field descriptions, types, keys, allowed values and validation rules. The adjacent `datapackage.json` contains the same definitions in machine-readable form.
+This package contains harmonised bird counts, survey information and a curated taxonomic reference. Start with the tables below; consult [the complete column dictionary](table-columns.md) for complete field descriptions, types, keys, allowed values and validation rules. The adjacent `datapackage.json` contains the same definitions in machine-readable form.
 
 ## Files and relationships
 
@@ -9,10 +9,8 @@ This package contains harmonised bird counts, survey information and curated his
 | `count.csv` | A recorded quantity or presence for one taxon, movement category and supported subgroup | `survey_id` → `survey.survey_id`; `taxon_id` → `taxonomy.taxon_id` |
 | `survey.csv` | A recorded survey interval, including explicitly identified weather stops | `survey_id` identifies the interval |
 | `taxonomy.csv` | A harmonised taxon concept | `taxon_id` identifies the concept; `parent_taxon_id` describes the curated identification hierarchy |
-| `report_text.csv` | A curated French annual-report account | Identified by year, category and key; species keys refer to taxonomy concepts |
-| `paper_text.csv` | A curated French account from a historical paper | Identified by source, category and key; some accounts refer to shared groups or taxa absent from the count taxonomy |
 
-The text tables provide context, not additional bird observations. Extracts are selected and edited accounts, not complete transcriptions; missing accounts do not imply species absence.
+Curated annual-report and historical-paper accounts are maintained separately in `output/text/` and are not part of this Zenodo package.
 
 ## Essential conventions
 
@@ -28,7 +26,7 @@ CSVs use UTF-8 with a byte-order mark for direct opening in Excel. `pandas.read_
 
 ## Licence and citation
 
-The planned licence for `count.csv`, `survey.csv`, `taxonomy.csv` and accompanying metadata is [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), pending confirmation of the rights holder and release credit. Third-party extracts in `report_text.csv` and `paper_text.csv` are outside this grant unless permission is obtained. Source PDFs and software have separate rights.
+The planned licence for `count.csv`, `survey.csv`, `taxonomy.csv` and accompanying metadata is [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), pending confirmation of the rights holder and release credit. The separate third-party text extracts are not included in this package. Source PDFs and software have separate rights.
 
 The publication release, version, DOI and recommended citation remain to be assigned. Cite a frozen release for reproducible analyses rather than an unversioned working copy.
 
@@ -38,4 +36,4 @@ Read [detailed interpretation and processing notes](dataset-details.md), [source
 
 ## Maintaining this guide
 
-The package README is generated from `docs/dataset.md`; definitions are maintained in `config/schema/datapackage.json`. Run `uv run python scripts/generate_dataset_docs.py` to refresh the guide and dictionaries, or `uv run python scripts/build_dataset.py` for a complete build. Validate existing CSVs with `uv run python scripts/validate_dataset.py`. The build records its revision, hashes and validation results in the output metadata and audit files.
+The package `DATA_GUIDE.md` is generated from `docs/dataset.md`; definitions are maintained in `config/schema/datapackage.json`. Run `uv run python scripts/generate_dataset_docs.py` to refresh the guide, dictionaries and submission notes, or `uv run python scripts/build_dataset.py` for a complete build. Validate existing CSVs with `uv run python scripts/validate_dataset.py`. The build records its revision, hashes and validation results in the separate output metadata and audit files. `output/README.md`, generated from `docs/zenodo.md`, supplies the Zenodo webform text and is excluded from the upload. To validate only the upload files, use `uv run python scripts/validate_dataset.py --dataset output/zenodo`; the default validates all five tables using `output/datapackage.json`.

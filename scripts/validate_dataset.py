@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the released CSVs using their adjacent Data Package descriptor."""
+"""Validate the released CSVs using their output Data Package descriptor."""
 import argparse
 import json
 from pathlib import Path
@@ -7,7 +7,7 @@ from pathlib import Path
 from defile_dataset.package import validate_package
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument("--dataset", type=Path, default=Path("output/dataset"))
+parser.add_argument("--dataset", type=Path, default=Path("output"))
 parser.add_argument(
     "--report", type=Path, help="Optional JSON report path; default is read-only validation."
 )

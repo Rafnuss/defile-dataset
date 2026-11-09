@@ -300,3 +300,23 @@ def test_daily_counts_recover_collection_day_from_utc_and_date_only():
     )
     daily = daily_from_tables(count, survey)
     assert daily.date.tolist() == ["2026-10-01"] and daily["count"].tolist() == [6]
+
+
+def test_generated_zenodo_package_is_standalone(package):
+    from defile_dataset.package import generate_docs
+
+    zenodo = package / "zenodo"
+    zenodo.mkdir()
+    (package / "text").mkdir()
+    for resource in json.loads(SCHEMA_FILE.read_text())["resources"]:
+        folder = zenodo if resource["name"] in ("count", "survey", "taxonomy") else package / "text"
+        shutil.move(package / resource["path"], folder / resource["path"])
+    generate_docs(zenodo, repository_docs=False)
+    assert validate_package(package / "datapackage.json")["valid"]
+    assert validate_package(zenodo / "datapackage.json")["valid"]
+    assert not (zenodo / "README.md").exists()
+    assert (package / "README.md").exists()
+    assert "### report_text.csv" not in (zenodo / "DATA_DICTIONARY.md").read_text()
+    shutil.rmtree(package / "text")
+    assert validate_package(zenodo / "datapackage.json")["valid"]
+    assert not validate_package(package / "datapackage.json")["valid"]

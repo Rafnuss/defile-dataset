@@ -51,7 +51,7 @@ Historical “no attributes assigned” means an unresolved description has no m
 
 The season-coverage section is informational: missing dates and short days do not establish zero birds, weather closures or incomplete counts. `survey_complete` applies to each recorded interval, not the full day or season. Documented incomplete surveys and weather stops are valid statuses. Status warnings concern unresolved or conflicting source decisions; release validation rejects weather stops marked incomplete, missing required explanations, counts linked to weather stops and overlapping survey intervals.
 
-The coverage figure uses only final `dataset/count.csv` and `dataset/survey.csv`, after selection, overlap removal and reviewed status integration. Its selector shows entries, surveys, survey hours, numerical bird/reverse/local counts, and status counts. No source totals, excluded records, precision percentages or missing-attribute metrics are mixed into this view.
+The coverage figure uses only final `zenodo/count.csv` and `zenodo/survey.csv`, after selection, overlap removal and reviewed status integration. Its selector shows entries, surveys, survey hours, numerical bird/reverse/local counts, and status counts. No source totals, excluded records, precision percentages or missing-attribute metrics are mixed into this view.
 
 Entries are final bird rows, including presence-only records. Counts sum recorded numerical values; a missing value is not zero. A date with survey records but no bird rows has zero entries and no numerical bird count. Unlinked bird rows retain their collection day and contribute to entries/counts, with no assumed survey hours.
 

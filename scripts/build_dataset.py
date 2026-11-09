@@ -214,13 +214,15 @@ def main(argv=None) -> int:
     stage = args.out + ".building"
     if os.path.isdir(stage):
         shutil.rmtree(stage)
-    dataset_dir, audit_dir, gbif_dir = [
-        os.path.join(stage, name) for name in ("dataset", "audit", "gbif")
+    dataset_dir, text_dir, audit_dir, gbif_dir = [
+        os.path.join(stage, name) for name in ("zenodo", "text", "audit", "gbif")
     ]
     processed_dir, derived_dir, diagnostic_dir = [
         os.path.join(stage, "interim", name) for name in ("processed", "derived", "diagnostics")
     ]
-    for folder in (dataset_dir, audit_dir, gbif_dir, processed_dir, derived_dir, diagnostic_dir):
+    for folder in (
+        dataset_dir, text_dir, audit_dir, gbif_dir, processed_dir, derived_dir, diagnostic_dir
+    ):
         os.makedirs(folder, exist_ok=True)
     for name, data in (
         ("count", count_table),
@@ -229,7 +231,8 @@ def main(argv=None) -> int:
         ("report_text", text_table),
         ("paper_text", paper_text_table),
     ):
-        _write_csv(data, os.path.join(dataset_dir, name + ".csv"))
+        folder = text_dir if name in ("report_text", "paper_text") else dataset_dir
+        _write_csv(data, os.path.join(folder, name + ".csv"))
     observer_dir = os.path.join(stage, "observers")
     os.makedirs(observer_dir)
     for name, data in (
@@ -273,7 +276,7 @@ def main(argv=None) -> int:
         os.path.join(ROOT, "docs/templates/gbif-readme.md"), os.path.join(gbif_dir, "README.md")
     )
     shutil.copyfile(os.path.join(ROOT, "docs/audit.md"), os.path.join(audit_dir, "README.md"))
-    validation = validate_package(os.path.join(dataset_dir, "datapackage.json"))
+    validation = validate_package(os.path.join(stage, "datapackage.json"))
     with open(os.path.join(audit_dir, "datapackage_validation.json"), "w") as f:
         json.dump(validation, f, ensure_ascii=False, indent=2)
     print(f"  Released CSV validation: {'pass' if validation['valid'] else 'fail'}.")
@@ -500,14 +503,16 @@ def main(argv=None) -> int:
         "observers/possible_duplicates.csv",
         "observers/historical_source_coverage.csv",
         "observers/historical_extraction_review.csv",
-        "dataset/count.csv",
-        "dataset/survey.csv",
-        "dataset/taxonomy.csv",
-        "dataset/report_text.csv",
-        "dataset/paper_text.csv",
-        "dataset/datapackage.json",
-        "dataset/README.md",
-        "dataset/DATA_DICTIONARY.md",
+        "zenodo/count.csv",
+        "zenodo/survey.csv",
+        "zenodo/taxonomy.csv",
+        "text/report_text.csv",
+        "text/paper_text.csv",
+        "zenodo/datapackage.json",
+        "README.md",
+        "datapackage.json",
+        "zenodo/DATA_GUIDE.md",
+        "zenodo/DATA_DICTIONARY.md",
         "gbif/README.md",
         "audit/README.md",
         "audit/interruption_review.csv",
@@ -639,6 +644,7 @@ def main(argv=None) -> int:
                 "config/observers/name_aliases.csv",
                 "config/observers/name_decisions.csv",
                 "config/observers/README.md",
+                "docs/zenodo.md",
                 "raw/reports/report_text.csv",
                 "raw/reports/paper_text.csv",
                 "raw/reports/annual-totals.csv",
@@ -674,19 +680,23 @@ def main(argv=None) -> int:
     # Publish the validated build and refresh generated documentation -------------
     generate_docs(dataset_dir)
     os.makedirs(args.out, exist_ok=True)
-    for name in ("dataset", "audit", "gbif", "observers"):
+    for name in ("zenodo", "text", "audit", "gbif", "observers"):
         destination = os.path.join(args.out, name)
         if os.path.isdir(destination):
             shutil.rmtree(destination)
         shutil.move(os.path.join(stage, name), destination)
-    os.replace(os.path.join(stage, "metadata.json"), os.path.join(args.out, "metadata.json"))
+    for name in ("README.md", "datapackage.json", "metadata.json"):
+        os.replace(os.path.join(stage, name), os.path.join(args.out, name))
+    legacy_dir = os.path.join(args.out, "dataset")
+    if os.path.isdir(legacy_dir):
+        shutil.rmtree(legacy_dir)
     for name in interim_files + ["processed/metadata.json"]:
         destination = os.path.join(args.interim, name)
         os.makedirs(os.path.dirname(destination), exist_ok=True)
         os.replace(os.path.join(stage, "interim", name), destination)
     shutil.rmtree(stage)
     print(
-        f"Wrote {args.out}/ (dataset, audit, GBIF status) and {args.interim}/ (processed, derived, diagnostics)."
+        f"Wrote {args.out}/ (Zenodo files, text, audit, GBIF status) and {args.interim}/ (processed, derived, diagnostics)."
     )
     return 0
 

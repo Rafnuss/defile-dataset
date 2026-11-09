@@ -6,9 +6,9 @@ from pathlib import Path
 from defile_dataset.package import generate_docs
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument("--out", type=Path, default=Path("output/dataset"))
+parser.add_argument("--out", type=Path, default=Path("output/zenodo"))
 args = parser.parse_args()
 generate_docs(args.out)
 print(
-    f"Generated {args.out}/README.md, DATA_DICTIONARY.md, datapackage.json and the repository dictionaries."
+    f"Generated {args.out}/DATA_GUIDE.md, DATA_DICTIONARY.md, datapackage.json, submission notes and repository dictionaries."
 )

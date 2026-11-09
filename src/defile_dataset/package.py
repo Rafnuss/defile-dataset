@@ -2,7 +2,6 @@
 
 import functools
 import json
-import shutil
 from datetime import date, datetime
 from pathlib import Path
 
@@ -27,7 +26,7 @@ def columns(name):
     return [field["name"] for field in resource["schema"]["fields"]]
 
 
-def dictionary():
+def dictionary(resource_names=None):
     """Render definitions, constraints and links directly from the JSON descriptor."""
     package = descriptor()
     text = "\n## Column dictionary\n\nGenerated from config/schema/datapackage.json; edit that source rather than these tables.\n"
@@ -35,6 +34,8 @@ def dictionary():
     text += "\n### Survey interpretation\n\n"
     text += "\n\n".join(package["x-surveySemantics"].values()) + "\n"
     for resource in package["resources"]:
+        if resource_names is not None and resource["name"] not in resource_names:
+            continue
         schema = resource["schema"]
         rules = resource.get("x-validationRules", [])
         text += f"\n### {resource['path']}\n\n{resource['description']}\n"
@@ -125,7 +126,21 @@ def generate_docs(dataset_dir, repository_docs=True):
     root = SCHEMA_FILE.parents[2]
     dataset_dir = Path(dataset_dir)
     dataset_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(SCHEMA_FILE, dataset_dir / "datapackage.json")
+    package = descriptor()
+    package["resources"] = [
+        r for r in package["resources"] if r["name"] in ("count", "survey", "taxonomy")
+    ]
+    (dataset_dir / "datapackage.json").write_text(
+        json.dumps(package, ensure_ascii=False, indent=2) + "\n"
+    )
+    package = descriptor()
+    for resource in package["resources"]:
+        folder = dataset_dir.name if resource["name"] in ("count", "survey", "taxonomy") else "text"
+        resource["path"] = f"{folder}/{resource['path']}"
+    (dataset_dir.parent / "datapackage.json").write_text(
+        json.dumps(package, ensure_ascii=False, indent=2) + "\n"
+    )
+    (dataset_dir.parent / "README.md").write_text((root / "docs/zenodo.md").read_text())
     usage = (
         (root / "docs/dataset.md")
         .read_text()
@@ -144,9 +159,9 @@ def generate_docs(dataset_dir, repository_docs=True):
         usage = usage.replace(
             f"({name})", f"(https://github.com/Rafnuss/defile-dataset/blob/main/docs/{name})"
         )
-    (dataset_dir / "README.md").write_text(usage)
+    (dataset_dir / "DATA_GUIDE.md").write_text(usage)
     (dataset_dir / "DATA_DICTIONARY.md").write_text(
-        "# Dataset column definitions\n\n" + dictionary()
+        "# Dataset column definitions\n\n" + dictionary(("count", "survey", "taxonomy"))
     )
     if repository_docs:
         attribute_dictionary().to_csv(root / "docs/bird_attribute_codes.csv", index=False)

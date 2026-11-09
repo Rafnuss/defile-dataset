@@ -40,7 +40,10 @@ The report extraction and curation workflow is archived. The annual build does n
 
 ```text
 output/
-  dataset/                 # count, survey, taxonomy, report_text, paper_text + schema and README
+  README.md                # Zenodo webform notes; excluded from upload
+  zenodo/                  # count, survey, taxonomy + schema, DATA_GUIDE and DATA_DICTIONARY
+  text/                    # report_text and paper_text; excluded from Zenodo upload
+  datapackage.json         # full five-table descriptor for local validation
   audit/                   # findings, exclusions, conservation and validation
   gbif/                    # README and Event/Occurrence CSVs from the separate converter
   metadata.json            # input hashes, output hashes and check results
@@ -54,13 +57,13 @@ See [the audit guide](audit.md) for evidence files and report interpretation. Co
 
 Use `--out PATH --interim PATH` to build products in alternate locations. Metadata output hashes are relative to the output root; `interim_sha256` paths are relative to the interim root. A failed build remains in `<output-path>.building/` for inspection and does not replace previous products. The next build clears that staging folder.
 
-`interim/processed/metadata.json` is a compatibility copy for the forecast's older reader. Migrate consumers to `output/dataset/`; see [dataset usage](dataset.md).
+`interim/processed/metadata.json` is a compatibility copy for the forecast's older reader. Migrate consumers to `output/zenodo/`; see [dataset usage](dataset.md).
 
 ## Supporting commands and history
 
 `export_gbif.py` converts the current released tables to `output/gbif/event.csv` and `occurrence.csv` for IPT. Run it after each successful build: the build replaces `output/gbif/` with its README and removes earlier export CSVs. The exporter is separate from build validation; publication metadata, persistent exported IDs and GBIF interpretation still need review.
 
-`generate_dataset_docs.py` refreshes schema-derived documentation without rebuilding counts. PDF acquisition and optional review commands remain in the local research checkout; they are not required for the public build. Generated dictionaries are `docs/table-columns.md` and `docs/bird_attribute_codes.csv`.
+`generate_dataset_docs.py` refreshes schema-derived documentation and `output/README.md` from `docs/zenodo.md` without rebuilding counts. Upload only the contents of `output/zenodo/`; the README supplies the Zenodo webform fields. The default validator checks all five tables through `output/datapackage.json`; `--dataset output/zenodo` checks the standalone three-table upload. PDF acquisition and optional review commands remain in the local research checkout; they are not required for the public build. Generated dictionaries are `docs/table-columns.md` and `docs/bird_attribute_codes.csv`.
 
 The local research checkout preserves source snapshots, completed migrations and scientific reviews under `archive/`, `scripts/archive/`, `docs/imports/` and `docs/reviews/`. These are excluded from the public core and are not build inputs. Temporary work belongs in ignored `tmp/`.
 
