@@ -121,6 +121,18 @@ def attribute_dictionary():
     return pd.DataFrame(rows)
 
 
+def write_full_descriptor(root, upload_dir="zenodo", text_dir="text"):
+    """The five-table descriptor (the upload's three tables and the two text extracts) at `root`,
+    for the build to validate them together. Not published: the upload has its own."""
+    package = descriptor()
+    for resource in package["resources"]:
+        folder = upload_dir if resource["name"] in ("count", "survey", "taxonomy") else text_dir
+        resource["path"] = f"{folder}/{resource['path']}"
+    path = Path(root) / "datapackage.json"
+    path.write_text(json.dumps(package, ensure_ascii=False, indent=2) + "\n")
+    return path
+
+
 def generate_docs(dataset_dir, repository_docs=True):
     """Write the package dictionary from the schema and maintained usage guide."""
     root = SCHEMA_FILE.parents[2]
@@ -133,14 +145,6 @@ def generate_docs(dataset_dir, repository_docs=True):
     (dataset_dir / "datapackage.json").write_text(
         json.dumps(package, ensure_ascii=False, indent=2) + "\n"
     )
-    package = descriptor()
-    for resource in package["resources"]:
-        folder = dataset_dir.name if resource["name"] in ("count", "survey", "taxonomy") else "text"
-        resource["path"] = f"{folder}/{resource['path']}"
-    (dataset_dir.parent / "datapackage.json").write_text(
-        json.dumps(package, ensure_ascii=False, indent=2) + "\n"
-    )
-    (dataset_dir.parent / "README.md").write_text((root / "docs/zenodo.md").read_text())
     usage = (
         (root / "docs/dataset.md")
         .read_text()

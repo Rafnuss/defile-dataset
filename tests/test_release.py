@@ -12,7 +12,8 @@ def _build(tmp_path, git_sha=HEAD, checks=None):
     (folder / "count.csv").write_text("taxon_id,count\nx,1\n")
     hashes = {f"{R.UPLOAD_DIR}/count.csv": R.sha256(folder / "count.csv")}
     metadata = {"git_sha": git_sha, "checks": checks or {"x": "pass"}, "table_sha256": hashes}
-    (tmp_path / R.METADATA_FILE).write_text(json.dumps(metadata))
+    (tmp_path / R.METADATA_PATH).parent.mkdir()
+    (tmp_path / R.METADATA_PATH).write_text(json.dumps(metadata))
     return tmp_path
 
 

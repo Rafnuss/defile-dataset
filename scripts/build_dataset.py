@@ -40,7 +40,12 @@ from defile_dataset.consolidate import (  # noqa: E402
 )
 from defile_dataset.identities import readable_ids
 from defile_dataset.observers import acknowledgement_names, compile_observers
-from defile_dataset.package import descriptor, generate_docs, validate_package  # noqa: E402
+from defile_dataset.package import (  # noqa: E402
+    descriptor,
+    generate_docs,
+    validate_package,
+    write_full_descriptor,
+)
 from defile_dataset.reconcile import compare_report_totals  # noqa: E402
 from defile_dataset.remark_text import convert_remark_text
 from defile_dataset.report import render  # noqa: E402
@@ -214,15 +219,13 @@ def main(argv=None) -> int:
     stage = args.out + ".building"
     if os.path.isdir(stage):
         shutil.rmtree(stage)
-    dataset_dir, text_dir, audit_dir, gbif_dir = [
-        os.path.join(stage, name) for name in ("zenodo", "text", "audit", "gbif")
+    dataset_dir, text_dir, audit_dir = [
+        os.path.join(stage, name) for name in ("zenodo", "text", "audit")
     ]
     processed_dir, derived_dir, diagnostic_dir = [
         os.path.join(stage, "interim", name) for name in ("processed", "derived", "diagnostics")
     ]
-    for folder in (
-        dataset_dir, text_dir, audit_dir, gbif_dir, processed_dir, derived_dir, diagnostic_dir
-    ):
+    for folder in (dataset_dir, text_dir, audit_dir, processed_dir, derived_dir, diagnostic_dir):
         os.makedirs(folder, exist_ok=True)
     for name, data in (
         ("count", count_table),
@@ -272,11 +275,9 @@ def main(argv=None) -> int:
             + ".\n"
         )
     generate_docs(dataset_dir, repository_docs=False)
-    shutil.copyfile(
-        os.path.join(ROOT, "docs/templates/gbif-readme.md"), os.path.join(gbif_dir, "README.md")
-    )
     shutil.copyfile(os.path.join(ROOT, "docs/audit.md"), os.path.join(audit_dir, "README.md"))
-    validation = validate_package(os.path.join(stage, "datapackage.json"))
+    # The five tables together (the upload's three and the text extracts), in the stage only
+    validation = validate_package(write_full_descriptor(stage))
     with open(os.path.join(audit_dir, "datapackage_validation.json"), "w") as f:
         json.dump(validation, f, ensure_ascii=False, indent=2)
     print(f"  Released CSV validation: {'pass' if validation['valid'] else 'fail'}.")
@@ -509,11 +510,8 @@ def main(argv=None) -> int:
         "text/report_text.csv",
         "text/paper_text.csv",
         "zenodo/datapackage.json",
-        "README.md",
-        "datapackage.json",
         "zenodo/DATA_GUIDE.md",
         "zenodo/DATA_DICTIONARY.md",
-        "gbif/README.md",
         "audit/README.md",
         "audit/interruption_review.csv",
         "audit/survey_status_review.csv",
@@ -644,7 +642,6 @@ def main(argv=None) -> int:
                 "config/observers/name_aliases.csv",
                 "config/observers/name_decisions.csv",
                 "config/observers/README.md",
-                "docs/zenodo.md",
                 "raw/reports/report_text.csv",
                 "raw/reports/paper_text.csv",
                 "raw/reports/annual-totals.csv",
@@ -667,12 +664,8 @@ def main(argv=None) -> int:
             )
         )
     metadata["table_sha256"]["audit/report.html"] = _sha256(os.path.join(audit_dir, "report.html"))
-    with open(os.path.join(stage, "metadata.json"), "w") as f:
+    with open(os.path.join(audit_dir, "metadata.json"), "w") as f:
         json.dump(metadata, f, indent=2, ensure_ascii=False)
-    # Compatibility for the forecast's existing two-table reader.
-    shutil.copyfile(
-        os.path.join(stage, "metadata.json"), os.path.join(processed_dir, "metadata.json")
-    )
     if audit["build_status"] == "blocked":
         print(f"Blocking checks failed; previous products retained. Inspect {stage}/audit/.")
         return 1
@@ -680,23 +673,25 @@ def main(argv=None) -> int:
     # Publish the validated build and refresh generated documentation -------------
     generate_docs(dataset_dir)
     os.makedirs(args.out, exist_ok=True)
-    for name in ("zenodo", "text", "audit", "gbif", "observers"):
+    for name in ("zenodo", "text", "audit", "observers"):
         destination = os.path.join(args.out, name)
         if os.path.isdir(destination):
             shutil.rmtree(destination)
         shutil.move(os.path.join(stage, name), destination)
-    for name in ("README.md", "datapackage.json", "metadata.json"):
-        os.replace(os.path.join(stage, name), os.path.join(args.out, name))
+    # Files earlier builds wrote at the top of the output folder; `gbif/` is export_gbif.py's
+    for name in ("README.md", "datapackage.json", "metadata.json", "dataset.zip"):
+        if os.path.exists(os.path.join(args.out, name)):
+            os.remove(os.path.join(args.out, name))
     legacy_dir = os.path.join(args.out, "dataset")
     if os.path.isdir(legacy_dir):
         shutil.rmtree(legacy_dir)
-    for name in interim_files + ["processed/metadata.json"]:
+    for name in interim_files:
         destination = os.path.join(args.interim, name)
         os.makedirs(os.path.dirname(destination), exist_ok=True)
         os.replace(os.path.join(stage, "interim", name), destination)
     shutil.rmtree(stage)
     print(
-        f"Wrote {args.out}/ (Zenodo files, text, audit, GBIF status) and {args.interim}/ (processed, derived, diagnostics)."
+        f"Wrote {args.out}/ (Zenodo files, text, audit, observers) and {args.interim}/ (processed, derived, diagnostics)."
     )
     return 0
 

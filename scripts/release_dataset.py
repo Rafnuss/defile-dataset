@@ -12,6 +12,7 @@ Usage:
 
 import argparse
 import subprocess
+import tempfile
 from pathlib import Path
 
 from defile_dataset import release as R
@@ -39,19 +40,21 @@ def main(argv=None) -> int:
     if problems:
         raise SystemExit("Not released:\n  " + "\n  ".join(problems))
 
-    path = R.pack(args.output, args.output / R.ASSET)
-    print(f"{path.relative_to(ROOT)}: {path.stat().st_size / 1e6:.1f} MB, from {head[:7]}")
-    if args.dry_run:
-        print("Dry run: nothing published")
-        return 0
-    notes = (
-        f"Dataset {args.tag}, built from {head[:7]}. `{R.ASSET}` holds the Zenodo upload and the"
-        " build's metadata.json (sha256 of each file)."
-    )
-    made = run(
-        "gh", "release", "create", args.tag, str(path),
-        "--target", head, "--title", f"Dataset {args.tag}", "--notes", notes,
-    )  # fmt: skip
+    # The zip lives only as long as the upload: the release on GitHub is its copy
+    with tempfile.TemporaryDirectory() as tmp:
+        path = R.pack(args.output, Path(tmp) / R.ASSET)
+        print(f"{R.ASSET}: {path.stat().st_size / 1e6:.1f} MB, from {head[:7]}")
+        if args.dry_run:
+            print("Dry run: nothing published")
+            return 0
+        notes = (
+            f"Dataset {args.tag}, built from {head[:7]}. `{R.ASSET}` holds the Zenodo upload and"
+            " the build's metadata.json (sha256 of each file)."
+        )
+        made = run(
+            "gh", "release", "create", args.tag, str(path),
+            "--target", head, "--title", f"Dataset {args.tag}", "--notes", notes,
+        )  # fmt: skip
     if made.returncode:
         raise SystemExit(made.stderr)
     print(f"Released {args.tag}: build defile-passage with --dataset {args.tag}")

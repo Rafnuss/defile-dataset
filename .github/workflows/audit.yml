@@ -31,7 +31,6 @@ jobs:
           name: audit-report
           path: |
             output/audit/
-            output/metadata.json
             output.building/audit/
           if-no-files-found: warn
       - name: Prepare site entry point

@@ -54,7 +54,7 @@ Later overlapping periods are excluded under the interim earliest-start/native-I
 
 Native IDs support auditing. Historical sheet/row IDs refer to the frozen reference; reordering the workbook requires preserving identities. Source labels that share a checklist concept are documented in [taxonomy](taxonomy.md) and recoverable per entry from the internal observation table.
 
-The output-root metadata.json (`output/metadata.json` by default) records source and generated-file hashes and validation status. The research descriptor records the planned CC BY 4.0 licence and its scope, pending rights-holder confirmation; publisher and release identifiers remain to be agreed. The separate converter (`uv run python scripts/export_gbif.py`) writes Event and Occurrence CSVs for IPT; GBIF publication and interpretation validation remain pending.
+The build's metadata.json (`output/audit/metadata.json` by default) records source and generated-file hashes and validation status. The research descriptor records the planned CC BY 4.0 licence and its scope, pending rights-holder confirmation; publisher and release identifiers remain to be agreed. The separate converter (`uv run python scripts/export_gbif.py`) writes Event and Occurrence CSVs for IPT; GBIF publication and interpretation validation remain pending.
 
 Trektellen status is derived reproducibly from structured DEFILE remark tags and `config/survey-status/trektellen-survey-status.csv`. See [survey coverage](survey-coverage.md) for future recording.
 

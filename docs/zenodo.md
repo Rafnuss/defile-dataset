@@ -1,6 +1,6 @@
 # Zenodo metadata
 
-Copy the fields below into Zenodo. Upload only the six files in `output/zenodo/`; this README is not an upload file. Complete the release-specific entries before publication.
+Copy the fields below into Zenodo. Upload only the six files in `output/zenodo/`. Complete the release-specific entries before publication.
 
 ## Title
 

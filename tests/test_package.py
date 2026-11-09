@@ -303,19 +303,22 @@ def test_daily_counts_recover_collection_day_from_utc_and_date_only():
 
 
 def test_generated_zenodo_package_is_standalone(package):
-    from defile_dataset.package import generate_docs
+    from defile_dataset.package import generate_docs, write_full_descriptor
 
     zenodo = package / "zenodo"
     zenodo.mkdir()
     (package / "text").mkdir()
     for resource in json.loads(SCHEMA_FILE.read_text())["resources"]:
-        folder = zenodo if resource["name"] in ("count", "survey", "taxonomy") else package / "text"
+        folder = (
+            zenodo if resource["name"] in ("count", "survey", "taxonomy") else package / "text"
+        )
         shutil.move(package / resource["path"], folder / resource["path"])
     generate_docs(zenodo, repository_docs=False)
+    assert not (package / "README.md").exists()  # nothing written beside the upload folder
+    write_full_descriptor(package)
     assert validate_package(package / "datapackage.json")["valid"]
     assert validate_package(zenodo / "datapackage.json")["valid"]
     assert not (zenodo / "README.md").exists()
-    assert (package / "README.md").exists()
     assert "### report_text.csv" not in (zenodo / "DATA_DICTIONARY.md").read_text()
     shutil.rmtree(package / "text")
     assert validate_package(zenodo / "datapackage.json")["valid"]

@@ -61,6 +61,6 @@ The horizontal axis is the actual day of year, restricted to the core season (da
 
 The audit computations are in `defile_dataset.audit` and `defile_dataset.checks`; `defile_dataset.report` only renders their results. Files are staged under `output.building/audit/` before publication. Failed required checks retain the staged report and the previous published products. Source-conservation checks are individual audit results and block publication on failure. Source-reading errors and malformed inputs can still stop before report generation.
 
-Complete internal tables and optional diagnostics are under `interim/`. Build provenance and input/output fingerprints are in `output/metadata.json`.
+Complete internal tables and optional diagnostics are under `interim/`. Build provenance and input/output fingerprints are in `output/audit/metadata.json`.
 
 Published report totals remain independent reference values. The comparison sums retained counts over the calendar year; report seasons and taxon groups may differ. Missing sources and unresolved mappings remain blank. No count is adjusted to force agreement. The dated pilot (local evidence: `docs/reviews/report-pilot-2026-10-07/README.md`) illustrates why matching seasonal scope matters.

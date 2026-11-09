@@ -1,7 +1,8 @@
 """A dataset release: the tagged, frozen copy of a build that everything downstream reads.
 
 The release is `dataset.zip` on a GitHub release of this repo, tagged `vYYYY.N`. It holds the
-Zenodo upload (`output/zenodo/`) and the build's `metadata.json`, which gives each file's sha256.
+Zenodo upload (`output/zenodo/`) and the build's `metadata.json` (`output/audit/`), which gives
+each file's sha256.
 defile-passage builds from a tag; the Zenodo record and the GBIF export are made from the same
 files. `scripts/release_dataset.py` checks the build and publishes it.
 """
@@ -15,7 +16,8 @@ from pathlib import Path
 ASSET = "dataset.zip"  # the name defile-passage downloads
 TAG = re.compile(r"^v\d{4}\.\d+$")  # vYYYY.N: the year of the last season, then a counter
 UPLOAD_DIR = "zenodo"  # under the output folder: the files of the release
-METADATA_FILE = "metadata.json"
+METADATA_FILE = "metadata.json"  # at the zip's root
+METADATA_PATH = "audit/metadata.json"  # in the output folder
 UNCOMMITTED = "(uncommitted changes)"  # as build.py marks a build from uncommitted code
 FAILED = "fail"  # a check's status in metadata.json
 
@@ -34,7 +36,7 @@ def problems(output: Path, head: str, tag: str) -> list[str]:
     out = []
     if not TAG.match(tag):
         out.append(f"tag {tag!r} is not vYYYY.N")
-    metadata = json.loads((output / METADATA_FILE).read_text(encoding="utf-8"))
+    metadata = json.loads((output / METADATA_PATH).read_text(encoding="utf-8"))
     sha = metadata.get("git_sha", "")
     if UNCOMMITTED in sha:
         out.append("built from uncommitted code: commit, then build again")
@@ -62,5 +64,5 @@ def pack(output: Path, path: Path) -> Path:
     with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
         for f in sorted((output / UPLOAD_DIR).iterdir()):
             z.write(f, f.name)
-        z.write(output / METADATA_FILE, METADATA_FILE)
+        z.write(output / METADATA_PATH, METADATA_FILE)
     return path

@@ -14,7 +14,7 @@ New Trektellen names enter the list automatically when new paired exports are re
 
 Historical extraction initially used only the workbook's `Pression observation` observer field; the additional historical review described below extends this coverage. Trektellen extraction uses header `observers`, not numeric headcounts or account names (`createdby`/`changedby`). Free-text bird remarks are not mined indiscriminately for names, because citations and named people do not necessarily identify observers. Attendance clocks are removed only from the inventory; supplied clocks remain in the original data. Unparsed fragments are retained for review.
 
-Run `uv run python scripts/build_dataset.py` after editing either input. Outputs and their input hashes are recorded in `output/metadata.json` and published only when the existing build checks pass.
+Run `uv run python scripts/build_dataset.py` after editing either input. Outputs and their input hashes are recorded in `output/audit/metadata.json` and published only when the existing build checks pass.
 
 ## Acknowledgements export
 
