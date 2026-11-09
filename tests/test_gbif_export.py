@@ -23,10 +23,10 @@ def export_input(tmp_path):
                 "bird",
                 "2024-07-31T22:30:00Z",
                 5,
-                "normal",
+                "main",
                 None,
-                "I",
-                "M",
+                "after_first_calendar_year",
+                "male",
                 None,
             ],
             [
@@ -38,8 +38,8 @@ def export_input(tmp_path):
                 2,
                 "reverse",
                 None,
-                "I",
-                "M",
+                "after_first_calendar_year",
+                "male",
                 None,
             ],
             [
@@ -51,14 +51,26 @@ def export_input(tmp_path):
                 3,
                 "local",
                 None,
-                "I",
-                "M",
+                "after_first_calendar_year",
+                "male",
                 None,
             ],
-            ["H1-normal", "H1", "S1", "bird", None, 7, "normal", None, None, None, None],
-            ["T2-normal", "T2", None, "bird", "2024-08-02", 4, "normal", None, None, None, None],
-            ["T3-normal", "T3", None, "bird", "2024-08-02", None, "normal", "x", None, None, None],
-            ["T4-normal", "T4", None, "bird", "2024-08-02", 0, "normal", None, None, None, None],
+            ["H1-normal", "H1", "S1", "bird", None, 7, "main", None, None, None, None],
+            ["T2-normal", "T2", None, "bird", "2024-08-02", 4, "main", None, None, None, None],
+            [
+                "T3-normal",
+                "T3",
+                None,
+                "bird",
+                "2024-08-02",
+                None,
+                "main",
+                "presence",
+                None,
+                None,
+                None,
+            ],
+            ["T4-normal", "T4", None, "bird", "2024-08-02", 0, "main", None, None, None, None],
         ],
         columns=[
             "count_id",
@@ -67,7 +79,7 @@ def export_input(tmp_path):
             "taxon_id",
             "datetime",
             "count",
-            "count_category",
+            "direction",
             "count_estimation",
             "age",
             "sex",
@@ -174,12 +186,12 @@ def test_export_preserves_survey_and_count_rows(export_input):
         == "2024-07-31T22:00:00Z/2024-08-01T23:00:00Z"
     )
     properties = json.loads(occurrences.loc["defile:2422:count:T1-normal", "dynamicProperties"])
-    assert properties["count_category"] == "normal"
+    assert properties["direction"] == "main"
     assert (
-        properties["age"] == "I"
+        properties["age"] == "after_first_calendar_year"
         and occurrences.loc["defile:2422:count:T1-normal", "sex"] == "male"
     )
-    assert set(properties) == {"count_category", "age"}
+    assert set(properties) == {"direction", "age"}
     assert (
         "Private source narrative" not in occurrences.to_csv()
         and "Detailed correction" not in occurrences.to_csv()
@@ -237,18 +249,18 @@ def test_export_preserves_survey_and_count_rows(export_input):
     assert "passage was not measured" in events.loc["defile:2422:survey:S3", "eventRemarks"]
     assert (
         occurrences.loc[
-            occurrences.dynamicProperties.map(
-                lambda value: json.loads(value)["count_category"]
-            ).eq("reverse"),
+            occurrences.dynamicProperties.map(lambda value: json.loads(value)["direction"]).eq(
+                "reverse"
+            ),
             "individualCount",
         ].sum()
         == 2
     )
     assert (
         occurrences.loc[
-            occurrences.dynamicProperties.map(
-                lambda value: json.loads(value)["count_category"]
-            ).eq("local"),
+            occurrences.dynamicProperties.map(lambda value: json.loads(value)["direction"]).eq(
+                "local"
+            ),
             "individualCount",
         ].sum()
         == 3
@@ -269,9 +281,9 @@ def test_export_group_qualifiers_and_coverage(export_input):
     ]
     checklist.to_csv(export_input / "ebird.csv", index=False)
     counts = pd.read_csv(export_input / "dataset/count.csv")
-    counts.loc[0, ["age", "count_estimation"]] = ["A", "~"]
-    counts.loc[1, ["age", "count_estimation"]] = ["J", ">"]
-    counts.loc[2, ["age", "sex"]] = ["1", "FC"]
+    counts.loc[0, ["age", "count_estimation"]] = ["adult", "approximate"]
+    counts.loc[1, ["age", "count_estimation"]] = ["juvenile", "minimum"]
+    counts.loc[2, ["age", "sex"]] = ["first_calendar_year", "female_type"]
     counts.to_csv(export_input / "dataset/count.csv", index=False)
     surveys = pd.read_csv(export_input / "dataset/survey.csv")
     surveys.loc[0, "survey_comment"] = "Empty interval inferred from private source evidence."

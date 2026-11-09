@@ -2,6 +2,8 @@
 
 First implementation, 7 October 2026. Trektellen is the target vocabulary because it is the ongoing collection system. Batumi Table 3 provides a secondary comparison, not a replacement vocabulary. Historical counts are split into their described subgroups and an undescribed remainder. The source total is preserved; no attributes are inferred for the remainder.
 
+This page uses the Trektellen codes (`A`, `I`, `FC`, ...), as the build does. The released `count.csv` writes them as words (`adult`, `after_first_calendar_year`, `female_type`, ...); `docs/bird_attribute_codes.csv` lists both.
+
 ## Where the information lives
 
 | Recording era | Received field | Evidence and limits |
@@ -119,7 +121,7 @@ Implemented in [attributes.py](../src/defile_dataset/attributes.py), called by t
 3. Look up each whole descriptor explicitly. Do not search for an adult/sex substring in arbitrary prose. Unknown and ambiguous expressions remain in the audit. Bare quantities, `(en vol)` and `(entendu)` do not require attribute review because they contain no age, sex or plumage information.
 4. If subgroup quantities are smaller than the source count, add an undescribed remainder. If they exceed it, keep the unsplit source row and flag the conflict. Unparsed text also stays unsplit. Zero-quantity components do not create released rows.
 5. Give each subgroup its own supported age, sex and plumage. Unknown descriptions and the remainder have missing attributes. Parsing and mapping are shared by the release and audit.
-6. Retain source IDs in the source ledger. Internal normal subgroup IDs append `-part1`, `-part2`, etc., in source component order; released count IDs use the readable entry base, preserve the subgroup suffix and then append `-normal`. Reverse/local quantities are separate category rows, released once per original source entry. Fully converted descriptions are omitted from released remarks except age I descriptors, whose original wording is preserved to distinguish immature from > 1 an; unresolved wording and explicitly attributed daily context remain. Original text and subgroup lineage are preserved internally. Full lineage is in `interim/diagnostics/historical_components.csv`. Conservation checks sum released components back to their source and check expected IDs and collection dates.
+6. Retain source IDs in the source ledger. Internal normal subgroup IDs append `-part1`, `-part2`, etc., in source component order; released count IDs use the readable entry base, preserve the subgroup suffix and then append `-main`. Reverse/local quantities are separate category rows, released once per original source entry. Fully converted descriptions are omitted from released remarks except age I descriptors, whose original wording is preserved to distinguish immature from > 1 an; unresolved wording and explicitly attributed daily context remain. Original text and subgroup lineage are preserved internally. Full lineage is in `interim/diagnostics/historical_components.csv`. Conservation checks sum released components back to their source and check expected IDs and collection dates.
 
 Examples: `1x mâle adulte / 2x femelle adulte` with count=3 produces one adult male row with count=1 and one adult female row with count=2. `1x mâle adulte` with count=2 produces one adult male row and one undescribed row, each with count=1. `1x mâle > 1 an` gets sex=M and age=`I`, with `mâle > 1 an` retained in remarks and adult/immature status unspecified. No unsupported attribute classes are generated.
 

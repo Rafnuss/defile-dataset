@@ -77,10 +77,10 @@ def test_readable_ids_keep_local_dates_collisions_categories_and_single_ids():
     result, events, gaps = readable_ids(count, survey, source, interruptions)
     assert events.survey_id.tolist() == ["T-20260914-0030", "B-19660911"]
     assert result.count_id.tolist() == [
-        "T-20260914-0045-euhbuz1-normal",
+        "T-20260914-0045-euhbuz1-main",
         "T-20260914-0045-euhbuz1-reverse",
-        "T-20260914-0045-euhbuz1-02-normal",
-        "N-20190914-rapace-indetermine-part1-normal",
+        "T-20260914-0045-euhbuz1-02-main",
+        "N-20190914-rapace-indetermine-part1-main",
     ]
     pd.testing.assert_frame_equal(
         result.drop(columns=["count_id", "survey_id"]),
@@ -107,10 +107,10 @@ def test_corrected_record_changes_readable_id_with_single_id():
 
 def test_timed_flock_id_uses_its_released_clock():
     count, survey, source, interruptions = records()
-    count.loc[0, "count_id"] = "T20-time1-normal"
+    count.loc[0, "count_id"] = "T20-time1-main"
     count.loc[0, "datetime"] = "2026-09-13T23:15:00Z"
     result, _, _ = readable_ids(count, survey, source, interruptions)
-    assert result.count_id.iloc[0] == "T-20260914-0115-euhbuz1-time1-normal"
+    assert result.count_id.iloc[0] == "T-20260914-0115-euhbuz1-time1-main"
     assert "source_count_id" not in result
 
 
@@ -118,12 +118,12 @@ def test_reviewed_taxonomy_id_uses_target_code():
     count, survey, source, interruptions = records()
     source["avibase_id"] = ["old", "old", "unidentified"]
     count["taxon_id"] = ["new", "old", "old", "unidentified"]
-    count.loc[0, "count_id"] = "T20-tax1-normal"
+    count.loc[0, "count_id"] = "T20-tax1-main"
     taxa = pd.DataFrame(
         dict(taxon_id=["new", "old", "unidentified"], ebird_code=["turdus1", "euhbuz1", "bird1"])
     )
     result, _, _ = readable_ids(count, survey, source, interruptions, taxa)
-    assert result.count_id.iloc[0] == "T-20260914-0045-turdus1-tax1-normal"
+    assert result.count_id.iloc[0] == "T-20260914-0045-turdus1-tax1-main"
     assert "source_count_id" not in result
 
 
@@ -135,10 +135,10 @@ def test_recorded_historical_clock_interval_start_and_curated_day():
     survey.loc[0, "datetime"] = "2026-09-13T22:00:00Z/2026-09-14T22:00:00Z"
     interruptions.loc[0, "time_precision"] = "day"
     result, events, _ = readable_ids(count, survey, source, interruptions)
-    assert result.count_id.iloc[0] == "N-20260914-0915-euhbuz1-normal"
+    assert result.count_id.iloc[0] == "N-20260914-0915-euhbuz1-main"
     assert events.survey_id.iloc[0] == "C-20260914"
     # A recorded historical subdaily interval contributes its own start.
     survey.loc[0, ["survey_id", "recording_era"]] = ["T10", "spreadsheet"]
     survey.loc[0, "datetime"] = "2026-09-14T06:00:00Z/2026-09-14T07:00:00Z"
     result, _, _ = readable_ids(count, survey, source, interruptions)
-    assert result.count_id.iloc[2] == "S-20260914-0800-euhbuz1-normal"
+    assert result.count_id.iloc[2] == "S-20260914-0800-euhbuz1-main"

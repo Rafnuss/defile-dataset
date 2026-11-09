@@ -8,11 +8,12 @@ import pandas as pd
 from defile_dataset.movement_text import project_non_passage
 from defile_dataset.package import columns, descriptor
 from defile_dataset.read import EFFORT_SHEET
+from defile_dataset.release_tables import internal_columns
 from defile_dataset.remark_text import clean_text
 from defile_dataset.source_text import split_timed_counts
 
 # Source grouping is used during processing and removed when final IDs are assigned.
-COUNT_COLUMNS = columns("count") + ["source_count_id"]
+COUNT_COLUMNS = internal_columns("count") + ["source_count_id"]
 SURVEY_COLUMNS = columns("survey")
 TAXONOMY_COLUMNS = columns("taxonomy")
 ERA = {"1966-2013": "notebook", "2014-2016": "spreadsheet", "2017-2021": "naturalist"}

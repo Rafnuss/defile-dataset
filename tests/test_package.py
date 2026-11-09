@@ -19,9 +19,10 @@ def package(tmp_path):
     shutil.copyfile(SCHEMA_FILE, tmp_path / "datapackage.json")
     rows = {
         "count": {
-            "count_id": "C1-normal",
-            "count_category": "normal",
+            "count_id": "C1-main",
+            "direction": "main",
             "survey_id": "S1",
+            "datetime": "2026-10-01T06:00:00Z/2026-10-01T07:00:00Z",
             "taxon_id": "avibase-451D6FC8",
             "count": "2",
         },
@@ -46,7 +47,10 @@ def package(tmp_path):
 @pytest.mark.parametrize(
     "table,field,value",
     [
-        ("count", "count_category", "invalid"),
+        ("count", "direction", "invalid"),
+        ("count", "direction", "normal"),
+        ("count", "count_estimation", "~"),
+        ("count", "datetime", ""),
         ("count", "count", "1.5"),
         ("count", "count", "-1"),
         ("count", "count", ""),
@@ -99,6 +103,7 @@ def test_duplicate_primary_key_rejected(package):
 
 def test_age_dictionary_records_euring_matches():
     age = attribute_dictionary().query("attribute == 'age'").set_index("trektellen_code")
+    assert age.loc["2", "released_value"] == "second_calendar_year"
     assert age.loc["2", "euring_age_code"] == "5"
     assert age.loc["3", "euring_age_code"] == "7"
     assert age.loc["4", "euring_age_code"] == "9"
@@ -110,12 +115,10 @@ def test_nullable_link_and_presence_rules(package):
     path = package / "count.csv"
     data = pd.read_csv(path, dtype=str, keep_default_na=False)
     data.loc[0, "survey_id"] = ""
-    data.to_csv(path, index=False)
-    assert not validate_package(package / "datapackage.json")["valid"]
     data.loc[0, "datetime"] = "2026-10-01"
     data.to_csv(path, index=False)
     assert validate_package(package / "datapackage.json")["valid"]
-    data.loc[0, "count_estimation"] = "x"
+    data.loc[0, "count_estimation"] = "presence"
     data.to_csv(path, index=False)
     assert not validate_package(package / "datapackage.json")["valid"]
     data.loc[0, "count"] = ""
@@ -137,9 +140,9 @@ def test_json_constraint_change_controls_validation(package):
 def test_dictionary_contains_declared_links_and_conditional_rules():
     text = dictionary()
     assert "survey_id` → `survey.survey_id" in text
-    assert "An unlinked count must supply its own date" in text
+    assert "A number is required unless count_estimation is presence" in text
     assert "minimum: 0" in text
-    assert "Completeness applies to the interval, not the entire day or season" in text
+    assert "It describes this interval only, not the whole day" in text
     assert "A day intersecting any incomplete survey has unknown observed hours" in text
     assert "not enforced by validate_package alone" in text
 
@@ -228,7 +231,10 @@ def test_standard_pattern_rejects_bad_iso_syntax(package, value):
     [
         ("count", "count_estimation", "unknown"),
         ("count", "age", "unreviewed"),
-        ("count", "sex", "male"),
+        ("count", "sex", "M"),
+        ("count", "age", "A"),
+        ("survey", "wind_direction", "nno"),
+        ("survey", "precipitation", "regen"),
         ("count", "plumage", "unreviewed"),
         ("survey", "wind_direction", "XX"),
         ("survey", "precipitation", "unreviewed"),
@@ -256,12 +262,12 @@ def test_valid_weather_bounds_and_independent_age_plumage_codes_are_preserved(pa
         "12",
         "8",
         "-15",
-        "mist",
+        "fog",
     ]
     data.to_csv(path, index=False)
     path = package / "count.csv"
     data = pd.read_csv(path, dtype=str, keep_default_na=False)
-    data.loc[0, ["age", "sex", "plumage"]] = ["1", "FC", "I"]
+    data.loc[0, ["age", "sex", "plumage"]] = ["first_calendar_year", "female_type", "immature"]
     data.to_csv(path, index=False)
     assert validate_package(package / "datapackage.json")["valid"]
 

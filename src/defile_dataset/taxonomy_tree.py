@@ -121,7 +121,7 @@ def tree_section(taxa: pd.DataFrame, count: pd.DataFrame) -> str:
         '<p class="muted">Each taxon sits under its smallest enclosing group (<code>parent_taxon_id</code> in '
         "<code>taxonomy.csv</code>, curated in <code>taxonomy/parent_taxa.csv</code>). "
         "<b>Records</b> are rows of <code>count.csv</code>; <b>birds</b> are the main-direction counts "
-        "(<code>count_category = normal</code>). The first figure of each pair adds every taxon beneath; the grey one is the "
+        "(<code>direction = main</code>). The first figure of each pair adds every taxon beneath; the grey one is the "
         f"taxon's own, identified only to that level. Total over all roots: {grand:,} birds.</p>"
         '<div class="controls"><button id="taxonomy-expand">Expand all</button><button id="taxonomy-collapse">Collapse all</button>'
         '<input id="taxonomy-find" type="search" placeholder="Find a taxon"></div>'

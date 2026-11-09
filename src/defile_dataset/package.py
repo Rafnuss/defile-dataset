@@ -26,6 +26,55 @@ def columns(name):
     return [field["name"] for field in resource["schema"]["fields"]]
 
 
+def reader_dictionary(resource_names=("count", "survey", "taxonomy")):
+    """The column guide shipped with the upload: meanings and allowed values, without the
+    validation machinery (patterns, rules, evidence) that `dictionary()` renders for maintainers.
+    """
+    package = descriptor()
+    text = (
+        "# Column definitions\n\nEvery column of the three tables, and the values allowed in "
+        "coded columns. An empty cell means the value was not recorded; it is never a hidden zero."
+        " The same definitions are in `datapackage.json` (Frictionless Data format).\n"
+    )
+    for resource in package["resources"]:
+        if resource["name"] not in resource_names:
+            continue
+        schema = resource["schema"]
+        text += f"\n## {resource['path']}\n\n{resource['description']}\n"
+        links = [
+            f"`{link['fields']}` → `{link['reference']['resource']}.csv`"
+            for link in schema.get("foreignKeys", [])
+        ]
+        text += f"\nOne row per `{schema['primaryKey']}`."
+        text += (" Links: " + "; ".join(links) + ".\n") if links else "\n"
+        text += "\n| Column | Type | Always filled | Meaning |\n| --- | --- | --- | --- |\n"
+        for field in schema["fields"]:
+            kind = field["type"]
+            if field["name"] == "datetime":
+                kind = "ISO 8601 text"
+            elif kind == "array":
+                kind = "JSON text"
+            required = "yes" if field.get("constraints", {}).get("required") else ""
+            cells = [f"`{field['name']}`", kind, required, field["description"]]
+            text += "| " + " | ".join(c.replace("|", "&#124;") for c in cells) + " |\n"
+        for field in schema["fields"]:
+            definitions = field.get("x-enumDescriptions", {})
+            if not definitions:
+                continue
+            codes = field.get("x-sourceCodes", {})
+            text += f"\n`{field['name']}` values:\n\n| Value | Meaning |\n| --- | --- |\n"
+            for value, definition in definitions.items():
+                meaning = definition["description"].replace("|", "&#124;")
+                text += f"| `{value}` | {meaning} |\n"
+            if codes and field["name"] in ("age", "sex", "plumage"):
+                text += (
+                    "\nTrektellen codes: "
+                    + ", ".join(f"`{code}` = `{value}`" for value, code in codes.items())
+                    + ".\n"
+                )
+    return text
+
+
 def dictionary(resource_names=None):
     """Render definitions, constraints and links directly from the JSON descriptor."""
     package = descriptor()
@@ -100,12 +149,13 @@ def attribute_dictionary():
     for field in resource["schema"]["fields"]:
         if field["name"] not in ("age", "sex", "plumage"):
             continue
-        for code in field["constraints"]["enum"]:
-            meaning = field["x-enumDescriptions"][code]
+        for word in field["constraints"]["enum"]:
+            meaning = field["x-enumDescriptions"][word]
             rows.append(
                 {
                     "attribute": field["name"],
-                    "trektellen_code": code,
+                    "released_value": word,
+                    "trektellen_code": field["x-sourceCodes"][word],
                     "meaning": meaning["description"],
                     "evidence_status": meaning["evidenceStatus"],
                     "batumi_code": meaning["batumiCode"],
@@ -164,9 +214,7 @@ def generate_docs(dataset_dir, repository_docs=True):
             f"({name})", f"(https://github.com/Rafnuss/defile-dataset/blob/main/docs/{name})"
         )
     (dataset_dir / "DATA_GUIDE.md").write_text(usage)
-    (dataset_dir / "DATA_DICTIONARY.md").write_text(
-        "# Dataset column definitions\n\n" + dictionary(("count", "survey", "taxonomy"))
-    )
+    (dataset_dir / "DATA_DICTIONARY.md").write_text(reader_dictionary())
     if repository_docs:
         attribute_dictionary().to_csv(root / "docs/bird_attribute_codes.csv", index=False)
         (root / "docs/table-columns.md").write_text(

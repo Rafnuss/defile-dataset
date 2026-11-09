@@ -21,7 +21,7 @@
           {
             "name": "count_id",
             "type": "string",
-            "description": "Readable release identity: era prefix (B notebook, S spreadsheet, N Naturalist, T Trektellen), local YYYYMMDD, optional recorded HHMM, eBird code or normalized original taxon label, optional collision/subgroup suffix, and normal/reverse/local category. Regenerated each build; corrections can change it.",
+            "description": "Readable row identifier: era letter (B notebook, S spreadsheet, N NaturaList, T Trektellen), local date YYYYMMDD, local clock HHMM when known, species code, and direction. It is rebuilt at each release and can change after corrections; do not use it as a permanent identifier.",
             "constraints": {
               "required": true,
               "unique": true
@@ -30,7 +30,7 @@
           {
             "name": "survey_id",
             "type": "string",
-            "description": "Original survey association, retained even when entry timing is missing or outside the survey interval. A link does not establish interval membership; explicit count datetime takes precedence over survey timing. Missing only when no released source survey is available.",
+            "description": "The survey (`survey.csv`) during which the birds were counted.",
             "constraints": {
               "required": false
             }
@@ -38,9 +38,9 @@
           {
             "name": "datetime",
             "type": "string",
-            "description": "ISO local collection date, UTC datetime or UTC interval. Empty inherits survey timing; required when no survey is linked. Dates carry no invented midnight. String with an ISO pattern because date/datetime types cannot represent the permitted interval form. Z or +00:00 is required for clock times; the build writes Z. Calendar validity and ordering are checked by the declared ISO rule.",
+            "description": "When the birds were counted, in UTC (ISO 8601): a time (`2023-09-15T08:12:00Z`), an interval (`start/end`), or a local date (`2023-09-15`) when only the day is known. An entry without a time of its own carries the interval of its survey.",
             "constraints": {
-              "required": false,
+              "required": true,
               "pattern": "([0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])|[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9](\\.[0-9]+)?)?(Z|\\+00:00)(/[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9](\\.[0-9]+)?)?(Z|\\+00:00))?)"
             },
             "examples": [
@@ -52,7 +52,7 @@
           {
             "name": "taxon_id",
             "type": "string",
-            "description": "Bird taxonomy foreign key.",
+            "description": "The taxon (`taxonomy.csv`).",
             "constraints": {
               "required": true,
               "pattern": "avibase-[A-F0-9]{8}"
@@ -61,7 +61,7 @@
           {
             "name": "count",
             "type": "integer",
-            "description": "Numerical quantity for this count_category; required except for presence-only count_estimation=x.",
+            "description": "Number of birds. Empty only when `count_estimation` is `presence` (birds seen but not counted).",
             "constraints": {
               "required": false,
               "minimum": 0
@@ -70,61 +70,82 @@
           {
             "name": "count_estimation",
             "type": "string",
-            "description": "Recorded count qualifier. Blank means no recorded qualifier, not proof of exactness. Numeric totals retain the supplied number even when estimated or a lower bound.",
+            "description": "How the observer qualified the number. Empty: no qualifier was recorded (which does not prove the number is exact).",
             "constraints": {
               "required": false,
               "enum": [
-                "~",
-                ">",
-                "x"
+                "approximate",
+                "minimum",
+                "presence"
               ]
             },
             "x-enumDescriptions": {
-              "~": {
-                "description": "Approximate/estimated numerical count."
+              "approximate": {
+                "description": "The number is an estimate."
               },
-              ">": {
-                "description": "More than the recorded number; a lower bound, not the inferred true total."
+              "minimum": {
+                "description": "At least this many birds; the true number was higher."
               },
-              "x": {
-                "description": "Presence without a numerical count; count must be empty."
+              "presence": {
+                "description": "Birds were present but not counted; `count` is empty."
               }
+            },
+            "x-sourceCodes": {
+              "approximate": "~",
+              "minimum": ">",
+              "presence": "x"
             }
           },
           {
-            "name": "count_category",
+            "name": "direction",
             "type": "string",
-            "description": "normal: main migration direction; reverse: opposite direction; local: local/non-migrating birds (Trektellen Present). Missing reverse/local quantities produce no row; explicit zeros are retained. Filter normal for main migration totals.",
+            "description": "Which way the birds were moving. Use `main` for migration totals; `reverse` and `local` birds are counted separately and must not be added to them.",
             "constraints": {
               "required": true,
               "enum": [
-                "normal",
+                "main",
                 "reverse",
                 "local"
               ]
+            },
+            "x-sourceCodes": {
+              "main": "normal",
+              "reverse": "reverse",
+              "local": "local"
+            },
+            "x-enumDescriptions": {
+              "main": {
+                "description": "Migrating in the main direction of autumn migration."
+              },
+              "reverse": {
+                "description": "Flying in the opposite direction."
+              },
+              "local": {
+                "description": "Local birds, not passing through (Trektellen 'present')."
+              }
             }
           },
           {
             "name": "age",
             "type": "string",
-            "description": "Native Trektellen age code; historical immature and > 1 an labels both map to I, with their original wording preserved in remarks. Blank means no supported class for this released count subgroup. New codes require a dictionary review.",
+            "description": "Age class given by the observer; empty when not recorded. Calendar years start on 1 January. Historical 'immature' and '> 1 an' are both `after_first_calendar_year`.",
             "constraints": {
               "required": false,
               "enum": [
-                "A",
-                "1",
-                "2",
-                "3",
-                "4",
-                "I",
-                "J",
-                "S",
-                "Non-Juv",
-                "Non-adult"
+                "adult",
+                "first_calendar_year",
+                "second_calendar_year",
+                "third_calendar_year",
+                "fourth_calendar_year",
+                "after_first_calendar_year",
+                "juvenile",
+                "subadult",
+                "not_juvenile",
+                "not_adult"
               ]
             },
             "x-enumDescriptions": {
-              "A": {
+              "adult": {
                 "description": "Adult",
                 "evidenceStatus": "display_verified",
                 "source": "https://www.trektellen.org/count/view/2422/20261001?language=english",
@@ -136,7 +157,7 @@
                 "euringMatch": "related_only",
                 "euringNote": "EURING 2 is full-grown with age otherwise unknown, which is broader than Trektellen Adult. EURING A means after fourth year and is not equivalent."
               },
-              "1": {
+              "first_calendar_year": {
                 "description": "First calendar year",
                 "evidenceStatus": "display_verified",
                 "source": "https://www.trektellen.org/count/view/2422/20261001?language=english",
@@ -148,7 +169,7 @@
                 "euringMatch": "related_only",
                 "euringNote": "Both indicate first calendar year, but EURING 3 additionally specifies a full-grown bird; the EURING numeric code differs."
               },
-              "2": {
+              "second_calendar_year": {
                 "description": "Second calendar year",
                 "evidenceStatus": "display_verified",
                 "source": "https://www.trektellen.org/count/view/2422/20261001?language=english",
@@ -160,7 +181,7 @@
                 "euringMatch": "calendar_year_equivalent",
                 "euringNote": "Both indicate second calendar year; the EURING numeric code differs."
               },
-              "3": {
+              "third_calendar_year": {
                 "description": "Third calendar year",
                 "evidenceStatus": "display_verified",
                 "source": "Trektellen interface screenshot; confirmed by dataset maintainer on 2026-10-12",
@@ -172,7 +193,7 @@
                 "euringMatch": "calendar_year_equivalent",
                 "euringNote": "Trektellen 3cy matches EURING third-year concept; the EURING numeric code differs."
               },
-              "4": {
+              "fourth_calendar_year": {
                 "description": "Fourth calendar year",
                 "evidenceStatus": "display_verified",
                 "source": "Trektellen interface screenshot; confirmed by dataset maintainer on 2026-10-12",
@@ -184,8 +205,8 @@
                 "euringMatch": "calendar_year_equivalent",
                 "euringNote": "Trektellen 4cy matches EURING fourth-year concept; the EURING numeric code differs."
               },
-              "I": {
-                "description": ">1cy (imm) / >1 an (combined Trektellen age class)",
+              "after_first_calendar_year": {
+                "description": "Older than first calendar year (Trektellen '>1cy (imm)')",
                 "evidenceStatus": "display_verified",
                 "source": "https://www.trektellen.org/count/view/2422/20261001?language=english",
                 "note": "English UI shows >1cy (imm); French UI shows >1 an for the same observations. Historical immature and > 1 an descriptors both map to I; original wording is retained in remarks. The combined code alone does not establish adult or non-adult status.",
@@ -196,7 +217,7 @@
                 "euringMatch": "related_only",
                 "euringNote": "Both indicate older than first calendar year with no exact year. Trektellen labels differ by language; the combined code does not establish maturity and is not a plumage code."
               },
-              "J": {
+              "juvenile": {
                 "description": "Juvenile",
                 "evidenceStatus": "display_verified",
                 "source": "Trektellen interface screenshot; confirmed by dataset maintainer on 2026-10-12",
@@ -208,7 +229,7 @@
                 "euringMatch": "no_direct_age_code",
                 "euringNote": "Trektellen label Juvenile is confirmed. EURING has Plumage Code J for juvenile, but that is a different field; do not convert automatically to EURING age 3."
               },
-              "S": {
+              "subadult": {
                 "description": "Subadult",
                 "evidenceStatus": "display_verified",
                 "source": "https://www.trektellen.org/count/view/2422/20260730?language=english",
@@ -220,8 +241,8 @@
                 "euringMatch": "no_direct_code",
                 "euringNote": "Subadult has no dedicated EURING age code; do not infer a calendar-year age."
               },
-              "Non-Juv": {
-                "description": "Non-Juv (native display label; exact rule not documented)",
+              "not_juvenile": {
+                "description": "Not juvenile (Trektellen label; exact rule not documented)",
                 "evidenceStatus": "label_only",
                 "source": "https://www.trektellen.org/count/view/2422/20260913?language=english",
                 "note": "Literal/general meaning is not juvenile, but the label does not specify whether this is based on plumage or calendar age. A bird can leave juvenile plumage while still in its first calendar year. Trektellen's precise rule is undocumented; do not infer age >1cy.",
@@ -232,8 +253,8 @@
                 "euringMatch": "unresolved",
                 "euringNote": "Native display label is confirmed, but its precise definition is unresolved; no direct EURING age code assigned."
               },
-              "Non-adult": {
-                "description": "Non-adult (broad general meaning; Trektellen rule not documented)",
+              "not_adult": {
+                "description": "Not adult (Trektellen label; exact rule not documented)",
                 "evidenceStatus": "label_only",
                 "source": "Trektellen interface screenshot; confirmed by dataset maintainer on 2026-10-12",
                 "note": "In general ornithological usage this is a broad complement of adult and may include juvenile and later immature stages; exact usage varies. Trektellen's precise inclusion rule is undocumented. Raw `non_adult` is normalized to `Non-adult` in released data.",
@@ -244,22 +265,34 @@
                 "euringMatch": "unresolved",
                 "euringNote": "Display label confirmed; exact age-class criteria remain unresolved, so no direct EURING age code is assigned."
               }
+            },
+            "x-sourceCodes": {
+              "adult": "A",
+              "first_calendar_year": "1",
+              "second_calendar_year": "2",
+              "third_calendar_year": "3",
+              "fourth_calendar_year": "4",
+              "after_first_calendar_year": "I",
+              "juvenile": "J",
+              "subadult": "S",
+              "not_juvenile": "Non-Juv",
+              "not_adult": "Non-adult"
             }
           },
           {
             "name": "sex",
             "type": "string",
-            "description": "Trektellen sex code; FC means female type, not necessarily female. Allowed codes are the reviewed inventory; unverified meanings are labelled explicitly. Blank means no supported class for this released count subgroup. New codes require a dictionary review.",
+            "description": "Sex given by the observer; empty when not recorded. `female_type` means female-looking, which includes young males of many species.",
             "constraints": {
               "required": false,
               "enum": [
-                "M",
-                "F",
-                "FC"
+                "male",
+                "female",
+                "female_type"
               ]
             },
             "x-enumDescriptions": {
-              "M": {
+              "male": {
                 "description": "Male",
                 "evidenceStatus": "display_verified",
                 "source": "https://www.trektellen.org/count/view/2422/20261001?language=english",
@@ -268,7 +301,7 @@
                 "batumiMatch": "equivalent",
                 "exampleDataId": "63817139"
               },
-              "F": {
+              "female": {
                 "description": "Female",
                 "evidenceStatus": "display_verified",
                 "source": "https://www.trektellen.org/count/view/2422/20261001?language=english",
@@ -277,8 +310,8 @@
                 "batumiMatch": "equivalent",
                 "exampleDataId": "63817179"
               },
-              "FC": {
-                "description": "Female type / female-coloured",
+              "female_type": {
+                "description": "Female-looking; the bird may be a female or a young male",
                 "evidenceStatus": "display_verified",
                 "source": "https://www.trektellen.org/count/view/2422/20261001?language=english",
                 "note": "FC does not establish that the bird is female.",
@@ -286,25 +319,30 @@
                 "batumiMatch": "equivalent",
                 "exampleDataId": "63817151"
               }
+            },
+            "x-sourceCodes": {
+              "male": "M",
+              "female": "F",
+              "female_type": "FC"
             }
           },
           {
             "name": "plumage",
             "type": "string",
-            "description": "Native Trektellen plumage code; unknown codes remain native. Reviewed meanings are documented in the enum inventory. Blank means no supported class for this released count subgroup. New codes require a dictionary review.",
+            "description": "Plumage or colour morph given by the observer; empty when not recorded.",
             "constraints": {
               "required": false,
               "enum": [
-                "D",
-                "L",
-                "W",
-                "I",
-                "B",
-                "E"
+                "dark_morph",
+                "pale_morph",
+                "winter",
+                "immature",
+                "breeding",
+                "eclipse"
               ]
             },
             "x-enumDescriptions": {
-              "D": {
+              "dark_morph": {
                 "description": "Dark morph",
                 "evidenceStatus": "display_verified",
                 "source": "https://www.trektellen.org/count/view/2422/20260919?language=english",
@@ -313,7 +351,7 @@
                 "batumiMatch": "equivalent",
                 "exampleDataId": "63060790"
               },
-              "L": {
+              "pale_morph": {
                 "description": "Pale morph",
                 "evidenceStatus": "display_verified",
                 "source": "https://www.trektellen.org/count/view/2422/20260927?language=english",
@@ -322,7 +360,7 @@
                 "batumiMatch": "equivalent",
                 "exampleDataId": "63546864"
               },
-              "W": {
+              "winter": {
                 "description": "Winter plumage",
                 "evidenceStatus": "display_verified",
                 "source": "Trektellen interface; confirmed by dataset maintainer on 2026-10-12",
@@ -331,7 +369,7 @@
                 "batumiMatch": "unresolved",
                 "exampleDataId": "57210261"
               },
-              "I": {
+              "immature": {
                 "description": "Immature plumage",
                 "evidenceStatus": "display_verified",
                 "source": "Trektellen interface; confirmed by dataset maintainer on 2026-10-12",
@@ -340,7 +378,7 @@
                 "batumiMatch": "unresolved",
                 "exampleDataId": "47802177"
               },
-              "B": {
+              "breeding": {
                 "description": "Breeding plumage",
                 "evidenceStatus": "display_verified",
                 "source": "Trektellen interface; confirmed by dataset maintainer on 2026-10-12",
@@ -349,7 +387,7 @@
                 "batumiMatch": "unresolved",
                 "exampleDataId": "53873722"
               },
-              "E": {
+              "eclipse": {
                 "description": "Eclipse plumage (ducks)",
                 "evidenceStatus": "display_verified",
                 "source": "Trektellen interface; confirmed by dataset maintainer on 2026-10-12",
@@ -358,12 +396,20 @@
                 "batumiMatch": "unresolved",
                 "exampleDataId": "59286707"
               }
+            },
+            "x-sourceCodes": {
+              "dark_morph": "D",
+              "pale_morph": "L",
+              "winter": "W",
+              "immature": "I",
+              "breeding": "B",
+              "eclipse": "E"
             }
           },
           {
             "name": "remark",
             "type": "string",
-            "description": "Residual source prose without field-name prefixes. Fully converted count/age/sex/plumage descriptions and explicit clocks are omitted; unresolved wording, behaviour and source-attributed daily context remain. Original fields are preserved in the internal source ledger.",
+            "description": "Observer's comment on the entry, as recorded (wording already turned into age, sex or time columns is removed).",
             "constraints": {
               "required": false
             }
@@ -371,7 +417,7 @@
           {
             "name": "remark_processing",
             "type": "string",
-            "description": "Processing explanations, distinct from observer text.",
+            "description": "Note added during processing, for example when a time was changed or removed. Not written by the observer.",
             "constraints": {
               "required": false
             }
@@ -379,7 +425,7 @@
           {
             "name": "trektellen_data_id",
             "type": "integer",
-            "description": "Native count-entry dataid, not the survey-level countid.",
+            "description": "Identifier of the entry on trektellen.org (2022 onward), for tracing it to the source.",
             "constraints": {
               "required": false,
               "minimum": 1
@@ -407,34 +453,25 @@
           }
         ]
       },
-      "description": "One row per count category and supported historical normal-count subgroup, with original source identity and timing. A row may represent several birds.",
+      "description": "One row per taxon, direction and survey entry: the number of birds counted. A row can hold many birds; historical entries described by age or sex are split into one row per class.",
       "x-validationRules": [
-        {
-          "kind": "requiredWhen",
-          "field": "datetime",
-          "when": {
-            "field": "survey_id",
-            "missing": true
-          },
-          "description": "An unlinked count must supply its own date, datetime or interval."
-        },
         {
           "kind": "requiredWhen",
           "field": "count",
           "when": {
             "field": "count_estimation",
-            "notEquals": "x"
+            "notEquals": "presence"
           },
-          "description": "A numerical count is required unless count_estimation is x."
+          "description": "A number is required unless count_estimation is presence."
         },
         {
           "kind": "missingWhen",
           "field": "count",
           "when": {
             "field": "count_estimation",
-            "equals": "x"
+            "equals": "presence"
           },
-          "description": "Presence-only x must have an empty numerical count."
+          "description": "A presence row has no number."
         },
         {
           "kind": "iso8601",
@@ -446,7 +483,7 @@
           ],
           "requireOffset": true,
           "orderedInterval": true,
-          "description": "Nonempty count timing is a valid ISO date, datetime or increasing interval; clock times must be UTC.",
+          "description": "A valid ISO date, UTC time or increasing UTC interval.",
           "requireUTC": true
         }
       ]
@@ -462,7 +499,7 @@
           {
             "name": "survey_id",
             "type": "string",
-            "description": "Readable release identity: era prefix (B notebook, S spreadsheet, N Naturalist, T Trektellen, C curated), local YYYYMMDD, recorded start HHMM where available, and optional collision suffix. Calendar-day closures omit time. Regenerated each build; corrections can change it.",
+            "description": "Readable survey identifier: era letter (B notebook, S spreadsheet, N NaturaList, T Trektellen, C curated), local date YYYYMMDD and local start HHMM when known. Rebuilt at each release; it can change after corrections.",
             "constraints": {
               "required": true,
               "unique": true
@@ -471,7 +508,7 @@
           {
             "name": "datetime",
             "type": "string",
-            "description": "Increasing UTC ISO interval after reviewed weather stops and absences have been applied. Known absences are cut out and weather stops are separate rows. For whole-day weather stops without recorded hours, Europe/Paris calendar boundaries identify the day; their duration is not observed effort.",
+            "description": "Start and end of the survey in UTC, as an ISO 8601 interval (`start/end`). For a whole-day weather stop with no recorded hours, the interval is the local calendar day; it is not counting time.",
             "constraints": {
               "required": true,
               "pattern": "[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9](\\.[0-9]+)?)?(Z|\\+00:00)/[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9](\\.[0-9]+)?)?(Z|\\+00:00)"
@@ -483,7 +520,7 @@
           {
             "name": "recording_era",
             "type": "string",
-            "description": "Source recording era: notebook, spreadsheet, naturalist or trektellen; historical 2021 is transitional. Inferred historical empty intervals retain their historical era. Curated identifies an added weather-stop interval outside native surveys, not observed counting effort.",
+            "description": "How the counts were recorded: `notebook` (1966-2013, daily totals), `spreadsheet` (2014-2016, mostly hourly), `naturalist` (2017-2021, NaturaList entries), `trektellen` (2022 onward, trektellen.org), or `curated` (a weather stop added from the reports, outside the recorded surveys).",
             "constraints": {
               "required": true,
               "enum": [
@@ -498,7 +535,7 @@
           {
             "name": "survey_complete",
             "type": "boolean",
-            "description": "true: all birds passing during this recorded interval are accounted for, including the explicit no-passage assumption for weather_stop=true. Completeness applies to the interval, not the entire day or season; a short survey can be complete. false: birds are known to have passed uncounted (records lost or deleted, birds noted as missed). Times nobody was counting are excluded rather than marked incomplete. Required on release; blank source values default to true.",
+            "description": "`true`: every bird that passed during this survey is in `count.csv`. `false`: birds are known to have passed uncounted (records lost, birds missed); `survey_comment` says why. It describes this interval only, not the whole day.",
             "constraints": {
               "required": true
             }
@@ -506,7 +543,7 @@
           {
             "name": "weather_stop",
             "type": "boolean",
-            "description": "true: weather made counting impossible throughout the interval. No passage is assumed, so zero detections are assumed rather than observed. Requires survey_complete=true and an explanation in survey_comment; no count row may link to it. Blank otherwise. Exclude these intervals from observed hours; retain or drop them explicitly when testing the no-passage assumption.",
+            "description": "`true`: the weather (rain, fog, storm) made counting impossible during the whole interval. No bird is assumed to have passed; no count is linked to it. Exclude these intervals from counting hours. Empty otherwise.",
             "constraints": {
               "required": false
             }
@@ -514,12 +551,12 @@
           {
             "name": "survey_comment",
             "type": "string",
-            "description": "Short explanation of a status decision, removed absence or inferred effort assumption. Required for a weather stop or incomplete survey. Original observer narratives remain in remark and weather; a comment does not itself change status."
+            "description": "Why a survey is incomplete or a weather stop, or what was assumed when the interval was rebuilt. Written during processing; observers' own words are in `remark` and `weather`."
           },
           {
             "name": "observers",
             "type": "string",
-            "description": "Names/initials and attendance times as supplied; not quantitative observer effort.",
+            "description": "Observers' names or initials as recorded, sometimes with their hours.",
             "constraints": {
               "required": false
             }
@@ -527,7 +564,7 @@
           {
             "name": "weather",
             "type": "string",
-            "description": "Recorded weather narrative, preserving changing conditions and qualifiers.",
+            "description": "Weather as described by the observers.",
             "constraints": {
               "required": false
             }
@@ -535,7 +572,7 @@
           {
             "name": "temperature",
             "type": "number",
-            "description": "Temperature in degrees Celsius. Negative values are allowed. Native zeros are retained and may be defaults; no guessed meteorological bounds are imposed.",
+            "description": "Temperature in °C. A 0 may be a default value of the recording form rather than a measurement.",
             "constraints": {
               "required": false
             },
@@ -544,7 +581,7 @@
           {
             "name": "wind_speed_bft",
             "type": "integer",
-            "description": "Wind speed class on the Beaufort scale, 0 (calm) to 12 (hurricane force). Blank is unrecorded; zero can be a real calm reading.",
+            "description": "Wind speed on the Beaufort scale, 0 (calm) to 12. Empty: not recorded.",
             "constraints": {
               "required": false,
               "minimum": 0,
@@ -555,104 +592,106 @@
           {
             "name": "wind_direction",
             "type": "string",
-            "description": "Native Dutch compass code for the direction from which wind comes; standard 16-point compass plus variable. Codes are retained without translating the stored values.",
+            "description": "Direction the wind blows from (16-point compass), or `variable`.",
             "constraints": {
               "required": false,
               "enum": [
-                "n",
-                "nno",
-                "no",
-                "ono",
-                "o",
-                "ozo",
-                "zo",
-                "zzo",
-                "z",
-                "zzw",
-                "zw",
-                "wzw",
-                "w",
-                "wnw",
-                "nw",
-                "nnw",
-                "var"
+                "N",
+                "NNE",
+                "NE",
+                "ENE",
+                "E",
+                "ESE",
+                "SE",
+                "SSE",
+                "S",
+                "SSW",
+                "SW",
+                "WSW",
+                "W",
+                "WNW",
+                "NW",
+                "NNW",
+                "variable"
               ]
             },
             "x-enumDescriptions": {
-              "n": {
-                "description": "North",
-                "evidenceStatus": "standard_compass_interpretation"
+              "N": {
+                "description": "North"
               },
-              "nno": {
-                "description": "North-northeast",
-                "evidenceStatus": "standard_compass_interpretation"
+              "NNE": {
+                "description": "North-northeast"
               },
-              "no": {
-                "description": "Northeast",
-                "evidenceStatus": "standard_compass_interpretation"
+              "NE": {
+                "description": "Northeast"
               },
-              "ono": {
-                "description": "East-northeast",
-                "evidenceStatus": "standard_compass_interpretation"
+              "ENE": {
+                "description": "East-northeast"
               },
-              "o": {
-                "description": "East",
-                "evidenceStatus": "standard_compass_interpretation"
+              "E": {
+                "description": "East"
               },
-              "ozo": {
-                "description": "East-southeast",
-                "evidenceStatus": "standard_compass_interpretation"
+              "ESE": {
+                "description": "East-southeast"
               },
-              "zo": {
-                "description": "Southeast",
-                "evidenceStatus": "standard_compass_interpretation"
+              "SE": {
+                "description": "Southeast"
               },
-              "zzo": {
-                "description": "South-southeast",
-                "evidenceStatus": "standard_compass_interpretation"
+              "SSE": {
+                "description": "South-southeast"
               },
-              "z": {
-                "description": "South",
-                "evidenceStatus": "standard_compass_interpretation"
+              "S": {
+                "description": "South"
               },
-              "zzw": {
-                "description": "South-southwest",
-                "evidenceStatus": "standard_compass_interpretation"
+              "SSW": {
+                "description": "South-southwest"
               },
-              "zw": {
-                "description": "Southwest",
-                "evidenceStatus": "standard_compass_interpretation"
+              "SW": {
+                "description": "Southwest"
               },
-              "wzw": {
-                "description": "West-southwest",
-                "evidenceStatus": "standard_compass_interpretation"
+              "WSW": {
+                "description": "West-southwest"
               },
-              "w": {
-                "description": "West",
-                "evidenceStatus": "standard_compass_interpretation"
+              "W": {
+                "description": "West"
               },
-              "wnw": {
-                "description": "West-northwest",
-                "evidenceStatus": "standard_compass_interpretation"
+              "WNW": {
+                "description": "West-northwest"
               },
-              "nw": {
-                "description": "Northwest",
-                "evidenceStatus": "standard_compass_interpretation"
+              "NW": {
+                "description": "Northwest"
               },
-              "nnw": {
-                "description": "North-northwest",
-                "evidenceStatus": "standard_compass_interpretation"
+              "NNW": {
+                "description": "North-northwest"
               },
-              "var": {
-                "description": "Variable direction",
-                "evidenceStatus": "standard_compass_interpretation"
+              "variable": {
+                "description": "Variable direction"
               }
+            },
+            "x-sourceCodes": {
+              "N": "n",
+              "NNE": "nno",
+              "NE": "no",
+              "ENE": "ono",
+              "E": "o",
+              "ESE": "ozo",
+              "SE": "zo",
+              "SSE": "zzo",
+              "S": "z",
+              "SSW": "zzw",
+              "SW": "zw",
+              "WSW": "wzw",
+              "W": "w",
+              "WNW": "wnw",
+              "NW": "nw",
+              "NNW": "nnw",
+              "variable": "var"
             }
           },
           {
             "name": "cloud_cover",
             "type": "integer",
-            "description": "Cloud cover in eighths (oktas): 0 clear, 8 fully covered. Blank is unrecorded; zero can be a real clear-sky reading.",
+            "description": "Cloud cover in eighths (oktas): 0 clear sky, 8 overcast. Empty: not recorded.",
             "constraints": {
               "required": false,
               "minimum": 0,
@@ -663,7 +702,7 @@
           {
             "name": "cloud_height",
             "type": "number",
-            "description": "Native cloud-height value; units and default-zero semantics require confirmation.",
+            "description": "Cloud height as entered on Trektellen; the unit is not confirmed.",
             "constraints": {
               "required": false,
               "minimum": 0
@@ -672,31 +711,36 @@
           {
             "name": "precipitation",
             "type": "string",
-            "description": "Reviewed native weather category, retained verbatim. Fog is recorded in this field despite not being precipitation. Blank is unknown; only geen explicitly records none. Other future categories require a dictionary review.",
+            "description": "Rain or fog as recorded. Empty means not recorded; only `none` says there was none.",
             "constraints": {
               "required": false,
               "enum": [
-                "geen",
-                "regen",
-                "mist"
+                "none",
+                "rain",
+                "fog"
               ]
             },
             "x-enumDescriptions": {
-              "geen": {
-                "description": "None (Dutch geen): explicit source category, not inferred from a blank."
+              "none": {
+                "description": "No rain or fog."
               },
-              "regen": {
-                "description": "Rain (Dutch regen)."
+              "rain": {
+                "description": "Rain."
               },
-              "mist": {
-                "description": "Fog (Dutch mist), not drizzle; retained as a native weather category."
+              "fog": {
+                "description": "Fog."
               }
+            },
+            "x-sourceCodes": {
+              "none": "geen",
+              "rain": "regen",
+              "fog": "mist"
             }
           },
           {
             "name": "visibility",
             "type": "number",
-            "description": "Visibility in metres, supported by the public display (e.g. 8000m). Native zero is retained and can be a default; it is not asserted to be measured zero visibility.",
+            "description": "Visibility in metres. A 0 may be a default value of the recording form rather than a measurement.",
             "constraints": {
               "required": false,
               "minimum": 0
@@ -706,7 +750,7 @@
           {
             "name": "remark",
             "type": "string",
-            "description": "Source survey prose and explicit no-species-entry annotation, including historical visitor/person-hour notes.",
+            "description": "Observers' comments on the survey.",
             "constraints": {
               "required": false
             }
@@ -714,7 +758,7 @@
           {
             "name": "remark_processing",
             "type": "string",
-            "description": "Processing notes; historical narratives have day-level scope.",
+            "description": "Note added during processing. Not written by the observers.",
             "constraints": {
               "required": false
             }
@@ -722,7 +766,7 @@
           {
             "name": "trektellen_count_id",
             "type": "integer",
-            "description": "Native header ID for the Trektellen correction link.",
+            "description": "Identifier of the survey on trektellen.org (2022 onward), for tracing it to the source.",
             "constraints": {
               "required": false,
               "minimum": 1
@@ -734,7 +778,7 @@
           ""
         ]
       },
-      "description": "Periods of counting responsibility, including documented weather stops and inferred historical empty intervals. Unmonitored absences have no survey row. A missing date does not establish zero birds or a weather closure. survey_complete describes only the recorded interval.",
+      "description": "One row per survey: a period when someone was counting, or was on site but could not count because of the weather. Times when nobody was counting have no row; a date without a survey says nothing about the birds (it is not a zero).",
       "x-validationRules": [
         {
           "kind": "iso8601",
@@ -790,7 +834,7 @@
           {
             "name": "taxon_id",
             "type": "string",
-            "description": "Avibase bird concept ID, including unidentified-bird groups.",
+            "description": "Avibase identifier of the taxon; `count.csv` links to it.",
             "constraints": {
               "required": true,
               "unique": true,
@@ -800,7 +844,7 @@
           {
             "name": "scientific_name",
             "type": "string",
-            "description": "AviList scientific name, with eBird/Clements fallback.",
+            "description": "Scientific name (AviList; eBird/Clements when AviList has none).",
             "constraints": {
               "required": false
             }
@@ -808,7 +852,7 @@
           {
             "name": "english_name",
             "type": "string",
-            "description": "Checklist English name: AviList first, with eBird/Clements fallback.",
+            "description": "English name (AviList; eBird/Clements when AviList has none).",
             "constraints": {
               "required": false
             }
@@ -816,7 +860,7 @@
           {
             "name": "taxon_rank",
             "type": "string",
-            "description": "Checklist rank or group category; not all concepts are species.",
+            "description": "Rank: `species`, `subspecies`, or a group of uncertain identification (`spuh`: genus or family only; `slash`: one of two species; `hybrid`; `domestic`).",
             "constraints": {
               "required": false
             }
@@ -824,7 +868,7 @@
           {
             "name": "parent_taxon_id",
             "type": "string",
-            "description": "taxon_id of the smallest enclosing group in this table (a 'sp.' or slash taxon, or the species of a subspecies); empty for roots. Curated in taxonomy/parent_taxa.csv. Summing a group's descendants gives all birds counted under it.",
+            "description": "`taxon_id` of the smallest group that contains this taxon (the species of a subspecies, or a 'sp.' or slash group); empty at the top. Adding a group's descendants gives every bird counted under it.",
             "constraints": {
               "required": false
             }
@@ -832,7 +876,7 @@
           {
             "name": "order",
             "type": "string",
-            "description": "Checklist order.",
+            "description": "Order.",
             "constraints": {
               "required": false
             }
@@ -840,7 +884,7 @@
           {
             "name": "family",
             "type": "string",
-            "description": "Checklist family.",
+            "description": "Family.",
             "constraints": {
               "required": false
             }
@@ -848,7 +892,7 @@
           {
             "name": "systematic_count_start_year",
             "type": "integer",
-            "description": "Owner-adopted first year of systematic recording for this taxon. Blank means no start assigned. Missing counts may be interpreted as zero detections only within complete observed surveys from this year; it does not establish complete days or seasons. Rook 1996 remains uncertain; see docs/taxonomy.md.",
+            "description": "First year this taxon was counted systematically. From that year, a complete survey with no row for it can be read as zero birds; before it, a missing row means unknown. Empty: no start year set.",
             "constraints": {
               "required": false,
               "minimum": 1966
@@ -857,7 +901,7 @@
           {
             "name": "taxonomy_source",
             "type": "string",
-            "description": "Checklist and version used for the concept's scientific name.",
+            "description": "Checklist and version that gave the scientific name.",
             "constraints": {
               "required": false
             }
@@ -865,7 +909,7 @@
           {
             "name": "ebird_code",
             "type": "string",
-            "description": "Corresponding eBird/Clements code when available.",
+            "description": "eBird species code, when there is one.",
             "constraints": {
               "required": false
             }
@@ -873,7 +917,7 @@
           {
             "name": "trektellen_species_id",
             "type": "string",
-            "description": "Distinct native species IDs, sorted numerically and comma-separated; empty for historical-only concepts.",
+            "description": "Trektellen species identifier(s), comma-separated; empty for taxa only in the historical records.",
             "constraints": {
               "required": false,
               "pattern": "[1-9][0-9]*(,[1-9][0-9]*)*"
@@ -882,7 +926,7 @@
           {
             "name": "source_taxa",
             "type": "array",
-            "description": "JSON array of source names, native Trektellen species IDs, mapping notes and review labels.",
+            "description": "The names used in the original records for this taxon (JSON list), with Trektellen identifiers and notes on how each was matched.",
             "constraints": {
               "required": true
             }
@@ -893,7 +937,7 @@
           ""
         ]
       },
-      "description": "One Avibase bird concept, with checklist names and the source-label crosswalk.",
+      "description": "One row per taxon counted: a species, a subspecies, or a group used when the bird could not be identified to species (for example 'buzzard sp.').",
       "x-validationRules": []
     },
     {
@@ -1274,7 +1318,7 @@
   "x-licenseScope": "CC-BY-4.0 is the intended licence for first-party structured observation data, taxonomy mappings, metadata and documentation in the public research release and for the Event/Occurrence export to GBIF. It does not license report_text.csv or paper_text.csv, which contain curated excerpts from third-party reports and papers and remain subject to their source rights unless permission is obtained. This licence statement is a release plan pending confirmation that the relevant data rights-holders authorize publication under CC-BY-4.0.",
   "temporal_semantics": "Clock instants and interval endpoints are UTC (canonical Z). Date-only counts retain the collection calendar date in Europe/Paris. For daily aggregation, convert instants to Europe/Paris before selecting the date.",
   "description": "Bird migration counts, survey intervals and their completeness/weather-stop decisions, taxonomy, and curated annual-report and Nos Oiseaux paper prose at Défilé de l’Écluse.",
-  "x-schemaVersion": "five-tables-survey-status-documentation-v15",
+  "x-schemaVersion": "five-tables-released-words-v16",
   "x-recordingEras": {
     "notebook": "Historical sheet 1966-2013; digitised daily records; original recording medium not confirmed for every row.",
     "spreadsheet": "Historical sheet 2014-2016; mainly hourly forms with some daily records.",

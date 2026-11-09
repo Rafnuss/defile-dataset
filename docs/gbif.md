@@ -26,9 +26,9 @@ The dataset build replaces `output/gbif/` with its README, so rerun the converte
 
 ## Record model and identity
 
-One survey row becomes one Event, including empty intervals, weather stops and incomplete counts. Native intervals are retained, not aggregated into days or split into artificial hours. Counts inherit survey timing only when their own timing is missing. Each positive category quantity or presence-only (`x`) row becomes one Occurrence. Explicit zero quantities remain in Zenodo because zero reverse/local quantities do not assert a species absence. Empty Events and weather stops do not create taxon absences.
+One survey row becomes one Event, including empty intervals, weather stops and incomplete counts. Native intervals are retained, not aggregated into days or split into artificial hours. A count without a time of its own carries its survey interval. Each positive quantity or presence-only (`presence`) row becomes one Occurrence. Main-direction zero quantities remain in Zenodo only, because they do not assert a species absence. Empty Events and weather stops do not create taxon absences.
 
-Main, reverse and local counts remain separate. Only `count_category=normal` belongs in main-direction migration totals. The three quantities must not be summed as a migration total, netted, or treated as a census of unique individual birds. Approximate and lower-bound numbers retain the supplied numerical quantity and its qualification.
+Main, reverse and local counts remain separate. Only `direction=main` belongs in migration totals. The three quantities must not be summed as a migration total, netted, or treated as a census of unique individual birds. Approximate and lower-bound numbers retain the supplied numerical quantity and its qualification.
 
 Event IDs are `defile:2422:survey:SURVEY_ID`; Occurrence IDs are `defile:2422:count:COUNT_ID`. Remove the corresponding prefix to recover the canonical `survey_id` or `count_id` in the linked Zenodo release. Counts without a survey use `defile:2422:unlinked-day:DATE`, a date-level association with no inferred survey effort. Corrected dates, clocks, taxa or collision groups can change readable canonical IDs; a strategy for persistent exported identities still needs agreement before first GBIF publication.
 
@@ -70,7 +70,7 @@ Complete means the research dataset treats counting as complete within that reco
 | `eventDate` | Own count timing, otherwise the survey interval. |
 | `basisOfRecord` | HumanObservation. |
 | `occurrenceStatus` | Present; zero category quantities are not exported. |
-| `individualCount` | Recorded positive quantity for this category; blank for presence-only `x`. |
+| `individualCount` | Recorded positive quantity for this category; blank for presence-only `presence`. |
 | `taxonID`, `taxonConceptID` | Exact source Avibase identifier and its concept URL. |
 | `scientificName`, `vernacularName` | Scientific and English names from eBird for the same Avibase ID, with canonical fallback. |
 | `taxonRank` | Standard source rank only; no invented species rank for unresolved groups. |
@@ -81,8 +81,8 @@ Complete means the research dataset treats counting as complete within that reco
 | `sex` | Confirmed M → male and F → female. Female-type FC is not translated to female. |
 | `lifeStage` | A → adult, J → juvenile. Other codes are not translated. Calendar-year classes and historical I, which includes “> 1 an”, are not assumed equivalent to life stages. |
 | `behavior` | Main migration direction, reverse migration direction or local/non-migrating. No compass bearing is inferred. |
-| `occurrenceRemarks` | Category interpretation and supplied approximation (`~`), lower-bound (`>`) or presence-only (`x`) qualification. |
-| `dynamicProperties` | Exact native `count_category`, supplied `count_estimation` and supplied `age`. Missing values omit keys. |
+| `occurrenceRemarks` | Category interpretation and supplied `approximate`, `minimum` or `presence` qualification. |
+| `dynamicProperties` | Released `direction`, supplied `count_estimation` and supplied `age`. Missing values omit keys. |
 | Geographic fields | Repeated from the linked Event so independent Occurrence imports retain site context. |
 | `references` | Same version-specific research-release DOI as on Events. |
 
@@ -90,7 +90,7 @@ Complete means the research dataset treats counting as complete within that reco
 
 ## Metadata, Zenodo and publication
 
-Keep full weather, source narratives, processing notes, native IDs, crosswalks, attribute codes, explicit zero rows and coverage evidence in Zenodo. Keep methods, geographical and temporal scope, contributor attribution, licence and citation instructions in IPT/EML and the Zenodo metadata. Include reciprocal links and describe which exact release generated the GBIF representation. The DOI in the CSVs connects the records to the research release; publication metadata must also carry that relationship.
+Keep full weather, source narratives, processing notes, native IDs, crosswalks, attribute codes, main-direction zero rows and coverage evidence in Zenodo. Keep methods, geographical and temporal scope, contributor attribution, licence and citation instructions in IPT/EML and the Zenodo metadata. Include reciprocal links and describe which exact release generated the GBIF representation. The DOI in the CSVs connects the records to the research release; publication metadata must also carry that relationship.
 
 No `sampleSizeValue`, observer-hours, synthetic Event hierarchy, separate Taxon core or report-text extension is generated. A recorded interval's span is not necessarily active observation time or observer-hours. Report measured effort only where supported.
 

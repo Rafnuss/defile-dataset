@@ -5,6 +5,7 @@ import unicodedata
 import pandas as pd
 
 from defile_dataset.consolidate import ERA
+from defile_dataset.release_tables import DIRECTION
 from defile_dataset.site import TIMEZONE
 
 PREFIX = {
@@ -87,6 +88,9 @@ def readable_ids(count, survey, observations, interruptions, taxa=None):
         [value[len(original) :] for value, original in zip(count.count_id, count.source_count_id)],
         index=count.index,
     )
+    # The direction suffix takes its released word (`-normal` -> `-main`).
+    for internal, word in DIRECTION.items():
+        suffix = suffix.str.replace(rf"-{internal}$", f"-{word}", regex=True)
     count["count_id"] = count.source_count_id.map(source_map) + suffix
     if taxa is not None:
         lookup = taxa.set_index("taxon_id").ebird_code

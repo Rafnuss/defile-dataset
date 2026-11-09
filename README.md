@@ -28,6 +28,6 @@ GitHub Actions runs the tests and builds the audit after each push to `main`, no
 - [GBIF export and mapping](docs/gbif.md).
 - [Release and publication](docs/publication.md).
 
-Counts are released as separate normal, reverse and local category rows, with readable IDs and original source identities. Filter `count_category=normal` for main migration totals. Readable IDs can change after corrections. The separate converter runs with `uv run python scripts/export_gbif.py` after building; GBIF publication and interpretation validation remain pending.
+Counts are released as separate `main`, `reverse` and `local` rows (`direction`), with readable IDs and original source identities. Use `direction=main` for migration totals. Coded columns use plain English words (`approximate`, `adult`, `NNE`, ...); the source codes are listed in the schema (`x-sourceCodes`). Readable IDs can change after corrections. The separate converter runs with `uv run python scripts/export_gbif.py` after building; GBIF publication and interpretation validation remain pending.
 
 Research drafts, source-library files and review archives remain local and are not required to build the public dataset. Guides identify these as local evidence rather than linking to absent repository files.

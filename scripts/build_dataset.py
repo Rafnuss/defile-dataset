@@ -47,6 +47,7 @@ from defile_dataset.package import (  # noqa: E402
     write_full_descriptor,
 )
 from defile_dataset.reconcile import compare_report_totals  # noqa: E402
+from defile_dataset.release_tables import release_count, release_survey
 from defile_dataset.remark_text import convert_remark_text
 from defile_dataset.report import render  # noqa: E402
 from defile_dataset.site import TIMEZONE
@@ -227,9 +228,10 @@ def main(argv=None) -> int:
     ]
     for folder in (dataset_dir, text_dir, audit_dir, processed_dir, derived_dir, diagnostic_dir):
         os.makedirs(folder, exist_ok=True)
+    released_count = release_count(count_table, survey_table)
     for name, data in (
-        ("count", count_table),
-        ("survey", release_status(survey_table)),
+        ("count", released_count),
+        ("survey", release_survey(release_status(survey_table))),
         ("taxonomy", taxon_table),
         ("report_text", text_table),
         ("paper_text", paper_text_table),
@@ -574,6 +576,7 @@ def main(argv=None) -> int:
         "historical_clock_policy": "Worksheet clocks interpreted as local civil time with date-specific daylight-saving offsets; publication clock conventions do not override source clocks.",
         "consolidated_schema": descriptor()["x-schemaVersion"],
         "consolidated_counts": len(count_table),
+        "released_counts": len(released_count),
         "consolidated_surveys": len(survey_table),
         "consolidated_taxa": len(taxon_table),
         "observer_names": len(observer_names),
@@ -595,6 +598,7 @@ def main(argv=None) -> int:
         "attribute_crosswalk": "historical-attributes-combined-age-v4",
         "attribute_split_policy": "historical-normal-subgroups-v3",
         "count_category_policy": "normal-reverse-local-marker-overrides-v3",
+        "release_policy": "words-direction-survey-time-no-default-zeros-v1",
         "non_passage_reclassified_birds": int(
             movement_audit.loc[movement_audit.status.eq("moved_to_local"), "count"].sum()
         ),

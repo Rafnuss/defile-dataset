@@ -114,9 +114,9 @@ events = events[["eventID", "eventDate", "eventRemarks", "dynamicProperties"]]
 fallback = (
     rows.loc[unlinked, ["eventID", "date"]].drop_duplicates().rename(columns={"date": "eventDate"})
 )
-fallback["eventRemarks"] = (
-    "Date-level association for unlinked counts; no survey or observed effort inferred."
-)
+fallback[
+    "eventRemarks"
+] = "Date-level association for unlinked counts; no survey or observed effort inferred."
 fallback["dynamicProperties"] = '{"event_origin": "unlinked_count_date"}'
 events = pd.concat([events, fallback], ignore_index=True)
 events["countryCode"] = COUNTRY_CODE
@@ -140,7 +140,7 @@ occurrences["individualCount"] = occurrences["count"].astype("Int64")
 occurrences["eventDate"] = occurrences.timing
 occurrences["basisOfRecord"] = "HumanObservation"
 # GBIF reads individualCount=0 as an absence: zero category quantities stay in count.csv only.
-present = occurrences["count"].gt(0) | occurrences.count_estimation.eq("x")
+present = occurrences["count"].gt(0) | occurrences.count_estimation.eq("presence")
 occurrences = occurrences.loc[present].copy()
 occurrences["occurrenceStatus"] = "present"
 occurrences["taxonID"] = occurrences.taxon_id
@@ -161,31 +161,31 @@ occurrences["taxonRemarks"] = (
     + occurrences.taxon_rank
     + "; original Avibase concept retained without inferring a species identification."
 ).where(occurrences.taxonRank.isna())
-occurrences["sex"] = occurrences.sex.map({"M": "male", "F": "female"})
-occurrences["lifeStage"] = occurrences.age.map({"A": "adult", "J": "juvenile"})
-occurrences["behavior"] = occurrences.count_category.map(
+occurrences["sex"] = occurrences.sex.where(occurrences.sex.isin(["male", "female"]))
+occurrences["lifeStage"] = occurrences.age.where(occurrences.age.isin(["adult", "juvenile"]))
+occurrences["behavior"] = occurrences.direction.map(
     {
-        "normal": "Migration in main count direction",
+        "main": "Migration in main count direction",
         "reverse": "Migration in reverse count direction",
         "local": "Local/non-migrating",
     }
 )
-occurrences["occurrenceRemarks"] = occurrences.count_category.map(
+occurrences["occurrenceRemarks"] = occurrences.direction.map(
     {
-        "normal": "Quantity for the main migration direction.",
+        "main": "Quantity for the main migration direction.",
         "reverse": "Quantity for the reverse migration direction; not part of main-direction migration totals.",
         "local": "Quantity for local/non-migrating birds; not part of migration totals.",
     }
 ) + occurrences.count_estimation.map(
     {
-        "~": " Approximate count.",
-        ">": " More than the recorded number; individualCount is a lower bound.",
-        "x": " Presence without a numerical count.",
+        "approximate": " Approximate count.",
+        "minimum": " More than the recorded number; individualCount is a lower bound.",
+        "presence": " Presence without a numerical count.",
     }
 ).fillna(
     ""
 )
-properties = ["count_category", "count_estimation", "age"]
+properties = ["direction", "count_estimation", "age"]
 occurrences["dynamicProperties"] = [
     json.dumps({key: value for key, value in row.items() if pd.notna(value)}, ensure_ascii=False)
     for row in occurrences[properties].to_dict("records")

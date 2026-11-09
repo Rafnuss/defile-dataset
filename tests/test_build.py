@@ -9,6 +9,7 @@ import pytest
 from defile_dataset import build as B
 from defile_dataset.checks import run_checks
 from defile_dataset.read import local_to_utc, trektellen_years
+from defile_dataset.release_tables import release_count, release_survey
 from defile_dataset.site import TIMEZONE, civil_twilight
 from defile_dataset.taxonomy import AVILIST_VERSION, Taxonomy, resolve
 
@@ -445,10 +446,24 @@ def test_consolidated_tables_preserve_precision_keys_and_direction_counts():
     assert json.loads(taxa.iloc[0].source_taxa)[0]["taxon_name_original"] == "Milan royal"
     day = daily_from_tables(count, survey).query("date == '2023-08-01'").iloc[0]
     assert day["count"] == 24 and day.count_reverse == 3 and day.count_local == 4
+    released = release_count(count, survey)
+    # Trektellen's default zeros in reverse/local are dropped; main-direction rows all stay.
+    assert (
+        len(released)
+        == len(count)
+        - (count.count_category.isin(["reverse", "local"]) & count["count"].eq(0)).sum()
+    )
+    assert set(released.direction) <= {"main", "reverse", "local"}
+    # An entry without a time of its own carries its survey's interval.
+    untimed = released.set_index("count_id").loc["H-2014-2016-r2-normal"]
+    assert untimed.datetime == survey.set_index("survey_id").datetime[untimed.survey_id]
+    assert released.datetime.notna().all()
     for resource in descriptor()["resources"]:
         if resource["name"] not in ("count", "survey", "taxonomy"):
             continue
-        table = {"count": count, "survey": survey, "taxonomy": taxa}[resource["name"]]
+        table = {"count": released, "survey": release_survey(survey), "taxonomy": taxa}[
+            resource["name"]
+        ]
         assert [field["name"] for field in resource["schema"]["fields"]] == table.columns.drop(
             "source_count_id", errors="ignore"
         ).tolist()
