@@ -3,3 +3,12 @@ Nos Oiseaux,collective,countid=3176686: Formation Ornitho BirdLife - Nos Oiseaux
 CPN Poissy,collective,"countid=2341429: group visit 10h30–13h30; CPN is a collective label, not a personal surname."
 Jacques (BE),incomplete,Report 2010 PDF p2 supplies Jacques (BE) without surname; keep in evidence only.
 C. Giacono Jlm,incomplete,Malformed attendance fragment; cannot safely determine whether one or multiple people.
+Mr,incomplete,"A title without a name (e.g. 'Mr et Mme Ronald Meinert'). From the paper's acknowledgement review (questionable_names.csv), shared here so the survey table and the paper exclude the same names."
+Mme Ronald Meinert,incomplete,"The spouse of Ronald Meinert, given name not supplied in this source. From the paper's acknowledgement review (questionable_names.csv), shared here so the survey table and the paper exclude the same names."
+Mme Gras,incomplete,"Title and surname only (countid=2326001). From the paper's acknowledgement review (questionable_names.csv), shared here so the survey table and the paper exclude the same names."
+Mr Trivolier,incomplete,"Title and surname only (countid=2263409). From the paper's acknowledgement review (questionable_names.csv), shared here so the survey table and the paper exclude the same names."
+Remulus Palombus,nickname,"A nickname, not a person's name. From the paper's acknowledgement review (questionable_names.csv), shared here so the survey table and the paper exclude the same names."
+Rémulus Palombus,nickname,"A nickname, not a person's name. From the paper's acknowledgement review (questionable_names.csv), shared here so the survey table and the paper exclude the same names."
+Roger la Bondrée,nickname,"A nickname (countid=2259462), not a person's name. From the paper's acknowledgement review (questionable_names.csv), shared here so the survey table and the paper exclude the same names."
+Lutz + Sophie Lücker,combined,"Two people in one publication entry; Lutz Lücker is listed from other sources. From the paper's acknowledgement review (questionable_names.csv), shared here so the survey table and the paper exclude the same names."
+Cie,collective,'Cie' (compagnie) after a name in countid=3140607: a group label.

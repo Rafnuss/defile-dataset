@@ -9,7 +9,7 @@ A survey row is a period when someone was responsible for the count. Three colum
 | Column | Values | Meaning |
 | --- | --- | --- |
 | `survey_complete` | `true` / `false` | `true`: every bird that passed during the interval is in `count.csv`. The normal case. `false`: someone was counting but birds are known to have passed uncounted (records lost or deleted, birds noted as missed). Rare. |
-| `weather_stop` | `true` / blank | `true`: weather (rain, fog, storm) made counting impossible over the whole interval. Always with `survey_complete = true`: no bird is assumed to pass, so its zeros are assumed, not observed. |
+| `weather_stop` | `true` / `false` | `true`: weather (rain, fog, storm) made counting impossible over the whole interval. Always with `survey_complete = true`: no bird is assumed to pass, so its zeros are assumed, not observed. |
 | `survey_comment` | text | A short note on the decision: why the interval is a weather stop or incomplete, what was cut out of it, or an assumption made. Not the observers' narrative, which stays in `remark` and `weather`. |
 
 Times nobody was counting are not survey rows: an absence (lunch, leaving early, arriving late) is cut out of the survey, and a day not monitored for a reason other than weather has no row. A missing date therefore says nothing; it is not a zero.

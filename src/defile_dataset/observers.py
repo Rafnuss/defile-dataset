@@ -59,8 +59,18 @@ def split_observers(text):
     return list(dict.fromkeys(names)), list(dict.fromkeys(unresolved))
 
 
-def compile_observers(effort, counts, publications, aliases, decisions=None):
-    """Return unique supplied identities, source evidence and unresolved extraction text."""
+# `name_decisions.csv` classes whose names are no person to list (shared with the paper).
+EXCLUDED_CLASSES = ["collective", "incomplete", "nickname", "combined"]
+# A name holding one of these is not a person: a code, a placeholder or a group.
+NOT_A_PERSON = r"[0-9©?$&]|\b(?:groupe|école|ecole|formation|classe|famille|club|LPO)\b"
+
+
+# A lone initial ("P.", "J"), cut from a name such as "P. & S. Martin", names no one.
+BARE_INITIAL = re.compile(r"^[^\W\d_]\.?$")
+
+
+def _alias_index(aliases):
+    """{name_key: preferred name} and the pattern that finds known full names run together."""
     alias_keys = aliases.alias.map(name_key)
     if alias_keys.duplicated().any():
         raise ValueError("Observer aliases must have unique normalized spellings.")
@@ -79,6 +89,50 @@ def compile_observers(effort, counts, publications, aliases, decisions=None):
     combined_names = re.compile(
         "|".join(re.escape(name) for name in sorted(full_aliases, key=len, reverse=True)), re.I
     )
+    return canonical, combined_names
+
+
+def _separate(names, combined_names):
+    """Split a fragment made only of known full names written together."""
+    separated = []
+    for name in names:
+        matches = combined_names.findall(name)
+        if len(matches) >= 2 and not combined_names.sub("", name).strip():
+            separated.extend(matches)
+        else:
+            separated.append(name)
+    return separated
+
+
+def released_observers(texts, aliases, decisions):
+    """Each attendance text as the people in it, for the survey table: names split as for the
+    inventory (`split_observers`), spelling aliases applied, then joined with ", ". Clocks,
+    symbols, groups, codes, placeholders such as "?" and the names `decisions` excludes are
+    left out; they stay in the inventory's review. No person found -> NA."""
+    canonical, combined_names = _alias_index(aliases)
+    excluded = set(
+        decisions.loc[decisions.classification.isin(EXCLUDED_CLASSES), "name_original"].map(
+            name_key
+        )
+    )
+
+    def people(text):
+        if pd.isna(text):
+            return pd.NA
+        names = []
+        for name in _separate(split_observers(str(text))[0], combined_names):
+            key = name_key(name)
+            if key in excluded or re.search(NOT_A_PERSON, name, re.I) or BARE_INITIAL.match(name):
+                continue
+            names.append(standard_observer_name(canonical.get(key, name)))
+        return ", ".join(dict.fromkeys(names)) or pd.NA
+
+    return texts.map(people)
+
+
+def compile_observers(effort, counts, publications, aliases, decisions=None):
+    """Return unique supplied identities, source evidence and unresolved extraction text."""
+    canonical, combined_names = _alias_index(aliases)
     evidence = publications.to_dict("records")
     review = []
     for frame, source, source_file, locator in (
@@ -97,14 +151,7 @@ def compile_observers(effort, counts, publications, aliases, decisions=None):
                 if source == "historical"
                 else f"{source_file}/Trektellen_headerdata_2422_{year}.xlsx"
             )
-            separated = []
-            for name in names:
-                matches = combined_names.findall(name)
-                if len(matches) >= 2 and not combined_names.sub("", name).strip():
-                    separated.extend(matches)
-                else:
-                    separated.append(name)
-            for name in separated:
+            for name in _separate(names, combined_names):
                 evidence.append(
                     dict(
                         name_original=name,
@@ -146,18 +193,14 @@ def compile_observers(effort, counts, publications, aliases, decisions=None):
         evidence.name_key.isin(canonical) & evidence.identity_status.ne("unresolved"),
         "identity_status",
     ] = "mapped_alias"
-    unparsed = evidence.name_original.str.contains(
-        r"[0-9©?$&]|\b(?:groupe|école|ecole|formation|classe|famille|club|LPO)\b",
-        case=False,
-        regex=True,
-    )
+    unparsed = evidence.name_original.str.contains(NOT_A_PERSON, case=False, regex=True)
     evidence.loc[unparsed, "observer_name"] = pd.NA
     evidence.loc[unparsed, "identity_status"] = "unparsed"
     if decisions is not None:
         reviewed = evidence.name_original.map(name_key).map(
             dict(zip(decisions.name_original.map(name_key), decisions.classification))
         )
-        excluded = reviewed.isin(["collective", "incomplete"])
+        excluded = reviewed.isin(EXCLUDED_CLASSES)
         evidence.loc[excluded, "observer_name"] = pd.NA
         evidence.loc[excluded, "identity_status"] = reviewed[excluded]
     evidence = evidence.drop(columns="name_key").drop_duplicates()
@@ -184,7 +227,7 @@ def compile_observers(effort, counts, publications, aliases, decisions=None):
                 text_original=row.context,
                 fragment=row.name_original,
                 reason="unparsed_name"
-                if row.identity_status in {"unparsed", "collective", "incomplete"}
+                if row.identity_status in {"unparsed", *EXCLUDED_CLASSES}
                 else "ocr_spelling"
                 if row.extraction == "ocr"
                 else "incomplete_identity"
@@ -202,7 +245,10 @@ def compile_observers(effort, counts, publications, aliases, decisions=None):
 
 
 def standard_observer_name(name):
-    """Use given-name/surname order and regular casing, preserving supplied accents."""
+    """Use given-name/surname order and regular casing, preserving supplied accents; a space
+    after an initial run into the surname ("T.Groo") and no final dot after a word."""
+    name = re.sub(r"\b([A-ZÀ-Ý])\.(?=[A-ZÀ-Ý][a-zà-ÿ])", r"\1. ", name)
+    name = re.sub(r"(?<=[a-zà-ÿ]{2})\.$", "", name)
     name = re.sub(r"^(.+) ([A-ZÀ-Ý](?:[.\-]?[A-ZÀ-Ý]){0,2}\.)$", r"\2 \1", name)
     words = name.split()
     first_given = next((i for i, word in enumerate(words) if not word.isupper()), 0)

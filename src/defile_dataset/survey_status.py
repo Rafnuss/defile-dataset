@@ -85,10 +85,10 @@ def complete_by_default(surveys):
 
 
 def release_status(survey):
-    """`survey` as released: `survey_complete` `true`/`false`, `weather_stop` `true` or blank."""
+    """`survey` as released: `survey_complete` and `weather_stop` `true`/`false`."""
     survey = survey.copy()
     survey["survey_complete"] = survey.survey_complete.map({True: "true", False: "false"})
-    survey["weather_stop"] = survey.weather_stop.map({True: "true", False: pd.NA})
+    survey["weather_stop"] = survey.weather_stop.map({True: "true", False: "false"})
     return survey
 
 

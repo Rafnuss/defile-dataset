@@ -34,6 +34,7 @@ def reader_dictionary(resource_names=("count", "survey", "taxonomy")):
     text = (
         "# Column definitions\n\nEvery column of the three tables, and the values allowed in "
         "coded columns. An empty cell means the value was not recorded; it is never a hidden zero."
+        " Every record is one line: a line break in the source text is written ` | `."
         " The same definitions are in `datapackage.json` (Frictionless Data format).\n"
     )
     for resource in package["resources"]:
@@ -249,6 +250,10 @@ def valid_iso(value, rule):
         return False
 
 
+# A `oneLine` text cell fails on a control character (line break, tab, ...) or surrounding space.
+ONE_LINE_BREAK = r"[\x00-\x1f\x7f\u2028\u2029]|^\s|\s$"
+
+
 def validate_package(path):
     """Validate CSV bytes with Frictionless, then evaluate the JSON's conditional rules."""
     path = Path(path)
@@ -270,6 +275,8 @@ def validate_package(path):
                         for value in field[~field.isin(missing)].unique()
                     }
                     failed = ~field.isin(missing) & field.map(valid).eq(False)
+                elif rule["kind"] == "oneLine":
+                    failed = ~field.isin(missing) & field.str.contains(ONE_LINE_BREAK, regex=True)
                 else:
                     when = rule["when"]
                     other = data[when["field"]]

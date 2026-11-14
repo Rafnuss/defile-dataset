@@ -83,6 +83,10 @@ TREKTELLEN_SURVEY_COLUMNS = {
     "changed": "changed",
     "changedby": "changed_by",
 }
+# Trektellen's header form writes 0 in these fields when they are left unanswered (0 °C on
+# 28 °C days, cloud base and visibility 0 while the text reports cirrus and 7 km): a 0 there
+# records nothing. Cloud cover and wind force 0 are real answers (clear sky, calm) and are kept.
+DEFAULT_ZERO_WEATHER = ("temperature", "cloud_height", "visibility")
 
 OBSERVATION_COLUMNS = [
     "observation_id",
@@ -419,6 +423,8 @@ def trektellen_tables(sightings: pd.DataFrame, counts: pd.DataFrame, taxonomy: T
     _audit_daylight(s, issues)
     _mark_overlaps(s)
     s = s.rename(columns=TREKTELLEN_SURVEY_COLUMNS)
+    for column in DEFAULT_ZERO_WEATHER:
+        s[column] = s[column].mask(pd.to_numeric(s[column], errors="coerce").eq(0))
 
     o = sightings.copy()
     o["source"] = "trektellen"

@@ -34,7 +34,7 @@ def package(tmp_path):
         },
         "report_text": {},
         "paper_text": {},
-        "taxonomy": {"taxon_id": "avibase-451D6FC8", "name": "Red Kite", "source_taxa": "[]"},
+        "taxonomy": {"taxon_id": "avibase-451D6FC8", "name": "Red Kite"},
     }
     for name, row in rows.items():
         pd.DataFrame(
@@ -64,7 +64,10 @@ def package(tmp_path):
         ("survey", "recording_era", "unknown"),
         ("survey", "survey_complete", "partial"),
         ("survey", "survey_complete", ""),
-        ("taxonomy", "source_taxa", "not-json"),
+        ("count", "remark", "two\nlines"),
+        ("count", "remark", "ends with a break\n"),
+        ("survey", "observers", "A. Name\tB. Name"),
+        ("survey", "remark", " leading space"),
     ],
 )
 def test_invalid_csv_rejected(package, table, field, value):

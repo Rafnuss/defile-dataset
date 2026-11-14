@@ -3,7 +3,13 @@
 import pandas as pd
 import pytest
 
-from defile_dataset.remark_text import clean_text, convert_remark_text, timing_phrase
+from defile_dataset.remark_text import (
+    TRIM_NOTE,
+    apply_text_trims,
+    clean_text,
+    convert_remark_text,
+    timing_phrase,
+)
 
 
 def records(remark, age=None, datetime="2024-11-04"):
@@ -157,3 +163,28 @@ def test_combined_age_preserves_label_while_extracting_event_clock():
     assert result.remark.iloc[0] == "> 1 an"
     assert result.datetime.iloc[0] == "2024-11-04T11:00:00Z"
     assert audit.converted.iloc[0] == "age, datetime"
+
+
+def test_reviewed_trims_shorten_filler_and_note_it():
+    survey = pd.DataFrame(
+        dict(
+            survey_id=["T1", "T2", "T3"],
+            remark=["Lalalalala", "Matin : héron héron héron héron héron. Fin.", "Rien."],
+            remark_processing=[pd.NA, "Earlier note.", pd.NA],
+        )
+    )
+    trims = pd.DataFrame(
+        dict(
+            survey_id=["T1", "T2"],
+            field=["remark", "remark"],
+            find=["Lalalalala", "héron héron héron héron héron."],
+            replace=["", "héron héron héron…"],
+            reason=["", ""],
+        )
+    )
+    out = apply_text_trims(survey, trims)
+    assert pd.isna(out.remark[0]) and out.remark[1] == "Matin : héron héron héron… Fin."
+    assert out.remark_processing[1] == "Earlier note. " + TRIM_NOTE
+    assert out.remark[2] == "Rien." and pd.isna(out.remark_processing[2])
+    with pytest.raises(ValueError, match="not found exactly once"):
+        apply_text_trims(survey.assign(remark="changed"), trims)

@@ -9,7 +9,7 @@ import pytest
 from defile_dataset import build as B
 from defile_dataset.checks import run_checks
 from defile_dataset.read import local_to_utc, trektellen_years
-from defile_dataset.release_tables import release_count, release_survey
+from defile_dataset.release_tables import one_line, release_count, release_survey, release_taxonomy
 from defile_dataset.site import TIMEZONE, civil_twilight
 from defile_dataset.taxonomy import AVILIST_VERSION, Taxonomy, resolve
 
@@ -461,9 +461,11 @@ def test_consolidated_tables_preserve_precision_keys_and_direction_counts():
     for resource in descriptor()["resources"]:
         if resource["name"] not in ("count", "survey", "taxonomy"):
             continue
-        table = {"count": released, "survey": release_survey(survey), "taxonomy": taxa}[
-            resource["name"]
-        ]
+        table = {
+            "count": released,
+            "survey": release_survey(survey),
+            "taxonomy": release_taxonomy(taxa),
+        }[resource["name"]]
         assert [field["name"] for field in resource["schema"]["fields"]] == table.columns.drop(
             "source_count_id", errors="ignore"
         ).tolist()
@@ -833,3 +835,18 @@ def test_taxonomy_tree_totals_sum_up_the_hierarchy():
         10,
     ]
     assert "group sp." in tree_section(taxa, count)
+
+
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        ("[Nos Oiseaux 1996-I] Début.\n\nSuite.", "[Nos Oiseaux 1996-I] Début. | Suite."),
+        ("A => 9h15\r\nJ; B", "A => 9h15 | J; B"),
+        ("Sati\tBoulicot,  Christine\u00a0X ", "Sati Boulicot, Christine X"),
+        ("e\u0301te\u200b", "\u00e9te"),
+        ("   ", pd.NA),
+        (3, 3),
+    ],
+)
+def test_one_line_writes_text_cells_on_one_line(value, expected):
+    assert one_line(value) is expected or one_line(value) == expected

@@ -177,3 +177,28 @@ def convert_remark_text(count, survey):
             "review_note",
         ],
     )
+
+
+# Added to `remark_processing` of a record whose text `apply_text_trims` shortened.
+TRIM_NOTE = "Remark shortened: repeated filler removed; the rest is as written."
+
+
+def apply_text_trims(table, trims):
+    """`table` (one row per `survey_id`) with the reviewed trims of
+    `config/text/remark-trims.csv`: each `find` is replaced by `replace` in that survey's
+    `field`. A trim whose survey or text is not found exactly once stops the build, so a changed
+    source is reviewed again rather than trimmed blindly."""
+    out = table.copy()
+    for row in trims.itertuples():
+        rows = out.index[out.survey_id.eq(row.survey_id)]
+        text = out.at[rows[0], row.field] if len(rows) == 1 else pd.NA
+        if pd.isna(text) or str(text).count(row.find) != 1:
+            raise ValueError(
+                f"{row.survey_id}.{row.field}: the text to trim is not found exactly once;"
+                " review config/text/remark-trims.csv."
+            )
+        out.at[rows[0], row.field] = str(text).replace(row.find, row.replace).strip() or pd.NA
+    trimmed = out.survey_id.isin(trims.survey_id)
+    note = out.loc[trimmed, "remark_processing"].fillna("")
+    out.loc[trimmed, "remark_processing"] = (note + " " + TRIM_NOTE).str.strip()
+    return out

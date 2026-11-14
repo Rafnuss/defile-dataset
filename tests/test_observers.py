@@ -1,7 +1,12 @@
 import pandas as pd
 import pytest
 
-from defile_dataset.observers import compile_observers, name_key, split_observers
+from defile_dataset.observers import (
+    compile_observers,
+    name_key,
+    released_observers,
+    split_observers,
+)
 
 
 def test_attendance_clocks_and_shared_surname():
@@ -220,3 +225,31 @@ def test_collectives_and_missing_surnames_stay_in_evidence_only():
     )
     assert names.observer_name.tolist() == ["Jean Bisetti"]
     assert {"Nos Oiseaux", "CPN Poissy", "Jacques (BE)"}.issubset(set(evidence.name_original))
+
+
+def test_released_observers_keep_people_only():
+    aliases = pd.DataFrame(
+        dict(alias=["J-P. Matérac"], observer_name=["Jean-Pierre Matérac"], note=[""])
+    )
+    decisions = pd.DataFrame(
+        dict(name_original=["Nos Oiseaux"], classification=["collective"], note=[""])
+    )
+    out = released_observers(
+        pd.Series(
+            [
+                "J-P. Matérac | J-P. Matérac,T Green | J-P. Matérac,T Green,E Gfeller",
+                "A. Name => 9h15-18h15; B. Other (10h-12h)",
+                "Ana Ruiz, Groupe Ornithologique de Gex, Formation Ornitho BirdLife - Nos Oiseaux",
+                "?",
+                "P. & S. Martin",
+                pd.NA,
+            ]
+        ),
+        aliases,
+        decisions,
+    )
+    assert out.iloc[0] == "Jean-Pierre Matérac, T Green, E Gfeller"
+    assert out.iloc[1] == "A. Name, B. Other"
+    assert out.iloc[2] == "Ana Ruiz"
+    assert out.iloc[4] == "S. Martin"
+    assert out.iloc[[3, 5]].isna().all()

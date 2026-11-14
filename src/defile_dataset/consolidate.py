@@ -227,7 +227,8 @@ def consolidate(ds, taxonomy, components=None):
     taxa["systematic_count_start_year"] = taxa.taxon_id.map(taxonomy.systematic_starts).astype(
         "Int64"
     )
-    taxa = taxa.reindex(columns=TAXONOMY_COLUMNS)
+    # The source-name crosswalk is kept for the build's checks; the release leaves it out.
+    taxa = taxa.reindex(columns=TAXONOMY_COLUMNS + ["source_taxa"])
     count.attrs["taxonomy_review"] = o.attrs.get("taxonomy_review", [])
     count.attrs["movement_review"] = o.attrs.get("movement_review", [])
     return (

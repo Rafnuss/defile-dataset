@@ -100,6 +100,8 @@ Additional rules (declared in the descriptor):
 - `count`: A number is required unless count_estimation is presence.
 - `count`: A presence row has no number.
 - `datetime`: A valid ISO date, UTC time or increasing UTC interval.
+- `remark`: `remark` is one line of text: no line break, tab or other control character, no leading or trailing space.
+- `remark_processing`: `remark_processing` is one line of text: no line break, tab or other control character, no leading or trailing space.
 
 ### survey.csv
 
@@ -113,17 +115,17 @@ Primary key: `survey_id`. Missing-value tokens: `[""]` (an empty string means an
 | datetime | string | Yes | pattern: "[0-9]{4}-(0[1-9]&#124;1[0-2])-(0[1-9]&#124;[12][0-9]&#124;3[01])T([01][0-9]&#124;2[0-3]):[0-5][0-9](:[0-5][0-9](\\.[0-9]+)?)?(Z&#124;\\+00:00)/[0-9]{4}-(0[1-9]&#124;1[0-2])-(0[1-9]&#124;[12][0-9]&#124;3[01])T([01][0-9]&#124;2[0-3]):[0-5][0-9](:[0-5][0-9](\\.[0-9]+)?)?(Z&#124;\\+00:00)" | Start and end of the survey in UTC, as an ISO 8601 interval (`start/end`). For a whole-day weather stop with no recorded hours, the interval is the local calendar day; it is not counting time. |
 | recording_era | string | Yes | enum: ["notebook", "spreadsheet", "naturalist", "trektellen", "curated"] | How the counts were recorded: `notebook` (1966-2013, daily totals), `spreadsheet` (2014-2016, mostly hourly), `naturalist` (2017-2021, NaturaList entries), `trektellen` (2022 onward, trektellen.org), or `curated` (a weather stop added from the reports, outside the recorded surveys). |
 | survey_complete | boolean | Yes | — | `true`: every bird that passed during this survey is in `count.csv`. `false`: birds are known to have passed uncounted (records lost, birds missed); `survey_comment` says why. It describes this interval only, not the whole day. |
-| weather_stop | boolean | No | — | `true`: the weather (rain, fog, storm) made counting impossible during the whole interval. No bird is assumed to have passed; no count is linked to it. Exclude these intervals from counting hours. Empty otherwise. |
+| weather_stop | boolean | No | — | `true`: the weather (rain, fog, storm) made counting impossible during the whole interval. No bird is assumed to have passed; no count is linked to it. Exclude these intervals from counting hours. `false` otherwise. |
 | survey_comment | string | Conditional | — | Why a survey is incomplete or a weather stop, or what was assumed when the interval was rebuilt. Written during processing; observers' own words are in `remark` and `weather`. |
-| observers | string | No | — | Observers' names or initials as recorded, sometimes with their hours. |
+| observers | string | No | — | The people present, comma-separated: names or initials as recorded, with reviewed spelling variants merged. Attendance hours, groups and unreadable fragments are left out. |
 | weather | string | No | — | Weather as described by the observers. |
-| temperature | number | No | — | Temperature in °C. A 0 may be a default value of the recording form rather than a measurement. |
+| temperature | number | No | — | Temperature in °C. Trektellen's form writes 0 when the field is left unanswered, so a Trektellen 0 is left empty. |
 | wind_speed_bft | integer | No | minimum: 0; maximum: 12 | Wind speed on the Beaufort scale, 0 (calm) to 12. Empty: not recorded. |
 | wind_direction | string | No | enum: ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW", "variable"] | Direction the wind blows from (16-point compass), or `variable`. |
 | cloud_cover | integer | No | minimum: 0; maximum: 8 | Cloud cover in eighths (oktas): 0 clear sky, 8 overcast. Empty: not recorded. |
-| cloud_height | number | No | minimum: 0 | Cloud height as entered on Trektellen; the unit is not confirmed. |
+| cloud_height | number | No | minimum: 0 | Cloud height as entered on Trektellen; the unit is not confirmed. Trektellen's form writes 0 when the field is left unanswered, so a 0 is left empty. |
 | precipitation | string | No | enum: ["none", "rain", "fog"] | Rain or fog as recorded. Empty means not recorded; only `none` says there was none. |
-| visibility | number | No | minimum: 0 | Visibility in metres. A 0 may be a default value of the recording form rather than a measurement. |
+| visibility | number | No | minimum: 0 | Visibility in metres. Trektellen's form writes 0 when the field is left unanswered, so a Trektellen 0 is left empty. |
 | remark | string | No | — | Observers' comments on the survey. |
 | remark_processing | string | No | — | Note added during processing. Not written by the observers. |
 | trektellen_count_id | integer | No | minimum: 1 | Identifier of the survey on trektellen.org (2022 onward), for tracing it to the source. |
@@ -164,6 +166,11 @@ Additional rules (declared in the descriptor):
 - `survey_complete`: A weather stop is a complete count with no bird.
 - `survey_comment`: A weather stop says why in survey_comment.
 - `survey_comment`: An incomplete survey says why in survey_comment.
+- `survey_comment`: `survey_comment` is one line of text: no line break, tab or other control character, no leading or trailing space.
+- `observers`: `observers` is one line of text: no line break, tab or other control character, no leading or trailing space.
+- `weather`: `weather` is one line of text: no line break, tab or other control character, no leading or trailing space.
+- `remark`: `remark` is one line of text: no line break, tab or other control character, no leading or trailing space.
+- `remark_processing`: `remark_processing` is one line of text: no line break, tab or other control character, no leading or trailing space.
 
 ### taxonomy.csv
 
@@ -184,7 +191,6 @@ Primary key: `taxon_id`. Missing-value tokens: `[""]` (an empty string means an 
 | taxonomy_source | string | No | — | Checklist and version that gave the scientific name. |
 | ebird_code | string | No | — | eBird species code, when there is one. |
 | trektellen_species_id | string | No | pattern: "[1-9][0-9]*(,[1-9][0-9]*)*" | Trektellen species identifier(s), comma-separated; empty for taxa only in the historical records. |
-| source_taxa | array | Yes | — | The names used in the original records for this taxon (JSON list), with Trektellen identifiers and notes on how each was matched. |
 
 ### report_text.csv
 

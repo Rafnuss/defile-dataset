@@ -254,9 +254,9 @@ def test_weather_after_the_header_is_a_curated_row(tmp_path):
     ] == "Rain after the session." and count.survey_id.tolist() == ["T1"]
 
 
-def test_release_writes_true_false_and_blank():
+def test_release_writes_true_and_false():
     out = release_status(
         pd.DataFrame(dict(survey_complete=[True, False, True], weather_stop=[False, False, True]))
     )
     assert out.survey_complete.tolist() == ["true", "false", "true"]
-    assert out.weather_stop.isna().tolist() == [True, True, False]
+    assert out.weather_stop.tolist() == ["false", "false", "true"]

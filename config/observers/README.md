@@ -1,6 +1,6 @@
 # Observer names
 
-The standard build writes `output/observers/names.csv`, `evidence.csv` and `review.csv`. This supplementary inventory sits alongside the five scientific tables. Native attendance text is preserved in the survey table.
+The standard build writes `output/observers/names.csv`, `evidence.csv` and `review.csv`. This supplementary inventory sits alongside the five scientific tables. The survey table's `observers` lists only the people the same parser finds (`released_observers`): aliases applied, attendance clocks, groups, codes and placeholders such as `?` left out; those fragments stay in `review.csv`.
 
 `raw/reports/observers.csv` is the saved historical publication extract: one supplied name per source, with local PDF path, one-based PDF page number, publication year, context and extraction method. It is editable and does not require the local PDFs, Poppler or OCR during a build. Publication years describe the source, not necessarily the years a person observed. Participants are retained; photographers, cited researchers, funders and groups are excluded unless also explicitly listed as observers.
 
@@ -12,7 +12,7 @@ New Trektellen names enter the list automatically when new paired exports are re
 
 `names.csv` has one row per resolved or supplied name, its original variants, source types, first/last source years, number of evidence rows and identity status. `supplied_name` means a name was supplied, not that the person's identity has been independently verified. `unresolved` marks initials or a single name; `mapped_alias` marks an explicit crosswalk. `evidence_rows` counts distinct source/name/context rows, not visits or observer effort. `evidence.csv` preserves the attribution behind every name. `review.csv` lists unparsed attendance text, incomplete identities, unmapped names and OCR spellings. Review rows do not block scientific count processing.
 
-Historical extraction initially used only the workbook's `Pression observation` observer field; the additional historical review described below extends this coverage. Trektellen extraction uses header `observers`, not numeric headcounts or account names (`createdby`/`changedby`). Free-text bird remarks are not mined indiscriminately for names, because citations and named people do not necessarily identify observers. Attendance clocks are removed only from the inventory; supplied clocks remain in the original data. Unparsed fragments are retained for review.
+Historical extraction initially used only the workbook's `Pression observation` observer field; the additional historical review described below extends this coverage. Trektellen extraction uses header `observers`, not numeric headcounts or account names (`createdby`/`changedby`). Free-text bird remarks are not mined indiscriminately for names, because citations and named people do not necessarily identify observers. Attendance clocks are removed from the inventory and from the released `observers`; they remain in the source workbook and exports. Unparsed fragments are retained for review.
 
 Run `uv run python scripts/build_dataset.py` after editing either input. Outputs and their input hashes are recorded in `output/audit/metadata.json` and published only when the existing build checks pass.
 

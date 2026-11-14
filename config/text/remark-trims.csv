@@ -1,0 +1,7 @@
+survey_id,field,find,replace,reason
+T-20260820-0641,remark,Lalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalalala,,The remark is a single repeated syllable (480 characters) and records nothing.
+T-20260923-0724,remark,cormoran cormoran cormoran cormoran comorans cormoran cormoran Cigogne,cormoran cormoran cormoran… Cigogne,Repeated filler shortened; the rest of the remark is kept as written.
+T-20260923-0724,remark,!!!!! cormoran cormoran cormoran cormoran cormoran Résumé,!!!!! cormoran cormoran cormoran… Résumé,Repeated filler shortened; the rest of the remark is kept as written.
+T-20260923-0724,remark,lalalalalalalalalalalallalallalallalalalalalala Héron,lalala… Héron,Repeated filler shortened; the rest of the remark is kept as written.
+T-20260923-0724,remark,Héron héron héron héron héron héron héron héron héron héron héron héron aigrette héron héron héron héron.,Héron héron héron… aigrette héron héron héron…,Repeated filler shortened; the rest of the remark is kept as written.
+T-20260929-0732,remark,treeeeeeeeeeeeeeeeeeees,treeees,Repeated filler shortened; the rest of the remark is kept as written.

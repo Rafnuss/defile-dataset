@@ -8,7 +8,7 @@ The decisions adopted on 12 October 2026 are: 1993 for the individually treated 
 
 **Rook 1996 remains uncertain:** the 2020 paper says raw data were unavailable for an historical average despite reporting a positive minimum that year. Its start year remains 1993; treat 1996 missing records cautiously pending reconciliation. A start-year column cannot encode this isolated exception.
 
-The released tables contain birds only. `taxon_id` is the Avibase concept ID; `trektellen_species_id` is an optional comma-separated list of distinct native IDs. `source_taxa` preserves the source-label crosswalk as JSON. Internal `kind` remains in the audit/source mapping for filtering, but is absent from released taxonomy.csv.
+The released tables contain birds only. `taxon_id` is the Avibase concept ID; `trektellen_species_id` is an optional comma-separated list of distinct native IDs. The source-label crosswalk (`source_taxa`, JSON) is kept in the build and this repository (`taxonomy/source_taxa.csv`), not in the released taxonomy.csv. Internal `kind` remains in the audit/source mapping for filtering, but is absent from released taxonomy.csv.
 
 The pinned AviList **v2026 extended checklist** (20 October 2026) supplies released names, ranks and higher taxonomy first; eBird/Clements **v2026 integrated checklist** (October 2026) fills missing concepts or fields and supplies eBird codes. It does not supply French common names. Historical French names below are actual source names, not translated eBird names. Trektellen English names come from the mapping and are checked against observed export labels in `interim/diagnostics/taxonomy/taxonomy-review.csv` (written by a local review script). No French equivalents or alternative taxon IDs have been invented. The CSV includes all source rows for these cases, even source labels with no observations in the current export.
 
@@ -53,7 +53,7 @@ These are comparisons against the complete pinned checklist, not assumptions abo
 
 Exact available slash mappings (e.g. Common/Lesser Kestrel, Lesser/Greater Spotted Eagle, Tree/Olive-backed Pipit and Common/Pallid Swift) remain exact. Ordinary French and English synonyms for one species are not treated as lost distinctions.
 
-The `source_taxa` array documents the variants of a concept, but cannot identify which variant belongs to an individual count once variants share a taxon_id. Original labels and native species IDs remain in interim/processed/observations.csv; the released count table has only its current count_id. We keep the requested simple count schema; re-export to eBird does not recover more precise identities from a broad group automatically. Annual PDF totals remain independent evidence.
+The source-label crosswalk documents the variants of a concept, but cannot identify which variant belongs to an individual count once variants share a taxon_id. Original labels and native species IDs remain in interim/processed/observations.csv; the released count table has only its current count_id. We keep the requested simple count schema; re-export to eBird does not recover more precise identities from a broad group automatically. Annual PDF totals remain independent evidence.
 
 ## No-species entries and exclusions
 

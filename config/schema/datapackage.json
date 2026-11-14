@@ -485,6 +485,16 @@
           "orderedInterval": true,
           "description": "A valid ISO date, UTC time or increasing UTC interval.",
           "requireUTC": true
+        },
+        {
+          "kind": "oneLine",
+          "field": "remark",
+          "description": "`remark` is one line of text: no line break, tab or other control character, no leading or trailing space."
+        },
+        {
+          "kind": "oneLine",
+          "field": "remark_processing",
+          "description": "`remark_processing` is one line of text: no line break, tab or other control character, no leading or trailing space."
         }
       ]
     },
@@ -543,7 +553,7 @@
           {
             "name": "weather_stop",
             "type": "boolean",
-            "description": "`true`: the weather (rain, fog, storm) made counting impossible during the whole interval. No bird is assumed to have passed; no count is linked to it. Exclude these intervals from counting hours. Empty otherwise.",
+            "description": "`true`: the weather (rain, fog, storm) made counting impossible during the whole interval. No bird is assumed to have passed; no count is linked to it. Exclude these intervals from counting hours. `false` otherwise.",
             "constraints": {
               "required": false
             }
@@ -556,7 +566,7 @@
           {
             "name": "observers",
             "type": "string",
-            "description": "Observers' names or initials as recorded, sometimes with their hours.",
+            "description": "The people present, comma-separated: names or initials as recorded, with reviewed spelling variants merged. Attendance hours, groups and unreadable fragments are left out.",
             "constraints": {
               "required": false
             }
@@ -572,7 +582,7 @@
           {
             "name": "temperature",
             "type": "number",
-            "description": "Temperature in °C. A 0 may be a default value of the recording form rather than a measurement.",
+            "description": "Temperature in °C. Trektellen's form writes 0 when the field is left unanswered, so a Trektellen 0 is left empty.",
             "constraints": {
               "required": false
             },
@@ -702,7 +712,7 @@
           {
             "name": "cloud_height",
             "type": "number",
-            "description": "Cloud height as entered on Trektellen; the unit is not confirmed.",
+            "description": "Cloud height as entered on Trektellen; the unit is not confirmed. Trektellen's form writes 0 when the field is left unanswered, so a 0 is left empty.",
             "constraints": {
               "required": false,
               "minimum": 0
@@ -740,7 +750,7 @@
           {
             "name": "visibility",
             "type": "number",
-            "description": "Visibility in metres. A 0 may be a default value of the recording form rather than a measurement.",
+            "description": "Visibility in metres. Trektellen's form writes 0 when the field is left unanswered, so a Trektellen 0 is left empty.",
             "constraints": {
               "required": false,
               "minimum": 0
@@ -820,6 +830,31 @@
             "equals": "false"
           },
           "description": "An incomplete survey says why in survey_comment."
+        },
+        {
+          "kind": "oneLine",
+          "field": "survey_comment",
+          "description": "`survey_comment` is one line of text: no line break, tab or other control character, no leading or trailing space."
+        },
+        {
+          "kind": "oneLine",
+          "field": "observers",
+          "description": "`observers` is one line of text: no line break, tab or other control character, no leading or trailing space."
+        },
+        {
+          "kind": "oneLine",
+          "field": "weather",
+          "description": "`weather` is one line of text: no line break, tab or other control character, no leading or trailing space."
+        },
+        {
+          "kind": "oneLine",
+          "field": "remark",
+          "description": "`remark` is one line of text: no line break, tab or other control character, no leading or trailing space."
+        },
+        {
+          "kind": "oneLine",
+          "field": "remark_processing",
+          "description": "`remark_processing` is one line of text: no line break, tab or other control character, no leading or trailing space."
         }
       ]
     },
@@ -921,14 +956,6 @@
             "constraints": {
               "required": false,
               "pattern": "[1-9][0-9]*(,[1-9][0-9]*)*"
-            }
-          },
-          {
-            "name": "source_taxa",
-            "type": "array",
-            "description": "The names used in the original records for this taxon (JSON list), with Trektellen identifiers and notes on how each was matched.",
-            "constraints": {
-              "required": true
             }
           }
         ],
@@ -1318,7 +1345,7 @@
   "x-licenseScope": "CC-BY-4.0 is the intended licence for first-party structured observation data, taxonomy mappings, metadata and documentation in the public research release and for the Event/Occurrence export to GBIF. It does not license report_text.csv or paper_text.csv, which contain curated excerpts from third-party reports and papers and remain subject to their source rights unless permission is obtained. This licence statement is a release plan pending confirmation that the relevant data rights-holders authorize publication under CC-BY-4.0.",
   "temporal_semantics": "Clock instants and interval endpoints are UTC (canonical Z). Date-only counts retain the collection calendar date in Europe/Paris. For daily aggregation, convert instants to Europe/Paris before selecting the date.",
   "description": "Bird migration counts, survey intervals and their completeness/weather-stop decisions, taxonomy, and curated annual-report and Nos Oiseaux paper prose at Défilé de l’Écluse.",
-  "x-schemaVersion": "five-tables-released-words-v16",
+  "x-schemaVersion": "five-tables-released-words-v17",
   "x-recordingEras": {
     "notebook": "Historical sheet 1966-2013; digitised daily records; original recording medium not confirmed for every row.",
     "spreadsheet": "Historical sheet 2014-2016; mainly hourly forms with some daily records.",

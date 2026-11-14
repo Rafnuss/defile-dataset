@@ -39,7 +39,7 @@ from defile_dataset.consolidate import (  # noqa: E402
     validate_tables,
 )
 from defile_dataset.identities import readable_ids
-from defile_dataset.observers import acknowledgement_names, compile_observers
+from defile_dataset.observers import acknowledgement_names, compile_observers, released_observers
 from defile_dataset.package import (  # noqa: E402
     descriptor,
     generate_docs,
@@ -47,8 +47,8 @@ from defile_dataset.package import (  # noqa: E402
     write_full_descriptor,
 )
 from defile_dataset.reconcile import compare_report_totals  # noqa: E402
-from defile_dataset.release_tables import release_count, release_survey
-from defile_dataset.remark_text import convert_remark_text
+from defile_dataset.release_tables import release_count, release_survey, release_taxonomy
+from defile_dataset.remark_text import apply_text_trims, convert_remark_text
 from defile_dataset.report import render  # noqa: E402
 from defile_dataset.site import TIMEZONE
 from defile_dataset.source_text import CLOCK_TEXT
@@ -88,6 +88,10 @@ def _git(*args) -> str:
         return ""
 
 
+# Reviewed shortenings of filler in survey remarks (see the file's `reason` column).
+TEXT_TRIMS_FILE = "config/text/remark-trims.csv"
+
+
 def _write_csv(df, path: str) -> None:
     tmp = path + ".tmp"
     df.to_csv(tmp, index=False, encoding="utf-8-sig")
@@ -112,6 +116,12 @@ def main(argv=None) -> int:
     hist = read.read_historical(RAW_DIR)
     effort = read.read_effort(RAW_DIR)
     sightings, counts = read.read_trektellen(RAW_DIR)
+    observer_aliases = pd.read_csv(
+        os.path.join(ROOT, "config/observers/name_aliases.csv"), keep_default_na=False
+    )
+    observer_decisions = pd.read_csv(
+        os.path.join(ROOT, "config/observers/name_decisions.csv"), keep_default_na=False
+    )
     observer_names, observer_evidence, observer_review = compile_observers(
         effort,
         counts,
@@ -127,12 +137,8 @@ def main(argv=None) -> int:
             ],
             ignore_index=True,
         ),
-        pd.read_csv(
-            os.path.join(ROOT, "config/observers/name_aliases.csv"), keep_default_na=False
-        ),
-        pd.read_csv(
-            os.path.join(ROOT, "config/observers/name_decisions.csv"), keep_default_na=False
-        ),
+        observer_aliases,
+        observer_decisions,
     )
     print(f"  Observer names: {len(observer_names)}; review entries: {len(observer_review)}.")
     taxonomy_rules = pd.read_csv(
@@ -228,11 +234,18 @@ def main(argv=None) -> int:
     ]
     for folder in (dataset_dir, text_dir, audit_dir, processed_dir, derived_dir, diagnostic_dir):
         os.makedirs(folder, exist_ok=True)
+    survey_table["observers"] = released_observers(
+        survey_table.observers, observer_aliases, observer_decisions
+    )
+    survey_table = apply_text_trims(
+        survey_table,
+        pd.read_csv(os.path.join(ROOT, TEXT_TRIMS_FILE), keep_default_na=False),
+    )
     released_count = release_count(count_table, survey_table)
     for name, data in (
         ("count", released_count),
         ("survey", release_survey(release_status(survey_table))),
-        ("taxonomy", taxon_table),
+        ("taxonomy", release_taxonomy(taxon_table)),
         ("report_text", text_table),
         ("paper_text", paper_text_table),
     ):
@@ -646,6 +659,7 @@ def main(argv=None) -> int:
                 "config/observers/name_aliases.csv",
                 "config/observers/name_decisions.csv",
                 "config/observers/README.md",
+                TEXT_TRIMS_FILE,
                 "raw/reports/report_text.csv",
                 "raw/reports/paper_text.csv",
                 "raw/reports/annual-totals.csv",
